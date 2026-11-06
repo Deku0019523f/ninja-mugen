@@ -56,9 +56,11 @@ export class Fighter {
   }
 
   // ---------------------------------------------------------- frame
+  feed(inp, frozen = false) { for (const b of BTN) this.buf[b] = inp[b] ? 8 : frozen ? this.buf[b] : Math.max(0, this.buf[b] - 1); }
+
   update(w, inp) {
     this.t++;
-    for (const b of BTN) this.buf[b] = inp[b] ? 7 : Math.max(0, this.buf[b] - 1);
+    this.feed(inp);
     if (this.invuln > 0) this.invuln--;
     if (this.chainT > 0 && --this.chainT === 0) this.chain = 0;
     this.fx = null;
@@ -95,8 +97,9 @@ export class Fighter {
     if (this.take('super', 50)) return this.startMove('super');
     if (this.take('move2', 15)) return this.startMove('move2');
     if (this.take('special', 10)) return this.startMove('special');
-    if (this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
-    if (this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
+    if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
+    if (this.buf.punch > 0 && this.buf.punch <= 5 && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
+    if (this.buf.kick > 0 && this.buf.kick <= 5 && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
 
     const back = dir !== 0 && dir !== this.face;
     if (inp.d || (back && w.threatNear(this))) { this.go('block'); this.vx *= 0.6; return; }
@@ -128,6 +131,7 @@ export class Fighter {
     if (!m) return this.free();
     if (t === m.su) {
       if (m.hop) this.vy = m.hop;
+      if (m.adv && this.y <= 0) this.vx += this.face * m.adv;
       if (m.onFire) m.onFire(this, w);
       if (m.snd) w.event({ t: 'swing', x: this.x, snd: m.snd });
     }
@@ -142,10 +146,18 @@ export class Fighter {
       if (m.onLand) m.onLand(this, w);
       this.t = m.su + m.ac;
     }
-    // cancels (enchaînements) après un coup au but
+    // annulations : après un coup au but, on enchaîne avec un AUTRE bouton
     if (this.connected && !m.special && !m.super && !m.landEnds && !m.beam && t >= m.su + 1) {
-      if (m.chain && this.buf.punch > 0) { this.buf.punch = 0; this.startMove(m.chain); return; }
-      if (MOVES[m.id] && this.buf.special > 0 && this.chi >= 10) { this.buf.special = 0; this.startMove('special'); return; }
+      const B = this.buf, ground = this.y <= 0;
+      if (ground && B.super > 0 && this.chi >= 50) { B.super = 0; return void this.startMove('super'); }
+      if (ground && B.move2 > 0 && this.chi >= 15) { B.move2 = 0; return void this.startMove('move2'); }
+      if (B.special > 0 && this.chi >= 10) { B.special = 0; return void this.startMove('special'); }
+      if (ground && m.id !== 'smash' && B.punch > 0 && B.kick > 0) { B.punch = B.kick = 0; return void this.startMove('smash'); }
+      const c = m.cancels;
+      if (c) {
+        if (B.punch > 0 && c.punch) { B.punch = 0; return void this.startMove(c.punch); }
+        if (B.kick > 0 && c.kick) { B.kick = 0; return void this.startMove(c.kick); }
+      }
     }
     if (this.t >= m.su + m.ac + m.re) this.endMove();
   }

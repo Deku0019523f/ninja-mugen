@@ -53,7 +53,7 @@ export class World {
   }
 
   update(inputs) {
-    if (this.hitstop > 0) { this.hitstop--; return false; }
+    if (this.hitstop > 0) { this.hitstop--; for (const f of this.fighters) f.feed(inputs[f.slot] || NOIN, true); return false; }
     this.frame++;
     for (const f of this.fighters) f.update(this, inputs[f.slot] || NOIN);
     this.updateProjs();

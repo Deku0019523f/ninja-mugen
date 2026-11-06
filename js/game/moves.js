@@ -8,19 +8,20 @@ import { ARCH } from '../data/roster.js';
 export const BTN = ['punch', 'kick', 'special', 'move2', 'super'];
 
 export const MOVES = {
-  punch1: { pose: 'punch', su: 4, ac: 3, re: 9, dmg: 32, ox: 6, rx: 46, y0: 30, y1: 64, kb: 2.4, stun: 16, chain: 'punch2', gain: 4, snd: 'punch' },
-  punch2: { pose: 'punch2', su: 4, ac: 3, re: 9, dmg: 36, ox: 6, rx: 46, y0: 30, y1: 64, kb: 2.6, stun: 16, chain: 'punch3', gain: 4, snd: 'punch' },
-  punch3: { pose: 'punch3', su: 6, ac: 4, re: 16, dmg: 54, ox: 6, rx: 54, y0: 26, y1: 66, kb: 5, stun: 22, launch: { vx: 3.2, vy: 4.5 }, gain: 6, snd: 'kick' },
-  kick: { pose: 'kick', su: 9, ac: 4, re: 15, dmg: 62, ox: 10, rx: 64, y0: 18, y1: 58, kb: 6, stun: 22, launch: { vx: 4, vy: 3 }, gain: 6, snd: 'kick' },
+  punch1: { pose: 'punch', su: 4, ac: 3, re: 9, dmg: 32, ox: 6, rx: 46, y0: 30, y1: 64, kb: 1.5, adv: 2.6, stun: 18, cancels: { punch: 'punch2', kick: 'kick' }, gain: 4, snd: 'punch' },
+  punch2: { pose: 'punch2', su: 4, ac: 3, re: 9, dmg: 36, ox: 6, rx: 46, y0: 30, y1: 64, kb: 1.7, adv: 2.6, stun: 17, cancels: { punch: 'punch3', kick: 'kick' }, gain: 4, snd: 'punch' },
+  punch3: { pose: 'punch3', su: 6, ac: 4, re: 16, dmg: 54, ox: 6, rx: 54, y0: 26, y1: 66, kb: 5, adv: 3, stun: 22, launch: { vx: 3.2, vy: 4.5 }, gain: 6, snd: 'kick' },
+  kick: { pose: 'kick', adv: 3, su: 9, ac: 4, re: 15, dmg: 62, ox: 10, rx: 64, y0: 18, y1: 58, kb: 6, stun: 22, launch: { vx: 4, vy: 3 }, gain: 6, snd: 'kick' },
   sweep: { pose: 'sweep', su: 7, ac: 5, re: 17, dmg: 46, ox: 10, rx: 66, y0: 0, y1: 16, launch: { vx: 2.5, vy: 6 }, gain: 5, snd: 'kick' },
   upper: { pose: 'upper', su: 5, ac: 6, re: 20, dmg: 58, ox: 0, rx: 34, y0: 20, y1: 110, launch: { vx: 1.8, vy: 12.5 }, inv: 10, hop: 5, gain: 6, snd: 'kick' },
-  apunch: { air: true, pose: 'apunch', su: 3, ac: 10, re: 4, dmg: 38, ox: 4, rx: 48, y0: 20, y1: 62, kb: 3, stun: 15, gain: 4, snd: 'punch' },
+  smash: { pose: 'smash', adv: 3.5, su: 11, ac: 4, re: 20, dmg: 78, ox: 6, rx: 62, y0: 20, y1: 72, launch: { vx: 5, vy: 8 }, unblock: true, gain: 8, snd: 'kick' },
+  apunch: { air: true, pose: 'apunch', su: 3, ac: 10, re: 4, dmg: 38, ox: 4, rx: 48, y0: 20, y1: 62, kb: 3, stun: 15, cancels: { kick: 'akick' }, gain: 4, snd: 'punch' },
   akick: { air: true, pose: 'akick', su: 5, ac: 10, re: 5, dmg: 55, ox: 4, rx: 56, y0: -8, y1: 42, launch: { vx: 3.5, vy: -3 }, gain: 5, snd: 'kick' },
 };
 
 for (const [k, v] of Object.entries(MOVES)) v.id = k;
 
-export const SPECIAL = { id: 'special', pose: 'cast', su: 13, ac: 1, re: 22, cost: 10, special: true,
+export const SPECIAL = { id: 'special', pose: 'cast', su: 9, ac: 1, re: 22, cost: 10, special: true,
   onFire(f, w) { fireSpecial(f, w); } };
 
 const projSize = (type, s) => ({

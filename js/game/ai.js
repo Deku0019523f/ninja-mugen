@@ -19,9 +19,14 @@ export class AI {
 
     if (f.state === 'atk') {                       // combos automatiques
       const m = f.move;
-      if (m && f.connected) {
-        if (m.chain && R() < CHAIN[L]) inp.punch = 1;
-        else if (!m.special && !m.super && m.id && f.chi >= 10 && R() < 0.04 * this.lv) inp.special = 1;
+      if (m && f.connected && !m.special && !m.super) {
+        const r = R();
+        if (f.y <= 0 && f.chi >= 50 && r < 0.03 * this.lv) inp.super = 1;
+        else if (f.chi >= 10 && r < 0.03 * this.lv) inp.special = 1;
+        else if (m.cancels && R() < CHAIN[L]) {
+          if (m.id && f.y <= 0 && R() < 0.12 * this.lv / 2) { inp.punch = 1; inp.kick = 1; }
+          else { const ks = Object.keys(m.cancels); inp[ks[(R() * ks.length) | 0]] = 1; }
+        }
       }
       return inp;
     }

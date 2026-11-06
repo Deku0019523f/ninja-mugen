@@ -2,11 +2,11 @@
 //  ENTRÉES : clavier (2 joueurs), manettes, boutons tactiles
 // ============================================================
 export const KEYMAPS = [
-  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', punch: 'KeyF', kick: 'KeyG', special: 'KeyH', move2: 'KeyT', super: 'KeyY' },
-  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', punch: 'KeyJ', kick: 'KeyK', special: 'KeyL', move2: 'KeyI', super: 'KeyO' },
+  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', punch: 'KeyF', kick: 'KeyG', special: 'KeyH', move2: 'KeyT', super: 'KeyY', smash: 'KeyR' },
+  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', punch: 'KeyJ', kick: 'KeyK', special: 'KeyL', move2: 'KeyI', super: 'KeyO', smash: 'KeyU' },
 ];
 export const ACTIONS = ['l', 'r', 'u', 'd', 'punch', 'kick', 'special', 'move2', 'super'];
-const down = new Set(), touch = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0 };
+const down = new Set(), touch = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, smash: 0 };
 const menuQ = [];
 const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back' };
 let padPrev = [];
@@ -32,6 +32,7 @@ export function readPlayer(i) {
   const km = KEYMAPS[i], o = {};
   for (const a of ACTIONS) o[a] = down.has(km[a]) ? 1 : 0;
   if (i === 0) for (const a of ACTIONS) if (touch[a]) o[a] = 1;
+  if (down.has(km.smash) || (i === 0 && touch.smash)) o.punch = o.kick = 1;
   const pads = (navigator.getGamepads && navigator.getGamepads()) || [], pad = [...pads].filter(Boolean)[i];
   if (pad) {
     const b = (n) => pad.buttons[n] && pad.buttons[n].pressed, ax = pad.axes;
