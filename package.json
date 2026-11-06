@@ -1,0 +1,13 @@
+{
+  "name": "ninja-mugen",
+  "version": "1.0.0",
+  "description": "Jeu de combat 2D type MUGEN en three.js (personnages originaux)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node test/sim.mjs",
+    "start": "npx --yes serve ."
+  },
+  "dependencies": { "three": "^0.170.0" },
+  "devDependencies": { "esbuild": "^0.24.0" }
+}
