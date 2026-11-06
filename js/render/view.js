@@ -195,7 +195,7 @@ export class View {
     const alive = world.fighters.filter((f) => f.hp > 0 || !f.dead);
     if (alive.length) {
       let mn = 1e9, mx = -1e9; for (const f of alive) { mn = Math.min(mn, f.x); mx = Math.max(mx, f.x); }
-      const tx = Math.max(-330, Math.min(330, (mn + mx) / 2));
+      const lim = Math.max(0, world.half + 30 - VW / 2 / this.zoom), tx = Math.max(-lim, Math.min(lim, (mn + mx) / 2));
       this.camX += (tx - this.camX) * Math.min(1, dt * 7);
       const need = (mx - mn) + 260, tz = Math.max(1, Math.min(1.12, VW / need));
       this.zoom += (tz - this.zoom) * Math.min(1, dt * 4);
