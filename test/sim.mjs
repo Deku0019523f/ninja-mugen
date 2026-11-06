@@ -82,5 +82,24 @@ ok(win5 >= N * 0.6, 'la difficulté 5 devrait dominer la 1');
   run([[2, 'punch'], [8, 'super']], 'Poing·SUPER (annulation)', 2);
 }
 
+// 5) roulade : bas + direction (↙ ↘), invulnérable au début, ne se relance pas en maintenant
+{
+  const w = new World(3), a = w.add(new Fighter(ROSTER[0], 0)), b = w.add(new Fighter(ROSTER[11], 1));
+  a.prepare(-100, 1); b.prepare(300, -1);
+  const N = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0 };
+  const x0 = a.x; let rolled = 0, inv = false;
+  for (let f = 0; f < 60; f++) {
+    w.update([{ ...N, d: 1, r: 1 }, N]);
+    if (a.state === 'roll') { rolled++; if (a.invuln > 0) inv = true; }
+  }
+  console.log('Roulade avant'.padEnd(34), rolled, 'frames, déplacement', Math.round(a.x - x0));
+  ok(rolled >= 20 && rolled <= 26, 'roulade : durée ' + rolled);
+  ok(inv, 'roulade : invulnérabilité');
+  ok(a.x - x0 > 100, 'roulade : déplacement vers l\'avant');
+  const y0 = a.x; rolled = 0;
+  for (let f = 0; f < 40; f++) { w.update([{ ...N, d: 1, l: 1 }, N]); if (a.state === 'roll') rolled++; }
+  ok(rolled > 0 && a.x < y0, 'roulade arrière');
+}
+
 console.log(fails ? `\n${fails} échec(s)` : '\nTous les tests passent');
 process.exit(fails ? 1 : 0);

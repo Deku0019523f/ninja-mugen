@@ -5,6 +5,7 @@
 import { MOVES, BTN, getMove } from './moves.js';
 
 const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
+const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitesse, frames d'invulnérabilité
 
 export class Fighter {
   constructor(char, team) {
@@ -70,14 +71,21 @@ export class Fighter {
     }
     this.chi = this.infiniteChi ? 100 : Math.min(100, this.chi + 0.035);
 
+    const rollNow = inp.d && (inp.l ? 1 : 0) !== (inp.r ? 1 : 0) ? (inp.r ? 1 : -1) : 0;   // ↙ / ↘ (bas + direction)
+    this.rollEdge = rollNow !== 0 && rollNow !== this.rollPrev;
     switch (this.state) {
       case 'idle': case 'walk': case 'jump': case 'block': this.control(w, inp); break;
+      case 'roll':
+        this.vx = this.rollDir * (this.t < ROLL_T - 6 ? ROLL_V : ROLL_V * 0.4);
+        if (this.t >= ROLL_T) this.free();
+        break;
       case 'atk': this.runMove(w); break;
       case 'hit': case 'blockstun': if (this.t >= this.stun) this.free(); break;
       case 'down': if (this.t >= 34) { this.setState('getup'); this.invuln = Math.max(this.invuln, 22); } break;
       case 'getup': if (this.t >= 14) this.free(); break;
       default: break;
     }
+    this.rollPrev = rollNow;
     this.physics(w);
   }
 
@@ -101,6 +109,10 @@ export class Fighter {
     if (this.buf.punch > 0 && this.buf.punch <= 5 && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
     if (this.buf.kick > 0 && this.buf.kick <= 5 && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
 
+    if (this.rollEdge && dir) {                       // roulade vers l'avant / l'arrière
+      this.rollDir = dir; this.setState('roll'); this.invuln = Math.max(this.invuln, ROLL_INV); this.combo = 0;
+      w.event({ t: 'jump', x: this.x }); return;
+    }
     const back = dir !== 0 && dir !== this.face;
     if (inp.d || (back && w.threatNear(this))) { this.go('block'); this.vx *= 0.6; return; }
     if (inp.u) { this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
@@ -240,7 +252,7 @@ export class Fighter {
       const st = this.state;
       if (st === 'hit' || st === 'blockstun' || st === 'down' || st === 'getup' || st === 'ko') this.vx *= 0.82;
       else if (st === 'atk') { if (!(this.move && this.move.onTick && this.move.id === 'dash')) this.vx *= 0.8; }
-      else if (st !== 'walk' && st !== 'jump') this.vx *= 0.7;
+      else if (st !== 'walk' && st !== 'jump' && st !== 'roll') this.vx *= 0.7;
     }
     if (this.x < -w.half) { this.x = -w.half; this.vx = 0; }
     if (this.x > w.half) { this.x = w.half; this.vx = 0; }
