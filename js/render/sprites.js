@@ -73,6 +73,7 @@ export function poseFor(f, clock) {
     case 'launch': pose = KEY.launch; rot = -clamp01((Math.abs(f.vy) < 3 ? 0.5 : f.vy > 0 ? 0.25 : 0.75)) * 150 * (f.vy > 0 ? 0.6 : 1); break;
     case 'down': case 'ko': pose = KEY.launch; rot = -88; off = 2; break;
     case 'getup': pose = KEY.getup; rot = -88 * (1 - clamp01(t / 14)); break;
+    case 'roll': pose = KEY.getup; rot = clamp01(t / 22) * 360 * (f.rollDir === f.face ? 1 : -1); off = 6; break;
     case 'atk': pose = attackPose(f, t); break;
     default: pose = f.winPose ? KEY.win : f.introPose ? KEY.intro : idlePose(clock);
   }
