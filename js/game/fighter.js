@@ -1,0 +1,244 @@
+// ============================================================
+//  FIGHTER : machine à états d'un combattant (logique pure, sans rendu)
+//  États : idle walk jump block atk hit blockstun launch down getup ko intro win
+// ============================================================
+import { MOVES, BTN, getMove } from './moves.js';
+
+const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
+
+export class Fighter {
+  constructor(char, team) {
+    this.char = char; this.team = team; this.slot = 0; this.w = null;
+    this.maxHp = Math.round(1000 * char.def);
+    this.hp = this.maxHp; this.chi = 0;
+    this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.face = 1; this.scale = 1;
+    this.state = 'idle'; this.t = 0; this.stun = 0; this.move = null;
+    this.hitSet = new Set(); this.connected = false; this.lock = null;
+    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0 };
+    this.invuln = 0; this.combo = 0; this.juggle = 0; this.chain = 0; this.chainT = 0;
+    this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
+    this.fade = false; this.fx = null; this.dying = false; this.dead = false;
+    this.infiniteChi = false; this.rounds = 0;
+  }
+
+  get alive() { return this.hp > 0; }
+  get beamOn() { const m = this.move; return this.state === 'atk' && m && m.beam && this.t >= m.su && this.t < m.su + m.ac; }
+
+  prepare(x, face, keepHp = false) {
+    if (!keepHp) this.hp = this.maxHp;
+    this.endBuff(); this.x = x; this.y = 0; this.vx = this.vy = 0; this.face = face;
+    this.state = 'idle'; this.t = 0; this.move = null; this.invuln = 0; this.combo = 0; this.chain = 0; this.chainT = 0;
+    this.dying = false; this.dead = false; this.fade = false; this.lock = null; this.juggle = 0;
+    for (const b of BTN) this.buf[b] = 0;
+  }
+
+  setState(s) { this.state = s; this.t = 0; }
+  go(s) { if (this.state !== s) this.setState(s); }
+  free() { this.combo = 0; this.juggle = 0; this.setState(this.y > 0 ? 'jump' : 'idle'); }
+
+  hurt() {
+    const s = this.scale, lying = this.state === 'down' || this.state === 'ko';
+    const hh = lying ? 20 : this.state === 'block' ? 58 : 70;
+    return { x0: this.x - 14 * s, x1: this.x + 14 * s, y0: this.y, y1: this.y + hh * s };
+  }
+
+  setBuff(kind, frames) {
+    this.endBuff(); this.buff = kind; this.buffT = frames;
+    if (kind === 'giant') { this.scale = 1.7; this.dmgMul = 1.4; this.spdMul = this.char.spd * 0.85; this.defMul = 1.4; }
+    else { this.dmgMul = 1.35; this.spdMul = this.char.spd * 1.25; this.defMul = 1.1; }
+    this.w.event({ t: 'buff', f: this });
+  }
+  endBuff() { this.buff = null; this.buffT = 0; this.scale = 1; this.dmgMul = 1; this.spdMul = this.char.spd; this.defMul = 1; }
+
+  take(b, cost = 0) {
+    if (this.buf[b] > 0 && this.chi >= cost) { this.buf[b] = 0; return true; }
+    return false;
+  }
+
+  // ---------------------------------------------------------- frame
+  update(w, inp) {
+    this.t++;
+    for (const b of BTN) this.buf[b] = inp[b] ? 7 : Math.max(0, this.buf[b] - 1);
+    if (this.invuln > 0) this.invuln--;
+    if (this.chainT > 0 && --this.chainT === 0) this.chain = 0;
+    this.fx = null;
+    if (this.buff) {
+      if (this.buff === 'power' && this.hp > 0) this.hp = Math.min(this.maxHp, this.hp + 0.12);
+      if (--this.buffT <= 0) this.endBuff();
+    }
+    this.chi = this.infiniteChi ? 100 : Math.min(100, this.chi + 0.035);
+
+    switch (this.state) {
+      case 'idle': case 'walk': case 'jump': case 'block': this.control(w, inp); break;
+      case 'atk': this.runMove(w); break;
+      case 'hit': case 'blockstun': if (this.t >= this.stun) this.free(); break;
+      case 'down': if (this.t >= 34) { this.setState('getup'); this.invuln = Math.max(this.invuln, 22); } break;
+      case 'getup': if (this.t >= 14) this.free(); break;
+      default: break;
+    }
+    this.physics(w);
+  }
+
+  control(w, inp) {
+    const e = w.nearestEnemy(this);
+    const air = this.y > 0;
+    if (!air && e && Math.abs(e.x - this.x) > 4) this.face = e.x > this.x ? 1 : -1;
+    const dir = (inp.r ? 1 : 0) - (inp.l ? 1 : 0), spd = WALK * this.spdMul;
+
+    if (air) {
+      this.go('jump');
+      if (this.take('punch')) return this.startMove('apunch');
+      if (this.take('kick')) return this.startMove('akick');
+      if (this.take('special', 10)) return this.startMove('special');
+      return;
+    }
+    if (this.take('super', 50)) return this.startMove('super');
+    if (this.take('move2', 15)) return this.startMove('move2');
+    if (this.take('special', 10)) return this.startMove('special');
+    if (this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
+    if (this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
+
+    const back = dir !== 0 && dir !== this.face;
+    if (inp.d || (back && w.threatNear(this))) { this.go('block'); this.vx *= 0.6; return; }
+    if (inp.u) { this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
+    if (dir) { this.vx = dir * spd * (dir === this.face ? 1 : BACK); this.go('walk'); }
+    else { this.vx *= 0.6; this.go('idle'); }
+  }
+
+  startMove(key) {
+    const m = getMove(this, key);
+    if (!m) return false;
+    if (m.cost) { if (this.chi < m.cost) return false; this.chi -= m.cost; }
+    this.move = m; this.setState('atk'); this.hitSet.clear(); this.connected = false; this.lock = null;
+    if (m.inv) this.invuln = Math.max(this.invuln, m.inv);
+    if (m.super) {
+      this.invuln = Math.max(this.invuln, m.su + 4);
+      this.w.hitstop = 34;
+      this.w.event({ t: 'super', f: this });
+    }
+    if (m.onStart) m.onStart(this, this.w);
+    if (m.pose === 'cast' || m.pose === 'dash') this.w.event({ t: 'whoosh', x: this.x });
+    return true;
+  }
+
+  endMove() { this.move = null; this.fade = false; this.lock = null; this.free(); }
+
+  runMove(w) {
+    const m = this.move, t = this.t;
+    if (!m) return this.free();
+    if (t === m.su) {
+      if (m.hop) this.vy = m.hop;
+      if (m.onFire) m.onFire(this, w);
+      if (m.snd) w.event({ t: 'swing', x: this.x, snd: m.snd });
+    }
+    const k = t - m.su;
+    if (k >= 0 && k < m.ac) {
+      if (m.every && k % m.every === 0) this.hitSet.clear();
+      if (m.onTick) m.onTick(this, w, k);
+      if (m.dmg !== undefined) this.checkHits(w, m, k);
+    }
+    // fin anticipée à l'atterrissage
+    if ((m.landEnds || m.air) && this.y <= 0 && this.vy <= 0 && t > m.su + 2 && k < m.ac) {
+      if (m.onLand) m.onLand(this, w);
+      this.t = m.su + m.ac;
+    }
+    // cancels (enchaînements) après un coup au but
+    if (this.connected && !m.special && !m.super && !m.landEnds && !m.beam && t >= m.su + 1) {
+      if (m.chain && this.buf.punch > 0) { this.buf.punch = 0; this.startMove(m.chain); return; }
+      if (MOVES[m.id] && this.buf.special > 0 && this.chi >= 10) { this.buf.special = 0; this.startMove('special'); return; }
+    }
+    if (this.t >= m.su + m.ac + m.re) this.endMove();
+  }
+
+  checkHits(w, m, k) {
+    const s = this.scale;
+    let x0, x1;
+    if (m.aoe) { x0 = this.x - m.rx * s; x1 = this.x + m.rx * s; }
+    else { const a = this.x + this.face * m.ox * s, b = this.x + this.face * m.rx * s; x0 = Math.min(a, b); x1 = Math.max(a, b); }
+    const y0 = this.y + m.y0 * s, y1 = this.y + m.y1 * s;
+    let d = m;
+    if (m.every && m.last && k >= Math.floor((m.ac - 1) / m.every) * m.every) d = { ...m, ...m.last };
+    for (const e of w.enemiesOf(this)) {
+      if (this.hitSet.has(e.slot)) continue;
+      const h = e.hurt();
+      if (x1 < h.x0 || x0 > h.x1 || y1 < h.y0 || y0 > h.y1) continue;
+      const r = e.receive(this, d, this.x, w);
+      if (r === 'miss') continue;
+      this.hitSet.add(e.slot);
+      if (r === 'hit' || r === 'ko') this.connected = true;
+    }
+  }
+
+  // ---------------------------------------------------------- dégâts
+  receive(att, d, srcX, w) {
+    if (this.state === 'ko' || this.dead || this.hp <= 0 && this.state !== 'launch') return 'miss';
+    if (this.invuln > 0 || this.state === 'down' || this.state === 'getup') return 'miss';
+    const dir = this.x >= srcX ? 1 : -1;
+    const front = (srcX - this.x) * this.face > 0;
+    const guarding = this.state === 'block' || this.state === 'blockstun';
+    if (guarding && front && !d.unblock && this.y <= 0) {
+      this.hp -= Math.min(d.dmg * 0.08, Math.max(0, this.hp - 1));
+      this.chi = Math.min(100, this.chi + 2.5); att.chi = Math.min(100, att.chi + 1);
+      this.setState('blockstun'); this.stun = Math.max(9, (d.stun || 14) * 0.6);
+      this.vx = dir * ((d.kb || 3) * 1.1 + 1);
+      w.event({ t: 'block', x: this.x + this.face * 16, y: this.y + 40 });
+      w.hitstop = Math.max(w.hitstop, 3);
+      return 'block';
+    }
+    const armored = this.state === 'atk' && this.move && this.move.super && this.t >= this.move.su;
+    const sc = Math.max(0.3, 1 - 0.07 * this.combo);
+    const dmg = d.dmg * sc * att.dmgMul * att.char.pow / this.defMul;
+    this.hp -= dmg; this.combo++;
+    att.chain = att.chainT > 0 ? att.chain + 1 : 1; att.chainT = 90; att.lastTarget = this;
+    att.chi = Math.min(100, att.chi + (d.gain ?? 4)); this.chi = Math.min(100, this.chi + 3);
+    let launch = d.launch;
+    if (this.state === 'launch') { this.juggle++; if (this.juggle > 3) launch = { vx: (launch && launch.vx) || 2, vy: -2 }; }
+    const big = !!launch || dmg > 55;
+    w.event({ t: 'hit', x: this.x, y: this.y + 40 * this.scale, big, snd: d.snd, dir });
+    w.hitstop = Math.max(w.hitstop, big ? 7 : 4);
+    if (this.hp <= 0) {
+      this.hp = 0; this.dying = true; this.move = null; this.fade = false;
+      const L = launch || { vx: 6, vy: 8 };
+      this.setState('launch'); this.vx = dir * Math.max(5, L.vx); this.vy = Math.max(7, L.vy); this.y = Math.max(this.y, 0.01);
+      w.hitstop = 16; w.event({ t: 'ko', f: this });
+      return 'ko';
+    }
+    if (armored) return 'hit';
+    this.move = null; this.fade = false; this.lock = null;
+    if (launch || this.y > 0) {
+      const L = launch || { vx: d.kb || 2, vy: 3 };
+      this.setState('launch'); this.vx = dir * L.vx; this.vy = L.vy;
+      if (this.y <= 0) { this.y = 0.01; this.vy = Math.max(this.vy, 3); }
+    } else {
+      this.setState('hit'); this.stun = d.stun || 16; this.vx = dir * (d.kb || 2.5);
+    }
+    return 'hit';
+  }
+
+  // ---------------------------------------------------------- physique
+  physics(w) {
+    const wasAir = this.y > 0 || this.vy !== 0;
+    if (wasAir) this.vy -= GRAV;
+    this.x += this.vx; this.y += this.vy;
+    if (this.y <= 0 && wasAir) {
+      this.y = 0; const fell = this.vy < 0; this.vy = 0;
+      if (fell) this.landed(w);
+    }
+    if (this.y === 0) {
+      const st = this.state;
+      if (st === 'hit' || st === 'blockstun' || st === 'down' || st === 'getup' || st === 'ko') this.vx *= 0.82;
+      else if (st === 'atk') { if (!(this.move && this.move.onTick && this.move.id === 'dash')) this.vx *= 0.8; }
+      else if (st !== 'walk' && st !== 'jump') this.vx *= 0.7;
+    }
+    if (this.x < -w.half) { this.x = -w.half; this.vx = 0; }
+    if (this.x > w.half) { this.x = w.half; this.vx = 0; }
+  }
+
+  landed(w) {
+    w.event({ t: 'land', x: this.x, big: this.state === 'launch' });
+    if (this.state === 'launch') {
+      if (this.dying) { this.setState('ko'); this.dead = true; this.vx *= 0.5; w.event({ t: 'quake', x: this.x }); }
+      else { this.setState('down'); this.combo = 0; this.juggle = 0; }
+    } else if (this.state === 'jump') { this.setState('idle'); this.vx *= 0.4; }
+  }
+}
