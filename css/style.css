@@ -99,12 +99,25 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05060c;font-family:
 .ctrl th{color:var(--gold)}.ctrl ul{font-size:12px;line-height:18px;color:#aab;padding-left:16px}
 .pause{position:absolute;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:5}.pause .panel{position:relative;left:auto;top:auto;transform:none}
 
-/* ---------- Tactile */
-#touch{display:none;position:fixed;inset:auto 0 0 0;height:50vh;pointer-events:none;z-index:9}
-.is-touch #touch .dpad,.is-touch #touch .acts{pointer-events:auto}
-#touch button{position:absolute;width:64px;height:64px;border-radius:50%;border:2px solid #fff6;background:#1a2040aa;color:#fff;font-size:22px;font-weight:bold;touch-action:none}
-#touch button.on{background:#ff7a1acc}
-.dpad{position:absolute;left:10px;bottom:10px;width:200px;height:200px}
-.dpad .u{left:68px;top:0}.dpad .d{left:68px;bottom:0}.dpad .l{left:0;top:68px}.dpad .r{right:0;top:68px}
-.acts{position:absolute;right:10px;bottom:10px;width:230px;height:200px}
-.b1{right:0;bottom:70px}.b2{right:76px;bottom:20px}.b3{right:76px;bottom:110px}.b4{right:152px;bottom:70px}.b5{right:152px;bottom:150px;background:#c02030aa!important}
+/* ---------- Tactile (paysage) */
+:root{--bs:clamp(46px,17vh,84px)}
+#touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9}
+#touch .dpad,#touch .acts{position:absolute;bottom:2.5vh;pointer-events:none}
+.is-touch #touch button{pointer-events:auto}
+#touch button{position:absolute;width:var(--bs);height:var(--bs);border-radius:50%;border:2px solid #fff7;background:#141a3a99;color:#fff;font-size:calc(var(--bs)*.36);font-weight:bold;touch-action:none;font-family:inherit}
+#touch button.on{background:#ff7a1acc;border-color:#fff}
+.dpad{left:2.5vw;width:calc(var(--bs)*3.1);height:calc(var(--bs)*2.2)}
+.dpad .u{left:calc(var(--bs)*1.05);top:0}.dpad .d{left:calc(var(--bs)*1.05);bottom:-6%}.dpad .l{left:0;top:calc(var(--bs)*.55)}.dpad .r{right:0;top:calc(var(--bs)*.55)}
+.dpad .d{bottom:auto;top:calc(var(--bs)*1.2)}
+.acts{right:2.5vw;width:calc(var(--bs)*3.3);height:calc(var(--bs)*2.2)}
+.acts .b2{left:0;bottom:0}.acts .b1{left:calc(var(--bs)*1.1);bottom:0}.acts .b6{right:0;bottom:0;font-size:calc(var(--bs)*.26);background:#7a3a14aa}
+.acts .b4{left:0;bottom:calc(var(--bs)*1.15)}.acts .b3{left:calc(var(--bs)*1.1);bottom:calc(var(--bs)*1.15)}.acts .b5{right:0;bottom:calc(var(--bs)*1.15);background:#c02030aa}
+#backbtn,#pausebtn{display:none;position:fixed;z-index:12;background:#0b0d1cdd;color:#fff;border:2px solid #ffffff55;border-radius:10px;font:bold 14px "Trebuchet MS",sans-serif;padding:8px 14px}
+#backbtn{left:8px;top:8px}
+#pausebtn{right:8px;top:8px;padding:8px 12px;display:none}
+#rotate{display:none;position:fixed;inset:0;z-index:50;background:#05060cf5;color:#fff;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-size:20px;line-height:28px}
+#rotate .ph{font-size:70px;animation:rot 2s infinite ease-in-out}
+@keyframes rot{0%,30%{transform:rotate(0)}70%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait){.is-touch #rotate{display:flex}}
+.hud-combos{position:absolute;left:8px;top:80px;font-size:10px;line-height:14px;color:#ffe9b0;background:#0008;padding:6px 8px;border-left:3px solid var(--org);display:none;text-shadow:1px 1px 0 #000}
+.hud-combos b{color:var(--cy)}

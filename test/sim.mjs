@@ -58,5 +58,29 @@ for (let i = 0; i < N; i++) { const r = duel(0, 5, 5, 1, 7200, 100 + i); if (r.w
 console.log(`IA niv.5 vs niv.1 : ${win5}/${N} victoires`);
 ok(win5 >= N * 0.6, 'la difficulté 5 devrait dominer la 1');
 
+
+// 4) combos multi-boutons : on rejoue des séquences au frame près
+{
+  const run = (script, label, minHits) => {
+    const w = new World(5), a = w.add(new Fighter(ROSTER[0], 0)), b = w.add(new Fighter(ROSTER[11], 1));
+    a.prepare(-30, 1); b.prepare(10, -1); a.chi = 60;
+    let hits = 0, f = 0; const last = Math.max(...script.map((s) => s[0])) + 90;
+    for (; f < last; f++) {
+      const inp = w.fighters.map(() => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0 }));
+      for (const [t, ...keys] of script) if (f === t) for (const k of keys) inp[0][k] = 1;
+      w.update(inp); for (const e of w.events) if (e.t === 'hit') hits++; w.events.length = 0;
+    }
+    console.log(label.padEnd(34), hits, 'coups, combo max', a.chain || b.combo, 'dégâts', Math.round(b.maxHp - b.hp));
+    ok(hits >= minHits, label + ' : ' + hits + ' coups au lieu de ' + minHits);
+  };
+  run([[2, 'punch'], [9, 'punch'], [16, 'punch']], 'Poing·Poing·Poing', 3);
+  run([[2, 'punch'], [9, 'punch'], [17, 'kick']], 'Poing·Poing·Pied', 3);
+  run([[2, 'punch'], [9, 'kick']], 'Poing·Pied', 2);
+  run([[2, 'punch', 'kick']], 'Poing+Pied (frappe lourde)', 1);
+  run([[2, 'punch'], [9, 'punch', 'kick']], 'Poing·(Poing+Pied)', 2);
+  run([[2, 'punch'], [8, 'punch'], [20, 'special']], 'Poing·Poing·Spécial', 3);
+  run([[2, 'punch'], [8, 'super']], 'Poing·SUPER (annulation)', 2);
+}
+
 console.log(fails ? `\n${fails} échec(s)` : '\nTous les tests passent');
 process.exit(fails ? 1 : 0);

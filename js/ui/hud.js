@@ -33,6 +33,7 @@ export class Hud {
     this.cutEl = el('div', 'hud-cut'); this.root.appendChild(this.cutEl);
     this.flashEl = el('div', 'hud-flash'); this.root.appendChild(this.flashEl);
     this.hint = el('div', 'hud-hint', 'P : pause'); this.root.appendChild(this.hint);
+    this.combos = el('div', 'hud-combos', '<b>COMBOS</b><br>Poing · Poing · Poing = enchaînement + lancer<br>Poing · Poing · <b>Pied</b> = finisseur<br><b>Poing + Pied</b> ensemble = Frappe lourde (brise la garde)<br>Après un coup : <b>Spécial</b> / <b>Technique</b> / <b>SUPER</b><br>↓+Poing (uppercut) puis sauter + Poing/Pied = combo aérien'); this.root.appendChild(this.combos);
     this.dmg = el('div', 'hud-dmg'); this.root.appendChild(this.dmg);
     this.built = true; this.bm = match;
   }
@@ -70,7 +71,7 @@ export class Hud {
     }
     if (match.cfg.mode === 'training') {
       const d = w.team(1)[0]; this.dmg.textContent = `Dégâts du dernier combo : ${Math.round(d.maxHp - d.hp)}`;
-      this.dmg.style.display = 'block';
+      this.dmg.style.display = 'block'; this.combos.style.display = 'block';
     }
   }
 }
