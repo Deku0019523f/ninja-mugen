@@ -44,8 +44,8 @@ const mk = {
     for (let i = 0; i < 18; i++) { const x = i * 31 + r() * 14; px(g2, x, 52, 7, 108, '#5a3a24'); px(g2, x, 52, 2, 108, '#7a5232'); px(g2, x + 5, 52, 2, 108, '#40281a'); }
     for (let i = 0; i < 46; i++) { const x = r() * 560, y = r() * 50 + 6; g2.fillStyle = ['#43a02f', '#58b83a', '#37862a', '#6cc944'][(r() * 4) | 0]; g2.beginPath(); g2.arc(x, y, 18 + r() * 20, 0, 7); g2.fill(); }
     for (let i = 0; i < 14; i++) { g2.fillStyle = '#3a7a2a'; g2.beginPath(); g2.arc(r() * 560, 150, 8 + r() * 10, Math.PI, 0); g2.fill(); }
-    const gr = groundTex(700, 56, '#b8905a', '#8a6a3c', ['#cfa870', '#7a5a30', '#a07a48'], r, '#7ab040');
-    for (let i = 0; i < 90; i++) { const x = r() * 700; px(gr.getContext('2d'), x, 0, 1, 3 + r() * 3, ['#5aa030', '#7ac040'][(r() * 2) | 0]); }
+    const gr = groundTex(900, 56, '#b8905a', '#8a6a3c', ['#cfa870', '#7a5a30', '#a07a48'], r, '#7ab040');
+    for (let i = 0; i < 90; i++) { const x = r() * 900; px(gr.getContext('2d'), x, 0, 1, 3 + r() * 3, ['#5aa030', '#7ac040'][(r() * 2) | 0]); }
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.44, tint: '#fff' };
   },
   plains(r) {
@@ -55,9 +55,9 @@ const mk = {
     const mid = cv(560, 160), g2 = mid[1]; mountains(g2, 560, 160, 70, '#4a6aa8', null, r, 7);
     for (let i = 0; i < 70; i++) pine(g2, i * 8 + r() * 6, 160, 26 + r() * 14, '#1f6a4a', '#2a8a5a');
     px(g2, 0, 150, 560, 10, '#2f7a3a');
-    const gr = groundTex(700, 56, '#5aa42a', '#3a7a1a', ['#7ac43a', '#2f6a18', '#8ad44a'], r, '#a8e060');
-    const g3 = gr.getContext('2d'); for (let i = 0; i < 200; i++) px(g3, r() * 700, r() * 40, 1, 2 + r() * 4, ['#4a9020', '#9ae050'][(r() * 2) | 0]);
-    px(g3, 0, 44, 700, 12, '#4a4228'); for (let i = 0; i < 40; i++) { g3.fillStyle = ['#6a5a34', '#8a7a48', '#3a321c'][(r() * 3) | 0]; g3.beginPath(); g3.arc(i * 18 + r() * 8, 50, 6 + r() * 4, 0, 7); g3.fill(); }
+    const gr = groundTex(900, 56, '#5aa42a', '#3a7a1a', ['#7ac43a', '#2f6a18', '#8ad44a'], r, '#a8e060');
+    const g3 = gr.getContext('2d'); for (let i = 0; i < 200; i++) px(g3, r() * 900, r() * 40, 1, 2 + r() * 4, ['#4a9020', '#9ae050'][(r() * 2) | 0]);
+    px(g3, 0, 44, 900, 12, '#4a4228'); for (let i = 0; i < 50; i++) { g3.fillStyle = ['#6a5a34', '#8a7a48', '#3a321c'][(r() * 3) | 0]; g3.beginPath(); g3.arc(i * 18 + r() * 8, 50, 6 + r() * 4, 0, 7); g3.fill(); }
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.46, tint: '#fff' };
   },
   desert(r) {
@@ -67,7 +67,7 @@ const mk = {
     const mid = cv(560, 160), g2 = mid[1]; g2.fillStyle = '#a8602a'; g2.beginPath(); g2.moveTo(0, 160); for (let x = 0; x <= 560; x += 10) g2.lineTo(x, 120 + Math.sin(x * 0.03 + 2) * 12); g2.lineTo(560, 160); g2.fill();
     for (const x of [90, 250, 420]) { px(g2, x, 60, 22, 100, '#8a4a20'); px(g2, x - 4, 56, 30, 10, '#9a5a28'); px(g2, x + 2, 66, 4, 94, '#a86a34'); }
     for (let i = 0; i < 6; i++) { const x = 40 + i * 95 + r() * 30; px(g2, x, 130, 3, 18, '#3a6a2a'); px(g2, x - 4, 134, 3, 8, '#3a6a2a'); px(g2, x + 3, 136, 3, 6, '#3a6a2a'); }
-    const gr = groundTex(700, 56, '#e8b060', '#c88a3a', ['#f8cc80', '#b87a30', '#d8a050'], r, '#f8d48a');
+    const gr = groundTex(900, 56, '#e8b060', '#c88a3a', ['#f8cc80', '#b87a30', '#d8a050'], r, '#f8d48a');
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.44, tint: '#fff' };
   },
   snow(r) {
@@ -77,7 +77,7 @@ const mk = {
     const mid = cv(560, 160), g2 = mid[1]; mountains(g2, 560, 160, 60, '#7a90b8', '#eef4ff', r, 8);
     for (let i = 0; i < 60; i++) pine(g2, i * 9.4 + r() * 6, 160, 24 + r() * 16, '#2a5a4a', '#3a7a62');
     for (let i = 0; i < 60; i++) px(g2, r() * 560, 108 + r() * 50, 6 + r() * 6, 2, 'rgba(255,255,255,.8)');
-    const gr = groundTex(700, 56, '#f4f8ff', '#c8d8ec', ['#ffffff', '#b8cce4', '#dce8f6'], r, '#ffffff');
+    const gr = groundTex(900, 56, '#f4f8ff', '#c8d8ec', ['#ffffff', '#b8cce4', '#dce8f6'], r, '#ffffff');
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.44, tint: '#fff', snow: true };
   },
   night(r) {
@@ -90,8 +90,8 @@ const mk = {
     const mid = cv(560, 160), g2 = mid[1];
     for (const x of [120, 340, 470]) { px(g2, x, 70, 60, 90, '#14102e'); poly2(g2, [[x - 10, 72], [x + 30, 40], [x + 70, 72]], '#1c1640'); poly2(g2, [[x + 6, 70], [x + 30, 50], [x + 54, 70]], '#14102e'); for (let k = 0; k < 3; k++) px(g2, x + 10 + k * 18, 94, 6, 10, '#ffc860'); }
     for (let i = 0; i < 40; i++) pine(g2, i * 14 + r() * 8, 160, 30 + r() * 12, '#0e1a2a', '#14283a');
-    const gr = groundTex(700, 56, '#5a5a78', '#2a2a44', ['#6a6a8a', '#3a3a58', '#4a4a6a'], r, '#8a8aa8');
-    const g3 = gr.getContext('2d'); for (let i = 0; i < 30; i++) px(g3, i * 24 + r() * 8, 14 + r() * 30, 14, 1, '#25253e');
+    const gr = groundTex(900, 56, '#5a5a78', '#2a2a44', ['#6a6a8a', '#3a3a58', '#4a4a6a'], r, '#8a8aa8');
+    const g3 = gr.getContext('2d'); for (let i = 0; i < 38; i++) px(g3, i * 24 + r() * 8, 14 + r() * 30, 14, 1, '#25253e');
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.44, tint: '#e6e6ff' };
   },
   volcano(r) {
@@ -101,8 +101,8 @@ const mk = {
     g1.fillStyle = '#ff6a1a'; g1.beginPath(); g1.moveTo(240, 24); g1.lineTo(250, 40); g1.lineTo(236, 40); g1.fill();
     const mid = cv(560, 160), g2 = mid[1]; mountains(g2, 560, 160, 80, '#240808', null, r, 9);
     for (let i = 0; i < 10; i++) { px(g2, i * 56 + r() * 30, 140 + r() * 16, 30, 3, '#ff7a1a'); px(g2, i * 56 + r() * 30, 148, 20, 2, '#ffc040'); }
-    const gr = groundTex(700, 56, '#3a2420', '#1a0e0c', ['#4a2e28', '#241410', '#5a3a30'], r, '#6a4a3a');
-    const g3 = gr.getContext('2d'); for (let i = 0; i < 20; i++) { const x = r() * 700, y = 10 + r() * 40; px(g3, x, y, 8 + r() * 14, 1, '#ff6a1a'); px(g3, x + 1, y + 1, 6, 1, '#ffc040'); }
+    const gr = groundTex(900, 56, '#3a2420', '#1a0e0c', ['#4a2e28', '#241410', '#5a3a30'], r, '#6a4a3a');
+    const g3 = gr.getContext('2d'); for (let i = 0; i < 20; i++) { const x = r() * 900, y = 10 + r() * 40; px(g3, x, y, 8 + r() * 14, 1, '#ff6a1a'); px(g3, x + 1, y + 1, 6, 1, '#ffc040'); }
     return { sky: sky[0], far: far[0], mid: mid[0], ground: gr, horizon: 0.44, tint: '#ffe0d0', embers: true };
   },
 };
