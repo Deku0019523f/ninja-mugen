@@ -1,0 +1,20 @@
+import brawler from './brawler.js';
+import sage from './sage.js';
+import fury from './fury.js';
+import fire from './fire.js';
+import wind from './wind.js';
+import lightning from './lightning.js';
+import water from './water.js';
+import earth from './earth.js';
+import shadow from './shadow.js';
+import sand from './sand.js';
+import poison from './poison.js';
+import blade from './blade.js';
+import swarm from './swarm.js';
+import bone from './bone.js';
+import art from './art.js';
+import ice from './ice.js';
+import light from './light.js';
+import puppet from './puppet.js';
+
+export const ARCH = { brawler, sage, fury, fire, wind, lightning, water, earth, shadow, sand, poison, blade, swarm, bone, art, ice, light, puppet };
