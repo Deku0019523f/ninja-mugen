@@ -13,7 +13,7 @@ Jeu de combat 2D façon M.U.G.E.N en three.js : 56 combattants originaux (18 sty
 - Hébergement : GitHub Pages (déploiement depuis la branche `main`, racine)
 
 ## Architecture et structure des fichiers
-Voir `plan.md` (structure détaillée).
+Voir `plan.md` (structure détaillée + constat sur le moteur + feuille de route).
 
 ## Fonctionnalités développées
 - 56 personnages (un dossier chacun), 18 archétypes, combos, techniques, supers (un fichier chacun)
@@ -22,16 +22,20 @@ Voir `plan.md` (structure détaillée).
 - Clavier 2 joueurs, manette, commandes tactiles (stick analogique ou croix + boutons)
 - Rendu large : caméra dynamique 640→1200 × 480
 - Sons et musique synthétisés (WebAudio)
+- Moteur : pas fixe 60 Hz, hitstop, buffer d'entrées 8 frames, annulations, roulade, garde auto, anti-infini
+- Fondu entre poses (2 à 4 frames) et tremblement du combattant touché (2026-11-07)
 
 ## Fonctionnalités restantes
-- À définir par Alec.
+Voir les phases 1 à 5 de `plan.md` (cases non cochées).
 
 ## Modifications importantes
 - 2026-11-07 : refonte multifichier (stages, écrans, modes, CSS par domaine), rendu large, commandes tactiles.
 - 2026-11-07 : ajout de `.nojekyll` (voir problèmes).
+- 2026-11-07 : `plan.md` avec feuille de route (fluidité, techniques, visuel).
+- 2026-11-07 : phase 1 — `js/input.js` (délai ○/✕ 45→20 ms), `js/render/sprites.js` (`poseFor` = pose brute + fondu ; tremblement hit/blockstun). **Non testé en navigateur** au moment de l'écriture : à vérifier en jeu.
 
 ## Problèmes rencontrés et solutions
-- **Écran tout noir sur GitHub Pages** (le jeu marchait en local / via `dist/`) : GitHub Pages passe par Jekyll, qui ignore tout fichier ou dossier dont le nom commence par `_`. `js/stages/_draw.js` et `js/characters/_make.js` renvoyaient donc 404, ce qui cassait tout le graphe de modules (page vide, aucun menu). Solution : fichier vide `.nojekyll` à la racine. Si on ajoute un jour d'autres fichiers en `_nom.js`, ils fonctionneront aussi.
+- **Écran tout noir sur GitHub Pages** (le jeu marchait en local / via `dist/`) : GitHub Pages passe par Jekyll, qui ignore tout fichier ou dossier dont le nom commence par `_`. `js/stages/_draw.js` et `js/characters/_make.js` renvoyaient donc 404, ce qui cassait tout le graphe de modules (page vide, aucun menu). Solution : fichier vide `.nojekyll` à la racine.
 
 ## Dépendances installées
 - `three@^0.170.0` (dependencies)
@@ -47,8 +51,9 @@ Voir `plan.md` (structure détaillée).
 Aucune.
 
 ## État actuel
-Jouable. Correctif `.nojekyll` poussé ; la page GitHub Pages doit être rechargée après le redéploiement (1 à 2 minutes).
+Jouable. Phase 1 (fluidité) en partie faite ; `dist/ninja-mugen.html` **pas régénéré** depuis ces modifications (lancer `npm run build`).
 
 ## Prochaines étapes
-- Vérifier sur mobile que le menu s'affiche après redéploiement (recharger sans cache)
-- Tester les 4 modes et les commandes tactiles en paysage
+- Tester en jeu (mobile et PC) le fondu de poses et le délai tactile ; régler `PAIR_DELAY` (input.js) et la durée de fondu (sprites.js) si besoin
+- Lancer `npm test` et `npm run build`
+- Phase 2 (performance) puis phase 3 (techniques)

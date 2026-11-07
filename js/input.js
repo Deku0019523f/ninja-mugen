@@ -12,6 +12,10 @@ const menuQ = [];
 const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back' };
 let padPrev = [];
 
+// Délai (ms) avant de valider ○ ou ✕ seul, pour laisser le temps d'appuyer sur les deux (= SUPER).
+// 20 ms ≈ 1 frame : quasi instantané, mais un appui simultané des deux boutons reste reconnu.
+const PAIR_DELAY = 20;
+
 export function initInput() {
   addEventListener('keydown', (e) => {
     if (/Arrow|Space/.test(e.code)) e.preventDefault();
@@ -29,12 +33,12 @@ export function readPlayer(i) {
   for (const a of ACTIONS) o[a] = down.has(km[a]) ? 1 : 0;
   if (i === 0) {
     for (const a of ['l', 'r', 'u', 'd', 'punch', 'kick']) if (touch[a]) o[a] = 1;
-    // ○ et ✕ ensemble = SUPER ; sinon on attend ~45 ms pour laisser le temps d'appuyer sur les deux
+    // ○ et ✕ ensemble = SUPER ; sinon on attend PAIR_DELAY ms pour laisser le temps d'appuyer sur les deux
     const now = performance.now();
     if (touch.special && touch.move2) o.super = 1;
     else {
-      if (touch.special && now - touchT.special > 45) o.special = 1;
-      if (touch.move2 && now - touchT.move2 > 45) o.move2 = 1;
+      if (touch.special && now - touchT.special > PAIR_DELAY) o.special = 1;
+      if (touch.move2 && now - touchT.move2 > PAIR_DELAY) o.move2 = 1;
     }
   }
   if (down.has(km.smash)) o.punch = o.kick = 1;

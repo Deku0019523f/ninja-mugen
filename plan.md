@@ -39,12 +39,18 @@ js/
   modes/<mode>.js             arcade, single, survival, training + util.js + index.js
   screens/<écran>.js          title, setup, select, stage, vs, options, controls, result + ctx.js (état partagé) + index.js
   game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
-  render/                     sprites.js (squelette 2D), view.js (three.js, caméra large 640->1200 x 480)
+  render/                     sprites.js (squelette 2D + fondu de poses), view.js (three.js, caméra large 640->1200 x 480)
   ui/                         hud.js (barres, combos), menu.js (liste de menu)
 ```
 
 ## Flux
 `index.html` -> `js/main.js` -> `go('title')` -> écrans (`js/screens`) -> `G.launch()` -> `Match` (`js/game`) + `View` (`js/render`) + `Hud` (`js/ui`).
+
+## Moteur (constat après lecture de game/)
+- `Match.frame` : accumulateur à pas fixe 1/60 s (`DT`), `speed` pour le ralenti de KO
+- `World.update` : `hitstop` gèle la simulation (les entrées continuent d'être bufferisées)
+- `Fighter` : `buf` = buffer d'entrées de 8 frames ; annulations après un coup au but (spécial, technique, super, frappe lourde, `m.cancels`) ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
+- Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames
 
 ---
 
@@ -54,29 +60,31 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 
 ## Phase 0 — Préparation
 - [x] Correctif écran noir GitHub Pages (`.nojekyll`)
-- [ ] Lire le moteur : `game/fighter.js`, `match.js`, `world.js`, `ai.js`, `helpers.js`
-- [ ] Vérifier que la logique tourne à pas fixe 1/60 s (sinon accumulateur)
-- [ ] Étendre `test/sim.mjs` pour couvrir hitstop, buffer et nouvelles techniques
+- [x] Lire le moteur : `game/fighter.js`, `match.js`, `world.js` (reste à lire : `ai.js`, `helpers.js`)
+- [x] Pas fixe 1/60 s : déjà en place (accumulateur dans `Match.frame`)
+- [ ] Étendre `test/sim.mjs` pour couvrir les nouvelles techniques
 
 ## Phase 1 — Fluidité immédiate
-- [ ] **Hitstop** : gel des deux combattants 3 à 6 frames par coup (plus long : coup lourd, super, KO)
-- [ ] **Buffer d'entrées** : mémoriser la dernière touche 6 à 8 frames et la jouer dès que le combattant peut agir
-- [ ] **Tactile** : supprimer le délai de 45 ms sur ○ et ✕ (déclencher tout de suite ; promouvoir en super si l'autre bouton arrive sous 3 frames)
-- [ ] **Fondu entre poses** : 3 à 4 frames entre états (marche/saut/garde/coup)
+- [x] **Hitstop** : déjà présent (voir ci-dessus)
+- [x] **Buffer d'entrées** : déjà présent (8 frames)
+- [x] **Tactile** : délai de validation ○ / ✕ réduit de 45 ms à 20 ms (le ○+✕ simultané = super reste reconnu)
+- [x] **Fondu entre poses** : 4 frames entre états, 2 frames vers une attaque, pas de fondu vers les réactions (touché, garde, chute)
+- [x] **Tremblement du combattant touché** pendant le hitstop (hit et blockstun)
 - [ ] **Poses de coup** : anticipation avant les coups lourds, léger dépassement à l'impact
+- [ ] Hitstop plus long sur les coups lourds et le dernier coup d'un combo (réglage à tester en jeu)
 
 ## Phase 2 — Performance mobile
 - [ ] Ne redessiner le canvas d'un combattant que si sa pose a changé (cache de poses / atlas par personnage)
 - [ ] Résolution adaptative (`devicePixelRatio` selon les FPS mesurés)
-- [ ] Pas fixe 60 Hz avec accumulateur et interpolation du rendu
+- [ ] Interpolation du rendu entre deux pas de simulation
 - [ ] Réutiliser les matériaux/maillages des effets (moins d'allocations par frame)
 
 ## Phase 3 — Techniques de combat
 - [ ] **Variantes directionnelles** : ↓+○ et ↑+○ (spéciaux), ↓+✕ et ↑+✕ (techniques)
-- [ ] **Défense** : dégâts réduits sur garde, jauge de garde et bris de garde, **parade parfaite** (gain de chakra + contre)
+- [ ] **Défense** : jauge de garde et bris de garde, **parade parfaite** (gain de chakra + contre) ; dégâts de garde déjà réduits (8 %)
 - [ ] **Projection** (saisie) qui bat la garde, esquive par roulade
-- [ ] **Combos aériens** : réduction des dégâts par coup (anti-infini), rebond sol/mur
-- [ ] **Annulations** : saut / dash / roulade annulant la fin d'un coup ; burst (coût chakra) pour sortir d'un combo
+- [ ] **Combos aériens** : rebond sol/mur (l'anti-infini existe déjà)
+- [ ] **Annulations** supplémentaires : saut / dash annulant la fin d'un coup ; burst (coût chakra) pour sortir d'un combo
 - [ ] **Dash et recul rapide** (recul avec courte invincibilité)
 - [ ] **2v2** : changement de partenaire en combat, attaque d'appui
 - [ ] **IA** : personnalités (agressive, défensive, piégeuse), temps de réaction selon le niveau

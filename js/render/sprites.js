@@ -60,16 +60,18 @@ function idlePose(t) {
   return { ...STANCE, hy: 3 + b * 1.1, la: [28 + b * 3, 95], ra: [52 - b * 3, 80], lean: 6 + b };
 }
 
-// ---- pose finale selon l'état du combattant
-export function poseFor(f, clock) {
+// ---- pose brute selon l'état du combattant (sans fondu)
+function rawPose(f, clock) {
   const t = f.t, st = f.state;
   let rot = 0, off = 0, pose;
+  // petit tremblement du combattant touché (le temps ne passe pas pendant le hitstop : t reste figé, clock avance)
+  const shake = (amp) => Math.sin(clock * 2.6) * amp;
   switch (st) {
     case 'walk': pose = walkPose(clock); if (f.vx * f.face < 0) pose = { ...pose, lean: 2 }; break;
     case 'jump': pose = f.vy > 0 ? KEY.jump : { ...KEY.jump, la: [60, 60], ra: [80, 50], ll: [-10, 30], rl: [14, 30] }; break;
     case 'block': pose = KEY.block; break;
-    case 'blockstun': pose = { ...KEY.block, hx: -2 }; break;
-    case 'hit': pose = KEY.hit; if (t < 4) pose = { ...KEY.hit, lean: -30 }; break;
+    case 'blockstun': pose = { ...KEY.block, hx: -2 + (t < 5 ? shake(1.5) : 0) }; break;
+    case 'hit': pose = KEY.hit; if (t < 4) pose = { ...KEY.hit, lean: -30 }; if (t < 6) pose = { ...pose, hx: pose.hx + shake(2.5) }; break;
     case 'launch': pose = KEY.launch; rot = -clamp01((Math.abs(f.vy) < 3 ? 0.5 : f.vy > 0 ? 0.25 : 0.75)) * 150 * (f.vy > 0 ? 0.6 : 1); break;
     case 'down': case 'ko': pose = KEY.launch; rot = -88; off = 2; break;
     case 'getup': pose = KEY.getup; rot = -88 * (1 - clamp01(t / 14)); break;
@@ -78,6 +80,29 @@ export function poseFor(f, clock) {
     default: pose = f.winPose ? KEY.win : f.introPose ? KEY.intro : idlePose(clock);
   }
   return { pose, rot, off };
+}
+
+// ---- fondu entre poses : quand l'état (ou le coup) change, on interpole 2 à 4 frames depuis la dernière pose affichée.
+//      Pas de fondu vers les réactions (touché, garde brisée, chute) : elles doivent claquer.
+const SNAP = new Set(['hit', 'blockstun', 'launch', 'down', 'ko']);
+const memo = new WeakMap();
+export function poseFor(f, clock) {
+  const r = rawPose(f, clock);
+  let m = memo.get(f);
+  if (!m) { m = { sig: '', last: null, lastRot: 0, from: null, bt: 0, len: 4, clock }; memo.set(f, m); }
+  const dt = Math.max(0, Math.min(6, clock - m.clock)); m.clock = clock;
+  const sig = f.state + ':' + (f.move ? (f.move.id || f.move.pose || '') : '');
+  if (sig !== m.sig) {
+    m.sig = sig;
+    if (m.last && !r.rot && !m.lastRot && !SNAP.has(f.state)) { m.from = m.last; m.len = f.state === 'atk' ? 2 : 4; m.bt = m.len; } else m.from = null;
+  }
+  let pose = r.pose;
+  if (m.from && m.bt > 0) {
+    pose = mix(m.from, r.pose, ease(clamp01(1 - m.bt / m.len)));
+    m.bt -= dt; if (m.bt <= 0) m.from = null;
+  }
+  m.last = pose; m.lastRot = r.rot;
+  return { pose, rot: r.rot, off: r.off };
 }
 
 function attackPose(f, t) {
