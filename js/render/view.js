@@ -4,9 +4,10 @@
 import * as THREE from 'three';
 import { ARCH } from '../data/roster.js';
 import { SPR, drawFighter, poseFor } from './sprites.js';
-import { buildStage } from './stages.js';
+import { buildStage } from '../stages/index.js';
 
-export const VW = 640, VH = 480, GROUND = -150;
+export let VW = 640;           // largeur logique : 640 à 1200 selon le format de l'écran (hauteur fixe 480)
+export const VH = 480, GROUND = -150;
 const tex = (c, nearest = true) => { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; if (nearest) { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; } t.generateMipmaps = false; return t; };
 const c2 = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
 const col = (h) => new THREE.Color(h);
@@ -73,24 +74,26 @@ export class View {
     this.r.setClearColor(0x000000);
     host.appendChild(this.r.domElement);
     this.scene = new THREE.Scene();
-    this.cam = new THREE.OrthographicCamera(-VW / 2, VW / 2, VH / 2, -VH / 2, -50, 50);
+    this.cam = new THREE.OrthographicCamera(-VW / 2, VW / 2, VH / 2, -VH / 2, -50, 50); this.vw = VW;
     this.camX = 0; this.shake = 0; this.zoom = 1; this.clock = 0;
     this.layers = []; this.fs = []; this.pm = new Map(); this.fx = [];
     this.parts = new Particles(this.scene);
     this.root = new THREE.Group(); this.scene.add(this.root);
     this.flash = 0; this.dark = 0;
-    this.dim = new THREE.Mesh(new THREE.PlaneGeometry(VW * 3, VH * 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
+    this.dim = new THREE.Mesh(new THREE.PlaneGeometry(1200 * 3, VH * 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
     this.dim.position.z = 4.5; this.scene.add(this.dim);
     this.resize(); addEventListener('resize', () => this.resize());
   }
   resize() {
-    const W = this.host.clientWidth || innerWidth, H = this.host.clientHeight || innerHeight;
-    const s = Math.min(W / VW, H / VH), w = Math.floor(VW * s), h = Math.floor(VH * s);
-    this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); this.r.setSize(w, h, true);
+    const W = this.host.clientWidth || innerWidth, H = this.host.clientHeight || innerHeight, dpr = Math.min(devicePixelRatio || 1, 2);
+    VW = Math.round(Math.max(640, Math.min(1200, W / (H / VH))));      // on remplit l'écran en largeur (jusqu à 1200)
+    const s = Math.min(H / VH, W / VW), w = Math.floor(VW * s), h = Math.floor(VH * s);
+    this.vw = VW; this.cam.left = -VW / 2; this.cam.right = VW / 2; this.cam.updateProjectionMatrix();
+    this.r.setPixelRatio(dpr); this.r.setSize(w, h, true);
     this.r.domElement.style.cssText = `width:${w}px;height:${h}px;position:absolute;left:${(W - w) / 2}px;top:${(H - h) / 2}px`;
-    this.pxScale = h / VH * Math.min(devicePixelRatio || 1, 2); this.parts.mat.uniforms.uS.value = this.pxScale;
-    this.box = { w, h, l: (W - w) / 2, t: (H - h) / 2 };
-    this.host.style.setProperty('--u', (w / VW) + 'px'); this.host.style.setProperty('--bw', w + 'px'); this.host.style.setProperty('--bh', h + 'px');
+    this.pxScale = h / VH * dpr; this.parts.mat.uniforms.uS.value = this.pxScale;
+    this.box = { w, h, l: (W - w) / 2, t: (H - h) / 2, s, vw: VW };
+    this.host.style.setProperty('--u', s + 'px');
   }
 
   setStage(idx) {
@@ -99,7 +102,7 @@ export class View {
     const S = this.stage, hz = GROUND + 150;       // horizon : bas des montagnes
     const add = (c, w, h, par, y, z, scale = 2) => {
       const m = new THREE.Mesh(new THREE.PlaneGeometry(c.width * scale, c.height * scale), new THREE.MeshBasicMaterial({ map: tex(c), transparent: true, depthWrite: false }));
-      m.position.set(0, y, z); this.root.add(m); this.layers.push({ mesh: m, par });
+      m.position.set(0, y, z); this.root.add(m); this.layers.push({ mesh: m, par, bw: c.width * scale });
     };
     add(S.sky, 0, 0, 1, 0, -10, 2);
     add(S.far, 0, 0, .86, GROUND + 175 - 90 + 20, -9, 2);
@@ -195,16 +198,16 @@ export class View {
     const alive = world.fighters.filter((f) => f.hp > 0 || !f.dead);
     if (alive.length) {
       let mn = 1e9, mx = -1e9; for (const f of alive) { mn = Math.min(mn, f.x); mx = Math.max(mx, f.x); }
-      const lim = Math.max(0, world.half + 30 - VW / 2 / this.zoom), tx = Math.max(-lim, Math.min(lim, (mn + mx) / 2));
+      const lim = Math.max(0, world.half + 30 - VW / 2 / this.zoom); this.lim = lim; const tx = Math.max(-lim, Math.min(lim, (mn + mx) / 2));
       this.camX += (tx - this.camX) * Math.min(1, dt * 7);
-      const need = (mx - mn) + 260, tz = Math.max(1, Math.min(1.12, VW / need));
+      const need = (mx - mn) + 260, tz = Math.max(1, Math.min(1.12, 640 / need));
       this.zoom += (tz - this.zoom) * Math.min(1, dt * 4);
     }
     const sx = this.shake > 0.2 ? (Math.random() - .5) * this.shake * 2 : 0, sy = this.shake > 0.2 ? (Math.random() - .5) * this.shake * 2 : 0;
     this.shake *= Math.pow(0.86, dt * 60);
     const cx = this.camX + sx, cyc = sy;
     this.cam.zoom = this.zoom; this.cam.position.set(cx, cyc + (this.zoom - 1) * 90, 10); this.cam.updateProjectionMatrix();
-    for (const l of this.layers) l.mesh.position.x = this.camX * l.par;
+    for (const l of this.layers) { l.mesh.position.x = this.camX * l.par; const need = (VW + 2 * (this.lim || 0) * (1 - l.par)) + 12, k = Math.max(1, need / l.bw); l.mesh.scale.x = k; if (l === this.layers[0]) l.mesh.scale.y = k; }
     this.layers[0].mesh.position.y = 0 + (this.zoom - 1) * -90;
     for (const o of this.fs) {
       const f = o.f, { pose, rot, off } = poseFor(f, this.clock + f.slot * 9);
