@@ -12,7 +12,7 @@ template.html         gabarit pour le build mono-fichier
 build.mjs             esbuild -> dist/ninja-mugen.html (three + CSS inclus)
 dist/                 jeu en un seul fichier, hors-ligne
 test/sim.mjs          simulation du moteur sans navigateur
-test/phase3.mjs       tests parade parfaite, projection, Spécial ↑/↓
+test/phase3.mjs       tests latence, parade parfaite, projection, Spécial ↑/↓, personnalités de l'IA
 package.json          scripts build / test (sim + phase3) / start
 README.md             présentation et commandes de jeu
 RAPPORT.md            mémoire du projet
@@ -39,7 +39,7 @@ js/
   stages/<nom>.js             un fichier par décor (forest, plains, desert, snow, night, volcano) + _draw.js + index.js
   modes/<mode>.js             arcade, single, survival, training + util.js + index.js
   screens/<écran>.js          title, setup, select, stage, vs, options, controls, result + ctx.js (état partagé) + index.js
-  game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
+  game/                       moteur : fighter (états), world, match, ai (niveaux + personnalités), moves (agrégateur), helpers
   render/                     sprites.js (squelette 2D + fondu de poses), view.js (three.js, caméra large 640->1200 x 480)
   ui/                         hud.js (barres, combos), menu.js (liste de menu)
 ```
@@ -52,12 +52,17 @@ js/
 - `World.update` : `hitstop` gèle la simulation (les entrées continuent d'être bufferisées)
 - `Fighter` : `buf` = buffer d'entrées de 8 frames ; annulations après un coup au but ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
 - Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames ; parade parfaite 9
-- **Latence des coups normaux** : poing/pied ne partent que lorsque `buf` retombe à 5 (`buf <= 5`), soit 3 frames (~50 ms) après l'appui, et seulement après relâchement si le bouton est maintenu. Voulu pour détecter Poing+Pied, mais sensible en jeu. À réduire avec des tests (les scénarios de `test/sim.mjs` sont réglés sur ce délai).
+- **Coups normaux** : le buffer vaut 8 à l'appui puis décroît ; le coup part quand il est <= `TAP` (fighter.js). `TAP = 7` : 1 frame après l'appui (avant : 5, soit 3 frames). Un bouton maintenu ne tire qu'après relâchement (inchangé). Poing+Pied avec plus d'1 frame d'écart donne désormais Poing puis Pied (enchaîné) au lieu de la frappe lourde.
 
 ## Règles des nouveaux coups (phase 3)
 - **Parade parfaite** : appui frais sur ↓ -> fenêtre de 6 frames (`parryT`). Si un coup non-super arrive de face pendant la garde : 0 dégât, +12 chakra, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames. Événement `clash` avec `parry: true`. Maintenir ↓ ne suffit pas ; reculer (garde automatique) ne déclenche pas la parade.
 - **Projection** : arrière (mémorisé 8 frames, `backT`) + Poing, adversaire au sol à moins de 52 px. `unblock`, `ground`. La roulade l'esquive (invulnérable).
 - **Spécial ↑ / ↓** : ↑ = tir en diagonale ascendante (anti-aérien), ↓ = tir bas rasant ; 90 % des dégâts, un seul projectile.
+
+## IA
+- 5 niveaux (`REACT`, `BLOCK`, `CHAIN`, `AGGR`, `PARRY_CH` dans ai.js)
+- 4 personnalités (`PERSONALITIES`) : `balanced` (défaut, utilisée par les tests), `rush` (agressif, projections), `zoner` (tirs, garde ses distances), `turtle` (défensif, parades). Tirée au hasard pour chaque adversaire dans `Match.addFighter`.
+- Parade volontaire : si un coup adverse s'active dans 1 à 3 frames, l'IA tape ↓ avec une probabilité selon le niveau (0 à 30 %), puis garde 9 frames.
 
 ---
 
@@ -77,7 +82,8 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 - [x] **Tactile** : délai de validation ○ / ✕ réduit de 45 ms à 20 ms
 - [x] **Fondu entre poses** : 4 frames entre états, 2 frames vers une attaque, pas de fondu vers les réactions
 - [x] **Tremblement du combattant touché** pendant le hitstop
-- [ ] **Latence des coups normaux** (3 frames, voir constat) : tirer dès l'appui, en gardant la détection Poing+Pied sur 1 frame ; adapter `test/sim.mjs`
+- [x] **Latence des coups normaux** : 3 frames -> 1 frame (`TAP = 7`) ; `test/sim.mjs` non modifié, ses scénarios restent valides d'après analyse mais **à confirmer en lançant `npm test`**
+- [ ] Tir immédiat d'un bouton maintenu (aujourd'hui : seulement après relâchement)
 - [ ] **Poses de coup** : anticipation avant les coups lourds, léger dépassement à l'impact
 - [ ] Hitstop plus long sur les coups lourds et le dernier coup d'un combo (réglage à tester en jeu)
 
@@ -91,13 +97,14 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 - [x] **Spécial ↓ et ↑** (tir bas / diagonale anti-aérien)
 - [ ] Variantes ↓/↑ de la **Technique** (✕) : à définir par technique (dash, teleport, uppercut, pillar, leap, slam)
 - [x] **Parade parfaite** (tap ↓) avec gain de chakra et contre
-- [ ] **Jauge de garde** et bris de garde
+- [ ] **Jauge de garde** et bris de garde (nécessite un affichage dans `ui/hud.js` + `css/hud.css`)
 - [x] **Projection** (arrière + Poing au contact), esquivable par roulade
 - [ ] **Combos aériens** : rebond sol/mur (l'anti-infini existe déjà)
 - [ ] **Annulations** supplémentaires : saut / dash annulant la fin d'un coup ; burst (coût chakra) pour sortir d'un combo
 - [ ] **Dash et recul rapide** (recul avec courte invincibilité)
 - [ ] **2v2** : changement de partenaire en combat, attaque d'appui
-- [~] **IA** : utilise projection et Spécial ↑/↓ ; reste : personnalités (agressive, défensive, piégeuse), parade volontaire
+- [x] **IA** : personnalités (balanced, rush, zoner, turtle), parade volontaire, projection, Spécial ↑/↓
+- [ ] IA : parer les projectiles, punir les coups à vide
 - [ ] **Entraînement** : affichage des hitbox, frames de départ/récupération, dummy enregistrement/lecture
 
 ## Phase 4 — Visuel des personnages
