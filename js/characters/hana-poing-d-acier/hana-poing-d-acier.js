@@ -1,0 +1,4 @@
+import { character } from '../_make.js';
+
+// Hana — Poing d'Acier
+export default character({ name: 'Hana', title: 'Poing d\'Acier', arch: 'brawler', hair: 'bob', hairColor: '#ff8fb5', skin: 'a', top: '#d83a5a', accent: '#ffffff', extras: 'band', spd: 1, pow: 1.2, def: 1 });
