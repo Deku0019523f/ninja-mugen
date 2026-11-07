@@ -21,16 +21,20 @@ Manette : X poing, A pied, B spécial, Y technique, R1 super.
 
 ## Structure
 ```
-js/data/roster.js     56 combattants + 18 archétypes (projectile / technique / super)
-js/game/moves.js      table des coups (frames de startup/actif/récupération, hitbox)
-js/game/fighter.js    machine à états, dégâts, garde, jonglage, buffs (géant, mode puissance)
-js/game/world.js      combattants, projectiles, collisions, séparation, caméra-limite
-js/game/ai.js         IA 5 niveaux (réaction, garde, combos, supers)
-js/game/match.js      manches, chrono, KO au ralenti, entraînement
-js/render/sprites.js  squelette 2D dessiné en direct (poses, cheveux, accessoires)
-js/render/stages.js   6 décors procéduraux à parallaxe
-js/render/view.js     scène three.js : caméra ortho, sprites, projectiles, particules, rayons
-js/ui/hud.js          barres de vie angulaires, chakra, combos, cut-in des supers
-js/main.js            menus, sélection, arcade / survie, pause
-js/audio.js, input.js sons + musique synthétisés, clavier / manette / tactile
+js/characters/<nom>/<nom>.js   UN DOSSIER PAR PERSONNAGE (56) + index.js (ordre = identifiant)
+js/archetypes/<style>.js       18 styles de combat (projectile, technique, super) + index.js
+js/combos/<coup>.js            UN FICHIER PAR COMBO (poing 1-2-3, pied, balayage, uppercut, frappe lourde, coups aériens)
+js/techniques/<nom>.js         un fichier par technique (touche Technique) + special.js (touche Spécial)
+js/supers/<nom>.js             un fichier par super attaque
+js/stages/<nom>.js             un fichier par décor (6) + _draw.js (outils de dessin)
+js/modes/<mode>.js             un fichier par mode (arcade, combat individuel, survie, entraînement)
+js/screens/<écran>.js          un fichier par écran (titre, réglages, sélection, décor, VS, options, commandes, résultat)
+js/game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
+js/render/                     sprites.js (squelette 2D) · view.js (three.js, caméra large 640→1200 × 480)
+js/ui/                         hud.js (barres, combos) · menu.js (liste de menu)
+js/touch.js                    commandes tactiles : stick analogique ou croix + △ □ ○ ✕
+js/input.js · js/audio.js      clavier / manette / tactile · sons et musique synthétisés
+css/base|hud|menus|touch.css   styles par domaine
 ```
+Tactile (paysage uniquement) : stick analogique flottant ou croix 8 directions (bouton ✚/🕹 ou Options),
+↗ ↖ saut avant/arrière, ↘ ↙ roulade, □ poing, △ pied, ○ spécial, ✕ technique, □+△ frappe lourde, ○+✕ super.
