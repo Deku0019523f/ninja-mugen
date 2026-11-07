@@ -1,0 +1,29 @@
+/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite (paysage) */
+:root{--bs:clamp(54px,17.5vh,96px)}
+#touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
+.is-touch #padzone,.is-touch #padswitch,.is-touch #acts{pointer-events:auto}
+
+/* zone de gauche : stick flottant ou croix */
+#padzone{position:absolute;left:0;bottom:0;width:42%;height:78%;touch-action:none}
+#stick,#dpad{position:absolute;left:calc(var(--bs)*.55);bottom:calc(var(--bs)*.4);width:calc(var(--bs)*2.5);height:calc(var(--bs)*2.5);pointer-events:none}
+#stick{border-radius:50%;background:radial-gradient(circle,#ffffff10 0 55%,#ffffff2a 56% 60%,#0d122c66 61%);border:3px solid #ffffff66;opacity:.55;transition:opacity .15s}
+#stick.act{opacity:1}
+#stick .knob{position:absolute;left:50%;top:50%;width:46%;height:46%;margin:-23%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fffc,#9aa6d8aa 45%,#2a3566cc);border:2px solid #fff9;box-shadow:0 4px 10px #0008}
+#stick .ring{position:absolute;inset:14%;border-radius:50%;border:2px dashed #ffffff30}
+#dpad{display:grid;grid-template-columns:1fr 1.1fr 1fr;grid-template-rows:1fr 1.1fr 1fr;gap:3%;opacity:.7}
+#dpad.act{opacity:1}
+#dpad i{display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;background:#141a3a99;border:2px solid #ffffff66;font-size:calc(var(--bs)*.5)}
+#dpad i[data-d=u],#dpad i[data-d=d],#dpad i[data-d=l],#dpad i[data-d=r]{border-radius:14%}
+#dpad i[data-d=ul],#dpad i[data-d=ur],#dpad i[data-d=dl],#dpad i[data-d=dr]{border-radius:50%;font-size:calc(var(--bs)*.36);background:#141a3a66;margin:12%}
+#dpad i.mid{background:#ffffff12;border:2px solid #ffffff33;border-radius:50%;margin:8%}
+#dpad i.on{background:#ff7a1add;border-color:#fff}
+#padswitch{position:absolute;left:calc(var(--bs)*.2);bottom:calc(var(--bs)*2.95);width:calc(var(--bs)*.62);height:calc(var(--bs)*.62);border-radius:50%;border:2px solid #fff6;background:#141a3acc;color:#fff;font-size:calc(var(--bs)*.3);line-height:1;touch-action:manipulation}
+
+/* boutons d'action en losange (PlayStation) */
+#acts{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*.4);width:calc(var(--bs)*3);height:calc(var(--bs)*3);touch-action:none}
+#acts .ab{position:absolute;width:var(--bs);height:var(--bs);border-radius:50%;border:3px solid;background:#141a3a99;font-size:calc(var(--bs)*.5);font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:inherit}
+#acts .ab.on{background:#ff7a1add;color:#fff!important;border-color:#fff!important;transform:scale(.94)}
+#acts .bt{left:50%;top:0;margin-left:calc(var(--bs)*-.5);color:#5fe0a0;border-color:#5fe0a0cc}
+#acts .bb{left:50%;bottom:0;margin-left:calc(var(--bs)*-.5);color:#6aa8ff;border-color:#6aa8ffcc}
+#acts .bl{left:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff8ac8;border-color:#ff8ac8cc}
+#acts .br{right:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff6a6a;border-color:#ff6a6acc}

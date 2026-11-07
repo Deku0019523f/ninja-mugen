@@ -1,0 +1,18 @@
+/* Base : plein écran paysage. L'interface (#ui) fait 480 px de haut et VW px de large (640 à 1200), mise à l'échelle par main.js */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:#05060c;font-family:"Trebuchet MS","Arial Black",Impact,sans-serif;color:#fff;touch-action:none}
+#view{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#1a1d3a,#05060c)}
+#view canvas{image-rendering:pixelated}
+#ui{position:fixed;overflow:hidden;pointer-events:none}
+#ui>*{pointer-events:auto}
+#hud{position:absolute;inset:0;pointer-events:none;display:none}
+#screen{position:absolute;inset:0}
+:root{--gold:#ffc83a;--org:#ff7a1a;--cy:#38e0ff;--dk:#0b0d1c}
+
+#backbtn,#pausebtn{display:none;position:fixed;z-index:12;background:#0b0d1cdd;color:#fff;border:2px solid #ffffff55;border-radius:12px;font:bold 15px "Trebuchet MS",sans-serif;padding:9px 16px;touch-action:manipulation}
+#backbtn{left:12px;bottom:12px}
+#pausebtn{left:50%;transform:translateX(-50%);top:calc(100vh * 54 / 480);padding:5px 18px;letter-spacing:3px;opacity:.8}
+#rotate{display:none;position:fixed;inset:0;z-index:50;background:#05060cf5;color:#fff;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-size:20px;line-height:28px}
+#rotate .ph{font-size:70px;animation:rot 2s infinite ease-in-out}
+@keyframes rot{0%,30%{transform:rotate(0)}70%,100%{transform:rotate(-90deg)}}
+@media (orientation:portrait){.is-touch #rotate{display:flex}}

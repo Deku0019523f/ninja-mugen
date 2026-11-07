@@ -12,13 +12,16 @@
 <button id="backbtn">‹ Retour</button><button id="pausebtn">II</button>
 <div id="rotate"><div class="ph">📱</div><p>Tournez votre téléphone<br>en <b>mode paysage</b> pour jouer</p></div>
 <div id="touch">
-  <div class="dpad" id="dpad">
+  <div id="padzone"></div>
+  <div id="stick"><div class="ring"></div><div class="knob"></div></div>
+  <div id="dpad">
     <i data-d="ul">↖</i><i data-d="u">▲</i><i data-d="ur">↗</i>
     <i data-d="l">◀</i><i class="mid"></i><i data-d="r">▶</i>
     <i data-d="dl">↙</i><i data-d="d">▼</i><i data-d="dr">↘</i>
   </div>
-  <div class="acts">
-    <button data-a="kick" class="bt">△</button><button data-a="punch" class="bl">□</button><button data-a="special" class="br">○</button><button data-a="move2" class="bb">✕</button>
+  <button id="padswitch" title="Analogique / croix">🕹</button>
+  <div id="acts">
+    <div class="ab bt" data-a="kick">△</div><div class="ab bl" data-a="punch">□</div><div class="ab br" data-a="special">○</div><div class="ab bb" data-a="move2">✕</div>
   </div>
 </div>
 <script>/*JS*/</script>
