@@ -1,6 +1,6 @@
 # PLAN — Ninja Mugen
 
-Ce fichier contient (1) la structure détaillée du projet et (2) la feuille de route des améliorations. Cocher `[x]` au fur et à mesure ; le suivi détaillé est dans `RAPPORT.md`.
+Ce fichier contient (1) la structure détaillée du projet, (2) la feuille de route des améliorations, (3) le cahier des charges du nouveau schéma de commandes « Storm » (phase 6). Cocher `[x]` au fur et à mesure ; le suivi détaillé est dans `RAPPORT.md`.
 
 ---
 
@@ -61,70 +61,132 @@ js/
 
 ## IA
 - 5 niveaux (`REACT`, `BLOCK`, `CHAIN`, `AGGR`, `PARRY_CH` dans ai.js)
-- 4 personnalités (`PERSONALITIES`) : `balanced` (défaut, utilisée par les tests), `rush` (agressif, projections), `zoner` (tirs, garde ses distances), `turtle` (défensif, parades). Tirée au hasard pour chaque adversaire dans `Match.addFighter`.
+- 4 personnalités (`PERSONALITIES`) : `balanced` (défaut, utilisée par les tests), `rush`, `zoner`, `turtle`. Tirée au hasard pour chaque adversaire dans `Match.addFighter`.
 - Parade volontaire : si un coup adverse s'active dans 1 à 3 frames, l'IA tape ↓ avec une probabilité selon le niveau (0 à 30 %), puis garde 9 frames.
 
 ---
 
-# 2. Feuille de route
+# 2. Feuille de route (phases 0 à 5)
 
 Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPPORT.md` mis à jour.
 
 ## Phase 0 — Préparation
 - [x] Correctif écran noir GitHub Pages (`.nojekyll`)
-- [x] Lire le moteur : `fighter.js`, `match.js`, `world.js`, `ai.js`, `helpers.js`, `special.js` (reste : archetypes autres que fire/brawler, techniques, supers)
-- [x] Pas fixe 1/60 s : déjà en place (accumulateur dans `Match.frame`)
+- [x] Lire le moteur : `fighter.js`, `match.js`, `world.js`, `ai.js`, `helpers.js`, `special.js`
+- [x] Pas fixe 1/60 s : déjà en place
 - [x] `test/phase3.mjs` ajouté (lancé par `npm test`)
 
 ## Phase 1 — Fluidité immédiate
-- [x] **Hitstop** : déjà présent (voir ci-dessus)
-- [x] **Buffer d'entrées** : déjà présent (8 frames)
-- [x] **Tactile** : délai de validation ○ / ✕ réduit de 45 ms à 20 ms
-- [x] **Fondu entre poses** : 4 frames entre états, 2 frames vers une attaque, pas de fondu vers les réactions
-- [x] **Tremblement du combattant touché** pendant le hitstop
-- [x] **Latence des coups normaux** : 3 frames -> 1 frame (`TAP = 7`) ; `test/sim.mjs` non modifié, ses scénarios restent valides d'après analyse mais **à confirmer en lançant `npm test`**
-- [ ] Tir immédiat d'un bouton maintenu (aujourd'hui : seulement après relâchement)
-- [ ] **Poses de coup** : anticipation avant les coups lourds, léger dépassement à l'impact
-- [ ] Hitstop plus long sur les coups lourds et le dernier coup d'un combo (réglage à tester en jeu)
+- [x] Hitstop et buffer d'entrées : déjà présents
+- [x] Tactile : délai ○ / ✕ réduit de 45 ms à 20 ms
+- [x] Fondu entre poses ; tremblement du combattant touché
+- [x] Latence des coups normaux : 3 frames -> 1 frame (`TAP = 7`) — **à confirmer par `npm test`**
+- [ ] Tir immédiat d'un bouton maintenu
+- [ ] Poses de coup : anticipation / dépassement ; hitstop plus long sur coups lourds
 
 ## Phase 2 — Performance mobile
-- [ ] Ne redessiner le canvas d'un combattant que si sa pose a changé (cache de poses / atlas par personnage)
-- [ ] Résolution adaptative (`devicePixelRatio` selon les FPS mesurés)
-- [ ] Interpolation du rendu entre deux pas de simulation
-- [ ] Réutiliser les matériaux/maillages des effets (moins d'allocations par frame)
+- [ ] Cache de poses (ne redessiner que si la pose change) ; résolution adaptative ; interpolation du rendu ; réutilisation des matériaux d'effets
 
-## Phase 3 — Techniques de combat
-- [x] **Spécial ↓ et ↑** (tir bas / diagonale anti-aérien)
-- [ ] Variantes ↓/↑ de la **Technique** (✕) : à définir par technique (dash, teleport, uppercut, pillar, leap, slam)
-- [x] **Parade parfaite** (tap ↓) avec gain de chakra et contre
-- [ ] **Jauge de garde** et bris de garde (nécessite un affichage dans `ui/hud.js` + `css/hud.css`)
-- [x] **Projection** (arrière + Poing au contact), esquivable par roulade
-- [ ] **Combos aériens** : rebond sol/mur (l'anti-infini existe déjà)
-- [ ] **Annulations** supplémentaires : saut / dash annulant la fin d'un coup ; burst (coût chakra) pour sortir d'un combo
-- [ ] **Dash et recul rapide** (recul avec courte invincibilité)
-- [ ] **2v2** : changement de partenaire en combat, attaque d'appui
-- [x] **IA** : personnalités (balanced, rush, zoner, turtle), parade volontaire, projection, Spécial ↑/↓
-- [ ] IA : parer les projectiles, punir les coups à vide
-- [ ] **Entraînement** : affichage des hitbox, frames de départ/récupération, dummy enregistrement/lecture
+## Phase 3 — Techniques de combat (ancien schéma)
+- [x] Spécial ↑/↓, parade parfaite, projection, IA (personnalités + parade)
+- [ ] Variantes de la Technique, jauge de garde, combos aériens, annulations, dash/recul, 2v2, entraînement → **repris et redéfinis par la phase 6**
 
 ## Phase 4 — Visuel des personnages
-- [ ] Ombrage à deux tons (côté clair / sombre) et liseré lumineux
-- [ ] Contour coloré teinté selon le vêtement
-- [ ] Torse mieux formé (épaules, taille) et tenues variées (robe, veste, armure légère, sans manches)
-- [ ] Visage : clignement, douleur, rage, victoire, bouche ouverte en spécial
-- [ ] Mouvement secondaire : cheveux/écharpe/cape avec ressort réagissant à la vitesse
-- [ ] Squash & stretch (atterrissage / saut)
-- [ ] Traînées de mouvement (arc d'épée, images rémanentes de dash)
-- [ ] Poses uniques (intro, victoire, attente) au moins pour Kaito, Ren, Mugen, puis le reste
+- [ ] Ombrage à deux tons, contour coloré, torse formé et tenues, visage expressif, mouvement secondaire, squash & stretch, traînées, poses uniques
 
 ## Phase 5 — Effets et décors
-- [ ] Étincelles d'impact et lignes de vitesse aux couleurs de l'archétype
-- [ ] Effet visuel propre à la parade parfaite (aujourd'hui : réutilise l'effet `clash`)
-- [ ] Image blanche d'une frame sur les gros coups
-- [ ] Calque d'avant-plan dans les décors (herbes, brume, flocons) et éclairage réactif aux supers
-- [ ] Option : sprites 128 -> 192 px (si les perfs mobiles le permettent)
+- [ ] Étincelles d'impact, effet de parade, flash sur gros coups, avant-plan des décors, sprites 192 px (option)
 
-## Critères de validation
-- `npm test` passe, `npm run build` régénère `dist/`
-- Menu et combat fonctionnent sur GitHub Pages (page rechargée sans cache)
-- 60 FPS stables sur un téléphone moyen en 2v2
+---
+
+# 3. Phase 6 — Schéma « Storm » (remplace les commandes actuelles)
+
+## Décisions d'Alec (2026-11-07)
+- Le nouveau schéma **remplace entièrement** les commandes actuelles (plus de Poing/Pied/Spécial/Technique/Super séparés).
+- Clavier + manette, et **boutons tactiles ajoutés** pour R2, L2, R1, L1.
+- On commence par **les soutiens + le combat en équipe**.
+
+## 3.1 Boutons et fonctions
+
+| Bouton | Fonction |
+|---|---|
+| ○ | Attaque principale |
+| ✕ | Saut (double saut : ✕ puis ✕) |
+| □ | Shuriken |
+| △ (maintenu) | Charger le chakra |
+| △ + ○ | Ninjutsu |
+| △ → △ → ○ | Technique ultime (animation cinématique) |
+| △ + ✕ | Chakra Dash |
+| △ + □ | Chakra Shuriken |
+| R2 | Garde |
+| R2 + ○ | Projection |
+| L2 | Substitution |
+| R1 / L1 | Appel des soutiens (le coéquipier apparaît 3 s pour lancer une attaque) |
+
+## 3.2 Correspondance proposition (modifiable dans Options)
+
+| Action | Joueur 1 (clavier, touches physiques) | Joueur 2 | Manette (mapping standard) | Tactile |
+|---|---|---|---|---|
+| Déplacement / haut / bas | WASD (« ZQSD » en AZERTY) | Flèches | stick / croix | stick ou croix |
+| ○ Attaque | F | J | bouton 1 | ○ |
+| ✕ Saut | G | K | bouton 0 | ✕ |
+| □ Shuriken | R | U | bouton 2 | □ |
+| △ Chakra | T | I | bouton 3 | △ |
+| R2 Garde | H | L | gâchette 7 | bouton ajouté |
+| L2 Substitution | E | O | gâchette 6 | bouton ajouté |
+| R1 Soutien 1 | Y | P | bouton 5 | bouton ajouté |
+| L1 Soutien 2 | Q | N | bouton 4 | bouton ajouté |
+
+Détection des enchaînements : △ maintenu + (○ / ✕ / □) = Ninjutsu / Chakra Dash / Chakra Shuriken ; △ tap, △ tap, ○ (fenêtre ~20 frames) = Ultime ; R2 maintenu + ○ = Projection.
+
+## 3.3 Combos directionnels (○ répété avec le stick gauche)
+- ○ répété : combo normal
+- ↑ + ○ répété : variante haute (lanceur, anti-aérien)
+- ↓ + ○ répété : variante basse (balayage, fait tomber)
+- ← ou → + ○ : variante directionnelle selon le personnage
+- Les variantes ont des projections différentes : lancer dans les airs, repousser, faire tomber.
+- Traduction avec le moteur actuel : ↑+○ = `upper`, ↓+○ = `sweep`, ←/→+○ = `kick` (variante par archétype à définir). L'ancien Pied n'existe plus comme bouton.
+
+## 3.4 Combo aérien
+Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner les attaques, terminer par une technique spéciale si les conditions le permettent (chakra suffisant).
+
+## 3.5 Chakra Dash Combo
+△ (charger) → ✕ (Chakra Dash : fonce vers l'adversaire, peut servir à le poursuivre) → ○ ○ ○. Le Chakra Dash peut prolonger certaines séquences.
+
+## 3.6 Techniques spéciales
+- **Ninjutsu** (△+○) : propre à chaque personnage (aujourd'hui : le « Spécial » de l'archétype).
+- **Technique ultime** (△△○) : animation cinématique (aujourd'hui : le « Super » de l'archétype).
+- **Éveil / Awakening** : activé quand les conditions de combat sont réunies ; changement de forme et de capacités (le système `buff` existant — giant / power — sert de base).
+- **Technique ultime d'équipe** : attaque combinée avec les soutiens.
+
+## 3.7 Mécaniques défensives
+| Mécanique | Commande | Fonction |
+|---|---|---|
+| Garde | R2 | Bloquer |
+| Substitution | L2 | Échapper à une attaque au moment de l'impact |
+| Projection | R2 + ○ | Attraper et projeter |
+| Double saut | ✕ puis ✕ | Sauter deux fois |
+
+- **Substitution Jutsu** : L2 au moment d'un impact remplace le personnage par une bûche, réapparition ailleurs. **Réserve limitée qui se recharge progressivement** (proposition : 3 charges, +1 toutes les 5 s).
+- **Guard Break** : si la garde encaisse trop d'attaques, elle est brisée ; l'adversaire en profite pour lancer un combo. (jauge de garde + affichage HUD)
+
+## 3.8 Système de soutien (Support System)
+Le joueur sélectionne **deux personnages de soutien**. Ils peuvent : attaquer l'adversaire, prolonger un combo, interrompre une attaque ennemie, protéger le joueur, participer à certaines techniques combinées.
+
+## 3.9 Architecture proposée (pour limiter les régressions)
+- `js/input.js` traduit les nouveaux boutons en actions logiques : `o x sq tri r2 l2 r1 l1` + directions ; le moteur reçoit ces actions. Les anciens noms (`punch kick special move2 super`) sont supprimés au fur et à mesure ; `test/sim.mjs` et `test/phase3.mjs` sont réécrits avec les nouvelles actions.
+- **Soutiens** = `Fighter` supplémentaires de l'équipe, marqués `support: true`, hors écran tant qu'ils ne sont pas appelés ; à l'appel (R1/L1) ils apparaissent, jouent une attaque (selon leur archétype) pendant 3 s, puis repartent ; cooldown par soutien. Ils ne comptent pas dans la barre de vie ni dans la condition de KO de l'équipe. Le format 2v2 simultané actuel est remplacé par « équipe » = 1 combattant + 2 soutiens.
+- Écran de sélection : choix du combattant puis de 2 soutiens ; l'IA choisit ses soutiens au hasard.
+
+## 3.10 Étapes (du plus dur au plus simple, selon la demande)
+- [ ] **6.1 Soutiens + combat en équipe** (R1/L1, sélection de 2 soutiens, IA, tests)
+- [ ] 6.2 Chakra : △ charge, Chakra Dash, Chakra Shuriken, Ninjutsu (△+○), Ultime (△△○), Shuriken (□)
+- [ ] 6.3 Défense : R2 garde, projection R2+○, substitution L2 avec réserve, guard break + HUD, double saut
+- [ ] 6.4 Combos directionnels (○ + direction) et combos aériens
+- [ ] 6.5 Éveil et techniques ultimes d'équipe
+- [ ] 6.6 Nouveau tactile (boutons R2/L2/R1/L1), écran Commandes, options de remappage, tests réécrits, README
+
+## Points à trancher en cours de route
+- Quels coups précis pour ←/→ + ○ par personnage ou par archétype ?
+- Durée de présence (3 s), cooldown des soutiens, comportement des soutiens (attaque unique, ou action selon la situation : prolonger un combo / interrompre / protéger).
+- Coût en chakra du Ninjutsu, du Chakra Dash et de l'Ultime ; vitesse de charge du △.
