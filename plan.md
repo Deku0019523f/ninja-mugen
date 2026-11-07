@@ -11,8 +11,9 @@ index.html            page de dev (importmap three via CDN, charge js/main.js)
 template.html         gabarit pour le build mono-fichier
 build.mjs             esbuild -> dist/ninja-mugen.html (three + CSS inclus)
 dist/                 jeu en un seul fichier, hors-ligne
-test/sim.mjs          simulation du moteur sans navigateur (npm test)
-package.json          scripts build / test / start
+test/sim.mjs          simulation du moteur sans navigateur
+test/phase3.mjs       tests parade parfaite, projection, Spécial ↑/↓
+package.json          scripts build / test (sim + phase3) / start
 README.md             présentation et commandes de jeu
 RAPPORT.md            mémoire du projet
 plan.md               ce fichier
@@ -32,8 +33,8 @@ js/
   data/roster.js      agrégateur : ROSTER (56) + ARCH (18) + hexShade
   characters/<nom>/<nom>.js   un dossier par personnage (56) + index.js (ordre = identifiant) + _make.js (fabrique)
   archetypes/<style>.js       18 styles de combat (projectile, technique, super) + index.js
-  combos/<coup>.js            un fichier par combo (poing 1-2-3, pied, balayage, uppercut, frappe lourde, coups aériens)
-  techniques/<nom>.js         une technique par fichier (touche Technique) + special.js (touche Spécial)
+  combos/<coup>.js            un fichier par combo (poing 1-2-3, pied, balayage, uppercut, frappe lourde, projection, coups aériens)
+  techniques/<nom>.js         une technique par fichier (touche Technique) + special.js (touche Spécial et variantes ↑/↓)
   supers/<nom>.js             une super attaque par fichier
   stages/<nom>.js             un fichier par décor (forest, plains, desert, snow, night, volcano) + _draw.js + index.js
   modes/<mode>.js             arcade, single, survival, training + util.js + index.js
@@ -49,8 +50,14 @@ js/
 ## Moteur (constat après lecture de game/)
 - `Match.frame` : accumulateur à pas fixe 1/60 s (`DT`), `speed` pour le ralenti de KO
 - `World.update` : `hitstop` gèle la simulation (les entrées continuent d'être bufferisées)
-- `Fighter` : `buf` = buffer d'entrées de 8 frames ; annulations après un coup au but (spécial, technique, super, frappe lourde, `m.cancels`) ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
-- Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames
+- `Fighter` : `buf` = buffer d'entrées de 8 frames ; annulations après un coup au but ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
+- Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames ; parade parfaite 9
+- **Latence des coups normaux** : poing/pied ne partent que lorsque `buf` retombe à 5 (`buf <= 5`), soit 3 frames (~50 ms) après l'appui, et seulement après relâchement si le bouton est maintenu. Voulu pour détecter Poing+Pied, mais sensible en jeu. À réduire avec des tests (les scénarios de `test/sim.mjs` sont réglés sur ce délai).
+
+## Règles des nouveaux coups (phase 3)
+- **Parade parfaite** : appui frais sur ↓ -> fenêtre de 6 frames (`parryT`). Si un coup non-super arrive de face pendant la garde : 0 dégât, +12 chakra, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames. Événement `clash` avec `parry: true`. Maintenir ↓ ne suffit pas ; reculer (garde automatique) ne déclenche pas la parade.
+- **Projection** : arrière (mémorisé 8 frames, `backT`) + Poing, adversaire au sol à moins de 52 px. `unblock`, `ground`. La roulade l'esquive (invulnérable).
+- **Spécial ↑ / ↓** : ↑ = tir en diagonale ascendante (anti-aérien), ↓ = tir bas rasant ; 90 % des dégâts, un seul projectile.
 
 ---
 
@@ -60,16 +67,17 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 
 ## Phase 0 — Préparation
 - [x] Correctif écran noir GitHub Pages (`.nojekyll`)
-- [x] Lire le moteur : `game/fighter.js`, `match.js`, `world.js` (reste à lire : `ai.js`, `helpers.js`)
+- [x] Lire le moteur : `fighter.js`, `match.js`, `world.js`, `ai.js`, `helpers.js`, `special.js` (reste : archetypes autres que fire/brawler, techniques, supers)
 - [x] Pas fixe 1/60 s : déjà en place (accumulateur dans `Match.frame`)
-- [ ] Étendre `test/sim.mjs` pour couvrir les nouvelles techniques
+- [x] `test/phase3.mjs` ajouté (lancé par `npm test`)
 
 ## Phase 1 — Fluidité immédiate
 - [x] **Hitstop** : déjà présent (voir ci-dessus)
 - [x] **Buffer d'entrées** : déjà présent (8 frames)
-- [x] **Tactile** : délai de validation ○ / ✕ réduit de 45 ms à 20 ms (le ○+✕ simultané = super reste reconnu)
-- [x] **Fondu entre poses** : 4 frames entre états, 2 frames vers une attaque, pas de fondu vers les réactions (touché, garde, chute)
-- [x] **Tremblement du combattant touché** pendant le hitstop (hit et blockstun)
+- [x] **Tactile** : délai de validation ○ / ✕ réduit de 45 ms à 20 ms
+- [x] **Fondu entre poses** : 4 frames entre états, 2 frames vers une attaque, pas de fondu vers les réactions
+- [x] **Tremblement du combattant touché** pendant le hitstop
+- [ ] **Latence des coups normaux** (3 frames, voir constat) : tirer dès l'appui, en gardant la détection Poing+Pied sur 1 frame ; adapter `test/sim.mjs`
 - [ ] **Poses de coup** : anticipation avant les coups lourds, léger dépassement à l'impact
 - [ ] Hitstop plus long sur les coups lourds et le dernier coup d'un combo (réglage à tester en jeu)
 
@@ -80,14 +88,16 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 - [ ] Réutiliser les matériaux/maillages des effets (moins d'allocations par frame)
 
 ## Phase 3 — Techniques de combat
-- [ ] **Variantes directionnelles** : ↓+○ et ↑+○ (spéciaux), ↓+✕ et ↑+✕ (techniques)
-- [ ] **Défense** : jauge de garde et bris de garde, **parade parfaite** (gain de chakra + contre) ; dégâts de garde déjà réduits (8 %)
-- [ ] **Projection** (saisie) qui bat la garde, esquive par roulade
+- [x] **Spécial ↓ et ↑** (tir bas / diagonale anti-aérien)
+- [ ] Variantes ↓/↑ de la **Technique** (✕) : à définir par technique (dash, teleport, uppercut, pillar, leap, slam)
+- [x] **Parade parfaite** (tap ↓) avec gain de chakra et contre
+- [ ] **Jauge de garde** et bris de garde
+- [x] **Projection** (arrière + Poing au contact), esquivable par roulade
 - [ ] **Combos aériens** : rebond sol/mur (l'anti-infini existe déjà)
 - [ ] **Annulations** supplémentaires : saut / dash annulant la fin d'un coup ; burst (coût chakra) pour sortir d'un combo
 - [ ] **Dash et recul rapide** (recul avec courte invincibilité)
 - [ ] **2v2** : changement de partenaire en combat, attaque d'appui
-- [ ] **IA** : personnalités (agressive, défensive, piégeuse), temps de réaction selon le niveau
+- [~] **IA** : utilise projection et Spécial ↑/↓ ; reste : personnalités (agressive, défensive, piégeuse), parade volontaire
 - [ ] **Entraînement** : affichage des hitbox, frames de départ/récupération, dummy enregistrement/lecture
 
 ## Phase 4 — Visuel des personnages
@@ -102,6 +112,7 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 
 ## Phase 5 — Effets et décors
 - [ ] Étincelles d'impact et lignes de vitesse aux couleurs de l'archétype
+- [ ] Effet visuel propre à la parade parfaite (aujourd'hui : réutilise l'effet `clash`)
 - [ ] Image blanche d'une frame sur les gros coups
 - [ ] Calque d'avant-plan dans les décors (herbes, brume, flocons) et éclairage réactif aux supers
 - [ ] Option : sprites 128 -> 192 px (si les perfs mobiles le permettent)
