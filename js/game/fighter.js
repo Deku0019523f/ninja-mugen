@@ -8,6 +8,9 @@ const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
 const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitesse, frames d'invulnérabilité
 const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui sur ↓
 const THROW_R = 52;     // projection : distance maximale (arrière + Poing)
+// Coups normaux : le buffer vaut 8 à l'appui puis décroît d'1 par frame. Le coup part quand il est <= TAP.
+// 7 = 1 frame après l'appui (le temps de détecter Poing+Pied simultanés) ; 5 = ancien réglage (3 frames).
+const TAP = 7;
 
 export class Fighter {
   constructor(char, team) {
@@ -117,9 +120,9 @@ export class Fighter {
     if (this.take('special', 10)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
     // Projection : arrière + Poing au contact (passe la garde, l'adversaire doit être au sol ; la roulade l'esquive)
-    if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= 5 && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
-    if (this.buf.punch > 0 && this.buf.punch <= 5 && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
-    if (this.buf.kick > 0 && this.buf.kick <= 5 && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
+    if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= TAP && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
+    if (this.buf.punch > 0 && this.buf.punch <= TAP && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
+    if (this.buf.kick > 0 && this.buf.kick <= TAP && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
 
     if (this.rollEdge && dir) {                       // roulade vers l'avant / l'arrière
       this.rollDir = dir; this.setState('roll'); this.invuln = Math.max(this.invuln, ROLL_INV); this.combo = 0;

@@ -1,6 +1,7 @@
-// Tests phase 3 : parade parfaite, projection, variantes directionnelles du spécial
+// Tests phase 3 : parade parfaite, projection, variantes du spécial, personnalités de l'IA
 import { World } from '../js/game/world.js';
 import { Fighter } from '../js/game/fighter.js';
+import { AI, PERSONALITIES } from '../js/game/ai.js';
 import { ROSTER } from '../js/data/roster.js';
 
 let fails = 0;
@@ -21,6 +22,13 @@ const play = (w, frames, script, onEvent) => {
   }
 };
 
+// 0) latence : un Poing tapé à la frame 2 doit toucher dès la frame 7 (départ f3, startup 4)
+{
+  const { w } = duo(-25, 25); let first = -1;
+  play(w, 30, (f, i) => { if (f === 2) i[0].punch = 1; }, (e, f) => { if (e.t === 'hit' && first < 0) first = f; });
+  console.log('Latence du Poing'.padEnd(34), 'premier coup à la frame', first);
+  ok(first >= 0 && first <= 8, 'latence : le Poing doit toucher avant la frame 8 (frame ' + first + ')');
+}
 // 1) parade parfaite : ↓ tapé juste avant l'impact
 {
   const { w, a, b } = duo(-25, 25); let parries = 0, aState = '';
@@ -69,6 +77,24 @@ for (const [key, label, test] of [
   }
   console.log(label.padEnd(34), p0 ? 'y=' + Math.round(p0.y) + ' vy=' + p0.vy.toFixed(2) : 'aucun projectile');
   ok(p0 && test(p0), label + ' : trajectoire inattendue');
+}
+// 6) personnalités de l'IA : chacune doit se battre sans valeurs aberrantes
+{
+  const names = Object.keys(PERSONALITIES); let finite = true;
+  names.forEach((p, k) => {
+    const w = new World(5 + k), a = w.add(new Fighter(ROSTER[0], 0)), b = w.add(new Fighter(ROSTER[11], 1));
+    a.prepare(-120, 1); b.prepare(120, -1);
+    const ai = [new AI(4, p), new AI(4, 'balanced')]; let hits = 0, parries = 0;
+    for (let f = 0; f < 3000; f++) {
+      w.update(w.fighters.map((x, i) => ai[i].think(w, x)));
+      for (const e of w.events) { if (e.t === 'hit') hits++; if (e.t === 'clash' && e.parry) parries++; }
+      w.events.length = 0;
+      if (!Number.isFinite(a.x) || !Number.isFinite(b.x) || !Number.isFinite(a.hp) || !Number.isFinite(b.hp)) finite = false;
+    }
+    console.log(('IA ' + p).padEnd(34), hits, 'coups,', parries, 'parade(s)');
+    ok(hits > 0, 'IA ' + p + ' : aucun coup en 3000 frames');
+  });
+  ok(finite, 'IA : valeurs non finies');
 }
 
 console.log(fails ? '\n' + fails + ' échec(s) (phase 3)' : '\nPhase 3 : tous les tests passent');

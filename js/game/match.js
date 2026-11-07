@@ -3,12 +3,14 @@
 // ============================================================
 import { World, NOIN } from './world.js';
 import { Fighter } from './fighter.js';
-import { AI } from './ai.js';
+import { AI, PERSONALITIES } from './ai.js';
 import { ROSTER } from '../data/roster.js';
 import { readPlayer } from '../input.js';
 import { playEvent, sfx } from '../audio.js';
 
 const DT = 1 / 60;
+const PERS = Object.keys(PERSONALITIES);
+const pickPersonality = () => PERS[(Math.random() * PERS.length) | 0];   // chaque adversaire IA a un style de jeu aléatoire
 
 export class Match {
   // cfg : { mode, fmt, vs, diff, timer, need, p1:[ids], p2:[ids], stage, carry? }
@@ -32,7 +34,7 @@ export class Match {
     if (c.mode === 'training') ctl = team === 0 ? { k: 'h', p: 0 } : { k: 'dummy' };
     else if (team === 0 && idx === 0) ctl = { k: 'h', p: 0 };
     else if (team === 1 && idx === 0 && c.vs === 'p2') ctl = { k: 'h', p: 1 };
-    else ctl = { k: 'ai', ai: new AI(team === 0 ? Math.max(2, c.diff) : c.diff) };
+    else ctl = { k: 'ai', ai: new AI(team === 0 ? Math.max(2, c.diff) : c.diff, pickPersonality()) };
     this.ctrl[f.slot] = ctl;
     return f;
   }
