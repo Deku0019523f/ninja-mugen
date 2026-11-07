@@ -1,0 +1,2 @@
+// Combo « Projection » — touches : ← (arrière) + Poing, au contact. Passe la garde, ne touche pas un adversaire en l'air ; la roulade l'esquive.
+export default { id: 'throw', info: { name: 'Projection (passe la garde)', input: '← (arrière) + Poing, au contact' }, pose: 'strike', su: 6, ac: 2, re: 24, dmg: 70, ox: 0, rx: 52, y0: 0, y1: 72, kb: 3, stun: 30, launch: { vx: 5, vy: 8 }, unblock: true, ground: true, gain: 7, snd: 'kick' };

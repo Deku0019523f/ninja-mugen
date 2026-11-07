@@ -6,6 +6,8 @@ import { MOVES, BTN, getMove } from './moves.js';
 
 const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
 const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitesse, frames d'invulnérabilité
+const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui sur ↓
+const THROW_R = 52;     // projection : distance maximale (arrière + Poing)
 
 export class Fighter {
   constructor(char, team) {
@@ -20,6 +22,7 @@ export class Fighter {
     this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
     this.fade = false; this.fx = null; this.dying = false; this.dead = false;
     this.infiniteChi = false; this.rounds = 0;
+    this.parryT = 0; this.dPrev = false; this.dEdge = false; this.backT = 99;
   }
 
   get alive() { return this.hp > 0; }
@@ -30,6 +33,7 @@ export class Fighter {
     this.endBuff(); this.x = x; this.y = 0; this.vx = this.vy = 0; this.face = face;
     this.state = 'idle'; this.t = 0; this.move = null; this.invuln = 0; this.combo = 0; this.chain = 0; this.chainT = 0;
     this.dying = false; this.dead = false; this.fade = false; this.lock = null; this.juggle = 0;
+    this.parryT = 0; this.dPrev = false; this.dEdge = false; this.backT = 99;
     for (const b of BTN) this.buf[b] = 0;
   }
 
@@ -65,6 +69,11 @@ export class Fighter {
     if (this.invuln > 0) this.invuln--;
     if (this.chainT > 0 && --this.chainT === 0) this.chain = 0;
     this.fx = null;
+    // front montant de ↓ (parade parfaite) et mémoire du « arrière » (projection)
+    this.dEdge = !!inp.d && !this.dPrev; this.dPrev = !!inp.d;
+    const dirIn = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
+    if (dirIn !== 0 && dirIn !== this.face) this.backT = 0; else this.backT = Math.min(99, this.backT + 1);
+    if (this.parryT > 0) this.parryT--;
     if (this.buff) {
       if (this.buff === 'power' && this.hp > 0) this.hp = Math.min(this.maxHp, this.hp + 0.12);
       if (--this.buffT <= 0) this.endBuff();
@@ -104,8 +113,11 @@ export class Fighter {
     }
     if (this.take('super', 50)) return this.startMove('super');
     if (this.take('move2', 15)) return this.startMove('move2');
-    if (this.take('special', 10)) return this.startMove('special');
+    // Spécial : ↑ = tir en diagonale (anti-aérien), ↓ = tir bas, sinon tir normal
+    if (this.take('special', 10)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
+    // Projection : arrière + Poing au contact (passe la garde, l'adversaire doit être au sol ; la roulade l'esquive)
+    if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= 5 && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
     if (this.buf.punch > 0 && this.buf.punch <= 5 && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
     if (this.buf.kick > 0 && this.buf.kick <= 5 && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
 
@@ -114,7 +126,10 @@ export class Fighter {
       w.event({ t: 'jump', x: this.x }); return;
     }
     const back = dir !== 0 && dir !== this.face;
-    if (inp.d || (back && w.threatNear(this))) { this.go('block'); this.vx *= 0.6; return; }
+    if (inp.d || (back && w.threatNear(this))) {
+      if (inp.d && this.dEdge) this.parryT = PARRY;   // appui frais sur ↓ : fenêtre de parade parfaite
+      this.go('block'); this.vx *= 0.6; return;
+    }
     if (inp.u) { this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
     if (dir) { this.vx = dir * spd * (dir === this.face ? 1 : BACK); this.go('walk'); }
     else { this.vx *= 0.6; this.go('idle'); }
@@ -193,14 +208,30 @@ export class Fighter {
     }
   }
 
+  // ---------------------------------------------------------- parade parfaite
+  // Le défenseur a tapé ↓ juste avant l'impact : aucun dégât, +12 chakra, l'attaquant (corps à corps) est déséquilibré.
+  parry(att, d, w) {
+    this.parryT = 0; this.chi = Math.min(100, this.chi + 12); this.vx = 0;
+    if (!d.owner && att.state === 'atk') {
+      const away = att.x <= this.x ? -1 : 1;
+      att.move = null; att.fade = false; att.lock = null; att.connected = false;
+      att.setState('hit'); att.stun = 22; att.vx = away * 2.5;
+    }
+    w.event({ t: 'clash', x: this.x + this.face * 16, y: this.y + 44, parry: true });
+    w.hitstop = Math.max(w.hitstop, 9);
+    return 'parry';
+  }
+
   // ---------------------------------------------------------- dégâts
   receive(att, d, srcX, w) {
     if (this.state === 'ko' || this.dead || this.hp <= 0 && this.state !== 'launch') return 'miss';
     if (this.invuln > 0 || this.state === 'down' || this.state === 'getup') return 'miss';
+    if (d.ground && this.y > 0) return 'miss';        // la projection ne touche pas un adversaire en l'air
     const dir = this.x >= srcX ? 1 : -1;
     const front = (srcX - this.x) * this.face > 0;
     const guarding = this.state === 'block' || this.state === 'blockstun';
     if (guarding && front && !d.unblock && this.y <= 0) {
+      if (this.state === 'block' && this.parryT > 0 && !d.super) return this.parry(att, d, w);
       this.hp -= Math.min(d.dmg * 0.08, Math.max(0, this.hp - 1));
       this.chi = Math.min(100, this.chi + 2.5); att.chi = Math.min(100, att.chi + 1);
       this.setState('blockstun'); this.stun = Math.max(9, (d.stun || 14) * 0.6);

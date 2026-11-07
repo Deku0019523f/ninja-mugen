@@ -18,7 +18,10 @@ export default function sControls() {
       <li><b>□+△</b> Frappe lourde · <b>○+✕</b> SUPER (un doigt entre les deux boutons suffit)</li></ul>
     <h3>COMBOS</h3><ul>${COMBO_LIST.map((c) => `<li><b>${c.name}</b> : ${c.input}</li>`).join('')}
       <li>Après un coup qui touche : enchaînez <b>Spécial</b>, <b>Technique</b> ou <b>SUPER</b> (annulation)</li></ul>
-    <h3>ASTUCES</h3><ul><li>Reculer face à un coup : garde automatique</li><li>Bas + gauche/droite : roulade esquive</li><li>Le chakra se recharge en frappant et en encaissant</li><li>P / Échap : pause · Manette : X poing, A pied, B spécial, Y technique, R1 super</li></ul>
+    <h3>ASTUCES</h3><ul><li>Reculer face à un coup : garde automatique</li><li>Bas + gauche/droite : roulade esquive</li><li>Le chakra se recharge en frappant et en encaissant</li>
+      <li><b>Parade parfaite</b> : tapez ↓ juste avant l'impact (quelques images) : aucun dégât, +chakra, l'adversaire est déséquilibré. Maintenir ↓ ne suffit pas.</li>
+      <li><b>↑ + Spécial</b> : tir en diagonale (anti-aérien) · <b>↓ + Spécial</b> : tir bas rasant</li>
+      <li>P / Échap : pause · Manette : X poing, A pied, B spécial, Y technique, R1 super</li></ul>
   </div><div class="foot">Échap / G ou toucher « Retour » : revenir</div>`;
   G.screenEl.appendChild(w); G.handler = (k) => { if (k === 'back' || k === 'ok') { sfx.back(); G.go('title'); } };
 }

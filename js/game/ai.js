@@ -45,7 +45,7 @@ export class AI {
       case 'retreat': inp[dir > 0 ? 'l' : 'r'] = 1; break;
       case 'block': inp.d = 1; break;
       case 'jump': if (!p.done) { inp.u = 1; inp[p.dirv > 0 ? 'r' : 'l'] = 1; p.done = true; } break;
-      case 'press': if (!p.done) { inp[p.key] = 1; if (p.down) inp.d = 1; p.done = true; } break;
+      case 'press': if (!p.done) { inp[p.key] = 1; if (p.down) inp.d = 1; if (p.up) inp.u = 1; if (p.back) inp[dir > 0 ? 'l' : 'r'] = 1; p.done = true; } break;
       default: break;
     }
     return inp;
@@ -56,22 +56,24 @@ export class AI {
     const react = REACT[L] + Math.floor(R() * 10);
     if (w.threatNear(f) && R() < BLOCK[L]) return set('block', 16 + Math.floor(R() * 12));
     if (e.y > 25 && dist < 110 && R() < 0.2 + L * 0.1) return set('press', 14, { key: 'punch', down: true });
+    if (e.y > 40 && dist > 70 && dist < 320 && f.chi >= 10 && R() < 0.15 + L * 0.08) return set('press', 16, { key: 'special', up: true });   // tir anti-aérien
     if (f.chi >= 50 && R() < 0.1 + L * 0.06 && dist < 420) return set('press', 40, { key: 'super' });
     if (R() > AGGR[L]) return set(R() < 0.5 ? 'retreat' : 'wait', react);
 
     if (dist > 300) {
       const r = R();
-      if (r < 0.3 && f.chi >= 10) return set('press', react + 10, { key: 'special' });
+      if (r < 0.3 && f.chi >= 10) return set('press', react + 10, { key: 'special', down: R() < 0.25 });
       if (r < 0.4) return set('jump', react + 20, { dirv: dir });
       return set('approach', react + 10);
     }
     if (dist > 120) {
       const r = R();
-      if (r < 0.22 && f.chi >= 10) return set('press', react + 8, { key: 'special' });
+      if (r < 0.22 && f.chi >= 10) return set('press', react + 8, { key: 'special', down: R() < 0.3 });
       if (r < 0.42 && f.chi >= 15) return set('press', react + 12, { key: 'move2' });
       if (r < 0.5) return set('jump', react + 20, { dirv: dir });
       return set('approach', react);
     }
+    if (dist < 52 && R() < 0.1 + L * 0.06) return set('press', react + 4, { key: 'punch', back: true });   // projection
     const r = R();
     if (r < 0.46) return set('press', react, { key: 'punch' });
     if (r < 0.64) return set('press', react + 6, { key: 'kick' });

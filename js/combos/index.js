@@ -8,7 +8,8 @@ import upper from './upper.js';
 import smash from './smash.js';
 import apunch from './apunch.js';
 import akick from './akick.js';
+import throwMove from './throw.js';
 
-const LIST = [punch1, punch2, punch3, kick, sweep, upper, smash, apunch, akick];
+const LIST = [punch1, punch2, punch3, kick, sweep, upper, smash, apunch, akick, throwMove];
 export const MOVES = Object.fromEntries(LIST.map((m) => [m.id, m]));
 export const COMBO_LIST = LIST.map((m) => m.info);
