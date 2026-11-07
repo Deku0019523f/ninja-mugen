@@ -4,7 +4,9 @@
 import { World, NOIN } from './world.js';
 import { Fighter } from './fighter.js';
 import { AI, PERSONALITIES } from './ai.js';
+import { attachSupports, resetSupports, callSupports, tickSupports, SupportAI } from './support.js';
 import { ROSTER } from '../data/roster.js';
+import { randomTeam } from '../modes/util.js';
 import { readPlayer } from '../input.js';
 import { playEvent, sfx } from '../audio.js';
 
@@ -13,13 +15,14 @@ const PERS = Object.keys(PERSONALITIES);
 const pickPersonality = () => PERS[(Math.random() * PERS.length) | 0];   // chaque adversaire IA a un style de jeu aléatoire
 
 export class Match {
-  // cfg : { mode, fmt, vs, diff, timer, need, p1:[ids], p2:[ids], stage, carry? }
+  // cfg : { mode, fmt, vs, diff, timer, need, p1:[ids], p2:[ids], stage, carry?, sup?, sup1?:[ids], sup2?:[ids] }
   constructor(cfg, view, hud, onEnd) {
     this.cfg = cfg; this.view = view; this.hud = hud; this.onEnd = onEnd;
     this.world = new World((Math.random() * 1e9) | 0);
     this.ctrl = []; this.wins = [0, 0]; this.round = 0; this.acc = 0; this.finished = false; this.paused = false;
     cfg.p1.forEach((id, i) => this.addFighter(id, 0, i, cfg.p1.length));
     cfg.p2.forEach((id, i) => this.addFighter(id, 1, i, cfg.p2.length));
+    if (cfg.sup && cfg.fmt === 1) { this.addSupports(0, cfg.sup1); this.addSupports(1, cfg.sup2); }   // soutiens R1 / L1 : 1 contre 1 uniquement
     if (cfg.mode === 'training') { this.world.fighters[0].infiniteChi = true; }
     if (cfg.carry) cfg.carry.forEach((hp, i) => { if (this.world.fighters[i] && hp != null) this.world.fighters[i].hp = Math.max(1, hp); });
     view.setStage(cfg.stage); view.setFighters(this.world); view.camX = 0;
@@ -39,6 +42,17 @@ export class Match {
     return f;
   }
 
+  // Soutiens d'un camp : ceux choisis, sinon 2 au hasard si le combattant est piloté par l'IA (rien pour le mannequin d'entraînement).
+  addSupports(team, ids) {
+    const leader = this.world.team(team)[0]; if (!leader) return;
+    const ctl = this.ctrl[leader.slot];
+    let list = ids && ids.length ? ids : null;
+    if (!list && ctl && ctl.k === 'ai') list = randomTeam(2, [...this.cfg.p1, ...this.cfg.p2, ...(this.cfg.sup1 || [])]);
+    if (!list) return;
+    const sups = attachSupports(this.world, leader, list.map((id) => ROSTER[id]));
+    for (const s of sups) this.ctrl[s.slot] = { k: 'sup', ai: new SupportAI() };
+  }
+
   startRound() {
     this.round++; this.phase = 'intro'; this.pt = 0; this.timeLeft = this.cfg.timer ? this.cfg.timer * 60 : 0;
     const w = this.world; w.projs = []; w.events = []; w.hitstop = 0;
@@ -46,6 +60,7 @@ export class Match {
       const m = w.team(t);
       m.forEach((f, i) => { f.prepare((t ? 1 : -1) * (150 + i * 70), t ? -1 : 1, this.keepHp && this.round === 1); f.introPose = true; f.winPose = false; if (this.cfg.mode !== 'training') f.chi = this.round === 1 ? f.chi : f.chi; });
     }
+    resetSupports(w);
     this.keepHp = false; this.speed = 1; this.said = 0;
     this.hud.banner('', 0);
   }
@@ -56,6 +71,7 @@ export class Match {
       if (this.phase !== 'fight' || !c) return NOIN;
       if (c.k === 'h') return readPlayer(c.p);
       if (c.k === 'ai') return c.ai.think(this.world, f);
+      if (c.k === 'sup') return c.ai.think(this.world, f);
       return NOIN;
     });
   }
@@ -71,7 +87,7 @@ export class Match {
       for (const tm of [0, 1]) if (w.teamDown(tm) && this.cfg.mode !== 'training') return this.ko(tm === 0 ? 1 : 0);
       if (this.cfg.mode === 'training') {
         const d = w.team(1)[0]; if (d.hp <= 0 && d.dead && ++this.revive > 40) { d.prepare(150, -1); this.revive = 0; }
-        for (const f of w.fighters) if (f.state === 'idle' && f.hp < f.maxHp && f.combo === 0 && this.pt % 120 === 0) f.hp = Math.min(f.maxHp, f.hp + 200);
+        for (const f of w.fighters) if (f.state === 'idle' && f.hp < f.maxHp && f.combo === 0 && this.pt % 120 === 0 && !f.support) f.hp = Math.min(f.maxHp, f.hp + 200);
         this.revive = this.revive || 0;
       }
     } else if (this.phase === 'ko') {
@@ -82,8 +98,10 @@ export class Match {
       if (t === 20 && this.roundEndMsg) this.hud.banner(this.roundEndMsg, 110);
       if (t > 150) this.nextRound();
     }
-    const ran = w.update(this.inputs());
-    void ran;
+    const inp = this.inputs();
+    if (this.phase === 'fight') callSupports(w, inp);
+    const ran = w.update(inp);
+    if (ran) tickSupports(w);
     for (const e of w.events) { playEvent(e); this.view.handle(e); this.hud.event(e); }
     w.events.length = 0;
   }

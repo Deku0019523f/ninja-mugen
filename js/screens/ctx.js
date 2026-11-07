@@ -1,7 +1,7 @@
 // État partagé entre les écrans (réglages, partie en cours, routeur)
 export const DIFF = ['Novice', 'Facile', 'Normal', 'Difficile', 'Maître'];
 export const G = {
-  S: { fmt: 1, vs: 'cpu', diff: 3, need: 2, timer: 0, sound: true, music: true },
+  S: { fmt: 1, vs: 'cpu', diff: 3, need: 2, timer: 0, sound: true, music: true, sup: true },
   run: null, mode: 'arcade', handler: null, ticker: null, screenEl: null, view: null,
   go: () => {}, launch: () => {}, nextOpponent: () => {},
 };

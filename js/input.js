@@ -2,10 +2,10 @@
 //  ENTRÉES : clavier (2 joueurs), manettes, boutons tactiles
 // ============================================================
 export const KEYMAPS = [
-  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', punch: 'KeyF', kick: 'KeyG', special: 'KeyH', move2: 'KeyT', super: 'KeyY', smash: 'KeyR' },
-  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', punch: 'KeyJ', kick: 'KeyK', special: 'KeyL', move2: 'KeyI', super: 'KeyO', smash: 'KeyU' },
+  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', punch: 'KeyF', kick: 'KeyG', special: 'KeyH', move2: 'KeyT', super: 'KeyY', smash: 'KeyR', sup1: 'KeyE', sup2: 'KeyQ' },
+  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', punch: 'KeyJ', kick: 'KeyK', special: 'KeyL', move2: 'KeyI', super: 'KeyO', smash: 'KeyU', sup1: 'KeyP', sup2: 'KeyN' },
 ];
-export const ACTIONS = ['l', 'r', 'u', 'd', 'punch', 'kick', 'special', 'move2', 'super'];
+export const ACTIONS = ['l', 'r', 'u', 'd', 'punch', 'kick', 'special', 'move2', 'super', 'sup1', 'sup2'];
 import { touch, touchT, initTouch } from './touch.js';
 const down = new Set();
 const menuQ = [];
@@ -32,7 +32,7 @@ export function readPlayer(i) {
   const km = KEYMAPS[i], o = {};
   for (const a of ACTIONS) o[a] = down.has(km[a]) ? 1 : 0;
   if (i === 0) {
-    for (const a of ['l', 'r', 'u', 'd', 'punch', 'kick']) if (touch[a]) o[a] = 1;
+    for (const a of ['l', 'r', 'u', 'd', 'punch', 'kick', 'sup1', 'sup2']) if (touch[a]) o[a] = 1;
     // ○ et ✕ ensemble = SUPER ; sinon on attend PAIR_DELAY ms pour laisser le temps d'appuyer sur les deux
     const now = performance.now();
     if (touch.special && touch.move2) o.super = 1;
@@ -46,7 +46,8 @@ export function readPlayer(i) {
   if (pad) {
     const b = (n) => pad.buttons[n] && pad.buttons[n].pressed, ax = pad.axes;
     if (ax[0] < -0.5 || b(14)) o.l = 1; if (ax[0] > 0.5 || b(15)) o.r = 1; if (ax[1] < -0.6 || b(12)) o.u = 1; if (ax[1] > 0.6 || b(13)) o.d = 1;
-    if (b(2)) o.punch = 1; if (b(0)) o.kick = 1; if (b(1)) o.special = 1; if (b(3)) o.move2 = 1; if (b(5) || b(7)) o.super = 1;
+    if (b(2)) o.punch = 1; if (b(0)) o.kick = 1; if (b(1)) o.special = 1; if (b(3)) o.move2 = 1; if (b(7)) o.super = 1;
+    if (b(5)) o.sup1 = 1; if (b(4)) o.sup2 = 1;
   }
   if (o.l && o.r) o.l = o.r = 0;
   return o;

@@ -8,9 +8,12 @@ import { sfx } from '../audio.js';
 export default function sSelect() {
   const S = G.S, mode = G.mode, m = MODES[mode];
   const fmt = m.solo ? 1 : S.fmt, humanP2 = mode === 'single' && S.vs === 'p2';
-  const slots = []; for (let i = 0; i < fmt; i++) slots.push({ who: 'JOUEUR 1', t: 0 });
-  if (humanP2) for (let i = 0; i < fmt; i++) slots.push({ who: 'JOUEUR 2', t: 1 });
-  else if (mode === 'single' || mode === 'training') for (let i = 0; i < fmt; i++) slots.push({ who: 'ADVERSAIRE', t: 1 });
+  const useSup = S.sup !== false && fmt === 1;       // soutiens R1 / L1 : 2 par joueur, en 1 contre 1
+  const slots = [];
+  const addSide = (who, t) => { for (let i = 0; i < fmt; i++) slots.push({ who, t, kind: 'main' }); if (useSup) for (let i = 1; i <= 2; i++) slots.push({ who, t, kind: 'sup', n: i }); };
+  addSide('JOUEUR 1', 0);
+  if (humanP2) addSide('JOUEUR 2', 1);
+  else if (mode === 'single' || mode === 'training') for (let i = 0; i < fmt; i++) slots.push({ who: 'ADVERSAIRE', t: 1, kind: 'main' });
   const picks = []; let cur = 0;
   const COLS = 10, N = ROSTER.length;
   const cell = Math.max(32, Math.min(50, Math.floor((G.view.vw - 120 - 26 - 22 - 230) / COLS) - 4));
@@ -32,7 +35,9 @@ export default function sSelect() {
   const draw = () => {
     cells.forEach((c, i) => { c.classList.toggle('sel', i === cur); c.classList.toggle('picked', picks.indexOf(i) >= 0); });
     const s = slots[picks.length];
-    head.innerHTML = s ? `<b>${s.who}</b> — choisissez ${fmt > 1 ? 'combattant ' + ((picks.filter((_, k) => slots[k].t === s.t).length) + 1) + '/' + fmt : 'votre combattant'}` : '';
+    head.innerHTML = !s ? '' : s.kind === 'sup'
+      ? `<b>${s.who}</b> — choisissez le <b>soutien ${s.n}/2</b> (${s.n === 1 ? 'R1' : 'L1'})`
+      : `<b>${s.who}</b> — choisissez ${fmt > 1 ? 'combattant ' + (picks.filter((_, k) => slots[k].t === s.t && slots[k].kind === 'main').length + 1) + '/' + fmt : 'votre combattant'}`;
     const c = ROSTER[cur], a = ARCH[c.arch], m2 = MOVE2[a.m2];
     side.querySelector('.nm').textContent = c.name.toUpperCase(); side.querySelector('.ti').textContent = c.title;
     const bar = (l, v) => `<div class="b"><span>${l}</span><i><u style="width:${Math.min(100, v * 70)}%"></u></i></div>`;
@@ -48,8 +53,9 @@ export default function sSelect() {
     sfx.ui(); draw();
   };
   const finish = () => {
-    const p1 = picks.filter((_, k) => slots[k].t === 0), p2h = picks.filter((_, k) => slots[k].t === 1);
-    G.run = { mode, fmt, vs: humanP2 ? 'p2' : 'cpu', diff: S.diff, need: m.series || m.solo ? 1 : S.need, timer: m.chrono ? S.timer : 0, p1, p2: p2h, wins: 0, fight: 0, carry: null, score: 0 };
+    const pick = (t, kind) => picks.filter((_, k) => slots[k].t === t && slots[k].kind === kind);
+    const p1 = pick(0, 'main'), p2h = pick(1, 'main'), sup1 = pick(0, 'sup'), sup2 = pick(1, 'sup');
+    G.run = { mode, fmt, vs: humanP2 ? 'p2' : 'cpu', diff: S.diff, need: m.series || m.solo ? 1 : S.need, timer: m.chrono ? S.timer : 0, p1, p2: p2h, sup1, sup2: humanP2 ? sup2 : null, wins: 0, fight: 0, carry: null, score: 0 };
     if (!m.series) return G.go('stage');
     G.nextOpponent();
   };

@@ -1,7 +1,7 @@
 /* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite (paysage) */
 :root{--bs:clamp(54px,17.5vh,96px)}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
-.is-touch #padzone,.is-touch #padswitch,.is-touch #acts{pointer-events:auto}
+.is-touch #padzone,.is-touch #padswitch,.is-touch #acts,.is-touch #sups{pointer-events:auto}
 
 /* zone de gauche : stick flottant ou croix */
 #padzone{position:absolute;left:0;bottom:0;width:42%;height:78%;touch-action:none}
@@ -27,3 +27,8 @@
 #acts .bb{left:50%;bottom:0;margin-left:calc(var(--bs)*-.5);color:#6aa8ff;border-color:#6aa8ffcc}
 #acts .bl{left:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff8ac8;border-color:#ff8ac8cc}
 #acts .br{right:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff6a6a;border-color:#ff6a6acc}
+
+/* R1 / L1 : appel des soutiens, au-dessus du losange */
+#sups{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*3.55);display:flex;gap:calc(var(--bs)*.3);touch-action:none}
+#sups .sb{width:calc(var(--bs)*.95);height:calc(var(--bs)*.7);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.32);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none}
+#sups .sb.on{background:#ff7a1add;color:#fff;border-color:#fff;transform:scale(.94)}

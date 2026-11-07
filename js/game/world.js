@@ -1,5 +1,7 @@
 // ============================================================
 //  WORLD : combattants + projectiles + événements (logique pure)
+//  Les soutiens (f.support) sont des combattants à part : ils ne sont pas des cibles (enemiesOf / nearestEnemy),
+//  ne comptent pas dans l'équipe (team), ne se bousculent pas (separate) ; hors-jeu (f.out) ils ne sont pas mis à jour.
 // ============================================================
 export const HALF = 640;      // demi-largeur de l'arène
 export const MAXD = 560;      // écart maximum entre deux combattants
@@ -20,24 +22,24 @@ export class World {
   event(e) { this.events.push(e); }
   add(f) { f.slot = this.fighters.length; f.w = this; this.fighters.push(f); return f; }
 
-  enemiesOf(f) { return this.fighters.filter((e) => e.team !== f.team && e.hp > 0); }
+  enemiesOf(f) { return this.fighters.filter((e) => e.team !== f.team && e.hp > 0 && !e.support); }
   nearestEnemy(f) {
     let best = null, bd = 1e9;
     for (const e of this.fighters) {
-      if (e.team === f.team || e.hp <= 0) continue;
+      if (e.team === f.team || e.hp <= 0 || e.support) continue;
       const d = Math.abs(e.x - f.x);
       if (d < bd) { bd = d; best = e; }
     }
     return best;
   }
-  team(t) { return this.fighters.filter((f) => f.team === t); }
+  team(t) { return this.fighters.filter((f) => f.team === t && !f.support); }
   teamHp(t) { return this.team(t).reduce((s, f) => s + Math.max(0, f.hp), 0); }
   teamMax(t) { return this.team(t).reduce((s, f) => s + f.maxHp, 0); }
   teamDown(t) { return this.team(t).every((f) => f.hp <= 0); }
   teamSettled(t) { return this.team(t).every((f) => f.hp <= 0 && f.dead); }
 
   threatNear(f) {
-    for (const e of this.enemiesOf(f)) if (e.state === 'atk' && Math.abs(e.x - f.x) < 150 && (f.x - e.x) * e.face > 0) return true;
+    for (const e of this.fighters) if (e.team !== f.team && e.hp > 0 && e.state === 'atk' && Math.abs(e.x - f.x) < 150 && (f.x - e.x) * e.face > 0) return true;
     for (const p of this.projs) if (p.team !== f.team && Math.abs(p.x - f.x) < 150 && (f.x - p.x) * p.vx > 0) return true;
     return false;
   }
@@ -53,9 +55,9 @@ export class World {
   }
 
   update(inputs) {
-    if (this.hitstop > 0) { this.hitstop--; for (const f of this.fighters) f.feed(inputs[f.slot] || NOIN, true); return false; }
+    if (this.hitstop > 0) { this.hitstop--; for (const f of this.fighters) if (!f.out) f.feed(inputs[f.slot] || NOIN, true); return false; }
     this.frame++;
-    for (const f of this.fighters) f.update(this, inputs[f.slot] || NOIN);
+    for (const f of this.fighters) if (!f.out) f.update(this, inputs[f.slot] || NOIN);
     this.updateProjs();
     this.separate();
     return true;
@@ -113,7 +115,7 @@ export class World {
     const fs = this.fighters;
     for (let i = 0; i < fs.length; i++) for (let j = i + 1; j < fs.length; j++) {
       const a = fs[i], b = fs[j];
-      if (a.team === b.team || a.hp <= 0 || b.hp <= 0) continue;
+      if (a.team === b.team || a.hp <= 0 || b.hp <= 0 || a.support || b.support) continue;
       if (a.y > 50 || b.y > 50 || a.state === 'down' || b.state === 'down') continue;
       const min = (14 * a.scale + 14 * b.scale) * 1.15, dx = b.x - a.x, over = min - Math.abs(dx);
       if (over > 0) {
@@ -123,7 +125,7 @@ export class World {
         a.x -= s * pa; b.x += s * pb;
       }
     }
-    const alive = fs.filter((f) => f.hp > 0);
+    const alive = fs.filter((f) => f.hp > 0 && !f.support);
     if (alive.length > 1) {
       let mn = 1e9, mx = -1e9; for (const f of alive) { mn = Math.min(mn, f.x); mx = Math.max(mx, f.x); }
       if (mx - mn > MAXD) { const c = (mn + mx) / 2; for (const f of alive) f.x = Math.max(c - MAXD / 2, Math.min(c + MAXD / 2, f.x)); }

@@ -1,7 +1,9 @@
 // ============================================================
 //  IA : 5 niveaux de difficulté + 4 personnalités. Produit les mêmes entrées qu'un joueur.
 // ============================================================
-const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0 });
+import { supReady } from './support.js';
+
+const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, sup1: 0, sup2: 0 });
 const REACT = [46, 34, 24, 15, 8];
 const BLOCK = [0.04, 0.18, 0.38, 0.6, 0.82];
 const CHAIN = [0.35, 0.55, 0.7, 0.85, 0.95];
@@ -28,6 +30,13 @@ export class AI {
     if (!e || f.hp <= 0) return inp;
     const L = this.lv - 1, R = () => w.rnd();
     const dx = e.x - f.x, dist = Math.abs(dx), dir = dx >= 0 ? 1 : -1;
+
+    // appel des soutiens (R1 / L1) : plus volontiers quand on est en difficulté
+    if (f.sup) {
+      const stunned = f.state === 'hit' || f.state === 'launch' || f.state === 'blockstun';
+      const pc = stunned ? 0.05 : 0.003 + 0.0015 * L;
+      for (let i = 0; i < 2; i++) if (supReady(f, i) && R() < pc) { inp[i === 0 ? 'sup1' : 'sup2'] = 1; break; }
+    }
 
     if (f.state === 'atk') {                       // combos automatiques
       const m = f.move;

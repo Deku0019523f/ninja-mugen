@@ -1,8 +1,9 @@
 // ============================================================
-//  HUD (DOM) : barres de vie angulaires, chakra, chrono ∞, combos, bannières, cut-in super
+//  HUD (DOM) : barres de vie angulaires, chakra, chrono ∞, combos, bannières, cut-in super, soutiens R1 / L1
 // ============================================================
 import { ARCH, ROSTER } from '../data/roster.js';
 import { SUPERS } from '../game/moves.js';
+import { SUP_CD, supReady } from '../game/support.js';
 import { drawPortrait } from '../render/sprites.js';
 
 const el = (tag, cls, html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
@@ -23,8 +24,21 @@ export class Hud {
       const sub = el('div', 'subs'); const subEls = fs.length > 1 ? fs.map(() => { const s = el('div', 'sub'); s.innerHTML = '<div class="fill"></div>'; sub.appendChild(s); return s; }) : [];
       const wins = el('div', 'wins', '0');
       bars.append(hp, chi, names, sub);
+      // soutiens (R1 / L1) : portrait, délai de rappel, état
+      const leader = fs[0], supEls = [];
+      if (leader.sup && leader.sup.length) {
+        const row = el('div', 'hud-sups'); row.style.cssText = 'display:flex;gap:4px;margin-top:3px';
+        leader.sup.forEach((s, i) => {
+          const b = el('div', 'hud-sup'); b.style.cssText = 'position:relative;width:30px;height:34px;border:2px solid #555;border-radius:4px;background:#0d122ccc;overflow:hidden';
+          const pc2 = el('canvas'); pc2.width = pc2.height = 26; pc2.style.cssText = 'display:block;margin:0 auto'; drawPortrait(pc2.getContext('2d'), s.char, 26);
+          const key = el('span', '', i === 0 ? 'R1' : 'L1'); key.style.cssText = 'position:absolute;right:1px;top:0;font:700 8px sans-serif;color:#fff;text-shadow:0 0 2px #000';
+          const cd = el('i'); cd.style.cssText = 'position:absolute;left:0;bottom:0;height:4px;width:0;background:#ffe066';
+          b.append(pc2, key, cd); row.appendChild(b); supEls.push({ b, cd });
+        });
+        bars.appendChild(row);
+      }
       box.append(pc, bars, wins); top.appendChild(box);
-      this.team[t] = { box, hp: hp.querySelector('.fill'), ghost: hp.querySelector('.ghost'), chi: chi.querySelector('.fill'), chiBar: chi, wins, subEls, ghostV: 1, fs };
+      this.team[t] = { box, hp: hp.querySelector('.fill'), ghost: hp.querySelector('.ghost'), chi: chi.querySelector('.fill'), chiBar: chi, wins, subEls, supEls, leader, ghostV: 1, fs };
       if (fs.length > 1) box.classList.add('duo');
     }
     this.timer = el('div', 'hud-timer', '∞'); top.appendChild(this.timer);
@@ -63,6 +77,11 @@ export class Hud {
       const chi = hum.chi; T.chi.style.width = chi + '%'; T.chiBar.classList.toggle('ready', chi >= 50);
       T.wins.textContent = match.wins[t];
       T.subEls.forEach((s, i) => { s.firstChild.style.width = Math.max(0, T.fs[i].hp / T.fs[i].maxHp * 100) + '%'; s.classList.toggle('dead', T.fs[i].hp <= 0); });
+      T.supEls.forEach((s, i) => {
+        const sp = T.leader.sup[i], on = !sp.out, ready = supReady(T.leader, i);
+        s.b.style.borderColor = on ? '#6cf' : ready ? '#ffe066' : '#555'; s.b.style.opacity = on || ready ? 1 : 0.55;
+        s.cd.style.width = on ? '100%' : Math.round((1 - Math.max(0, T.leader.supCd[i]) / SUP_CD) * 100) + '%'; s.cd.style.background = on ? '#6cf' : '#ffe066';
+      });
       // combo affiché du côté de la victime
       let best = 0; for (const f of T.fs) if (f.chainT > 0) best = Math.max(best, f.chain);
       const ce = this.comboEls[1 - t];

@@ -2,8 +2,9 @@
 //  COMMANDES TACTILES façon manette (paysage)
 //  Gauche : stick analogique flottant OU croix 8 directions (au choix, mémorisé)
 //  Droite : △ □ ○ ✕ en losange ; un doigt entre deux boutons appuie sur les deux (□+△ = frappe lourde, ○+✕ = super)
+//  Au-dessus du losange : R1 / L1 = appel des soutiens
 // ============================================================
-export const touch = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0 };
+export const touch = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, sup1: 0, sup2: 0 };
 export const touchT = {};
 const KEY = 'ninja-mugen-pad';
 let mode = 'stick';
@@ -69,5 +70,15 @@ export function initTouch() {
   acts.addEventListener('pointerdown', (e) => { e.preventDefault(); acts.setPointerCapture(e.pointerId); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); });
   acts.addEventListener('pointermove', (e) => { if (ptr.has(e.pointerId)) { ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); } });
   ['pointerup', 'pointercancel'].forEach((n) => acts.addEventListener(n, (e) => { ptr.delete(e.pointerId); refresh(); }));
+
+  // R1 / L1 : appel des soutiens (boutons indépendants)
+  const sups = $('#sups');
+  if (sups) {
+    for (const b of sups.querySelectorAll('[data-s]')) {
+      const a = b.dataset.s, set = (v) => { touch[a] = v; b.classList.toggle('on', !!v); };
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(1); });
+      ['pointerup', 'pointercancel'].forEach((n) => b.addEventListener(n, () => set(0)));
+    }
+  }
   apply();
 }
