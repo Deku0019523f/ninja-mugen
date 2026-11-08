@@ -64,6 +64,17 @@ const R = (o = {}) => ({ l: 0, r: 0, u: 0, d: 0, o: 0, x: 0, sq: 0, tri: 0, r2: 
   const a = c.map(R({ o: 1 }));
   ok(a.special === 1, '△ puis ○ dans la foulée : Ninjutsu');
 }
+// 10) R2 + ○ : projection, sans Poing ni uppercut
+{
+  const c = new Chord(); c.map(R({ r2: 1 }));
+  const a = c.map(R({ r2: 1, o: 1 })), b = c.map(R({ r2: 1, o: 1 }));
+  ok(a.throw === 1 && a.punch === 0 && a.kick === 0 && b.throw === 0, 'R2+○ : projection (une impulsion)');
+}
+// 11) L2 : substitution en impulsion (pas de répétition en maintenant)
+{
+  const c = new Chord(); const a = c.map(R({ l2: 1 })), b = c.map(R({ l2: 1 }));
+  ok(a.sub === 1 && b.sub === 0, 'L2 : une seule impulsion');
+}
 
 console.log(fails ? '\n' + fails + ' échec(s) (combinaisons)' : '\nCombinaisons : tous les tests passent');
 process.exit(fails ? 1 : 0);

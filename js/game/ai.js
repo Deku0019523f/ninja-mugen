@@ -3,12 +3,13 @@
 // ============================================================
 import { supReady } from './support.js';
 
-const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sup1: 0, sup2: 0 });
+const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sub: 0, throw: 0, sup1: 0, sup2: 0 });
 const REACT = [46, 34, 24, 15, 8];
 const BLOCK = [0.04, 0.18, 0.38, 0.6, 0.82];
 const CHAIN = [0.35, 0.55, 0.7, 0.85, 0.95];
 const AGGR = [0.35, 0.5, 0.62, 0.78, 0.9];
 const PARRY_CH = [0, 0.05, 0.12, 0.2, 0.3];   // chance de parade volontaire par niveau
+const SUB_CH = [0, 0.02, 0.05, 0.08, 0.12];   // chance par frame de substituer un coup sur le point de toucher
 
 // aggr : bonus d'agressivité · block / sp / parry / throw : multiplicateurs · keepAway : garde ses distances
 export const PERSONALITIES = {
@@ -36,6 +37,15 @@ export class AI {
       const stunned = f.state === 'hit' || f.state === 'launch' || f.state === 'blockstun';
       const pc = stunned ? 0.05 : 0.003 + 0.0015 * L;
       for (let i = 0; i < 2; i++) if (supReady(f, i) && R() < pc) { inp[i === 0 ? 'sup1' : 'sup2'] = 1; break; }
+    }
+
+    // substitution (L2) : esquive un coup sur le point de toucher, ou s'échappe d'un combo
+    if (f.subCharges > 0) {
+      if ((f.state === 'hit' || f.state === 'launch') && R() < 0.004 * L) inp.sub = 1;
+      else if (e.state === 'atk' && e.move && e.move.dmg !== undefined && dist < 120) {
+        const rem = e.move.su - e.t;
+        if (rem >= 0 && rem <= 4 && R() < SUB_CH[L]) inp.sub = 1;
+      }
     }
 
     if (f.state === 'atk') {                       // combos automatiques

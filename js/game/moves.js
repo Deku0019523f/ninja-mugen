@@ -11,8 +11,9 @@ import { SHURIKEN, CHAKRA_SHURIKEN, CHAKRA_DASH } from '../techniques/chakra.js'
 import { MOVE2 } from '../techniques/index.js';
 import { SUPERS } from '../supers/index.js';
 
-// Boutons mémorisés (buffer de 8 frames) : sq = Shuriken (□), cdash = Chakra Dash, cshuriken = Chakra Shuriken
-export const BTN = ['punch', 'kick', 'special', 'move2', 'super', 'sq', 'cdash', 'cshuriken'];
+// Boutons mémorisés (buffer de 8 frames) : sq = Shuriken (□), cdash = Chakra Dash, cshuriken = Chakra Shuriken,
+// sub = substitution (L2, mémorisée pour être pressée un peu avant l'impact), throw = projection (R2 + ○)
+export const BTN = ['punch', 'kick', 'special', 'move2', 'super', 'sq', 'cdash', 'cshuriken', 'sub', 'throw'];
 export { MOVES, COMBO_LIST, SPECIAL, MOVE2, SUPERS, fireSpecial };
 
 export function getMove(f, key) {
