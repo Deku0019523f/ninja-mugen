@@ -5,15 +5,15 @@
 //  Les coups vivent dans leurs dossiers : combos/ techniques/ supers/ (un fichier chacun)
 // ============================================================
 import { ARCH } from '../archetypes/index.js';
-import { MOVES, COMBO_LIST } from '../combos/index.js';
+import { MOVES, COMBO_LIST, SIDE_FINISH } from '../combos/index.js';
 import { SPECIAL, SPECIAL_UP, SPECIAL_DOWN, fireSpecial } from '../techniques/special.js';
 import { SHURIKEN, CHAKRA_SHURIKEN, CHAKRA_DASH } from '../techniques/chakra.js';
 import { MOVE2 } from '../techniques/index.js';
 import { SUPERS } from '../supers/index.js';
 
 // Boutons mémorisés (buffer de 8 frames) : sq = Shuriken (□), cdash = Chakra Dash, cshuriken = Chakra Shuriken,
-// sub = substitution (L2, mémorisée pour être pressée un peu avant l'impact), throw = projection (R2 + ○)
-export const BTN = ['punch', 'kick', 'special', 'move2', 'super', 'sq', 'cdash', 'cshuriken', 'sub', 'throw'];
+// sub = substitution (L2), throw = projection (R2 + ○), high / low / side = ○ avec ↑ / ↓ / ←→ (chaînes directionnelles)
+export const BTN = ['punch', 'kick', 'special', 'move2', 'super', 'sq', 'cdash', 'cshuriken', 'sub', 'throw', 'high', 'low', 'side'];
 export { MOVES, COMBO_LIST, SPECIAL, MOVE2, SUPERS, fireSpecial };
 
 export function getMove(f, key) {
@@ -23,6 +23,7 @@ export function getMove(f, key) {
   if (key === 'shuriken') return SHURIKEN;
   if (key === 'cshuriken') return CHAKRA_SHURIKEN;
   if (key === 'cdash') return CHAKRA_DASH;
+  if (key === 'sidefin') return MOVES[SIDE_FINISH[f.char.arch] || 'kick'];   // finisseur de la chaîne latérale : selon le personnage
   const a = ARCH[f.char.arch];
   if (key === 'move2') return MOVE2[a.m2];
   if (key === 'super') return SUPERS[a.sup];

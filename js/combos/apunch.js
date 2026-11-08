@@ -1,2 +1,2 @@
-// Combo « Poing aérien » — touche : En l'air : Poing
-export default { id: 'apunch', info: { name: 'Poing aérien', input: 'En l\'air : Poing' }, air: true, pose: 'apunch', su: 3, ac: 10, re: 4, dmg: 38, ox: 4, rx: 48, y0: 20, y1: 62, kb: 3, stun: 15, cancels: { kick: 'akick' }, gain: 4, snd: 'punch' };
+// Combo « Poing aérien » — en l'air : ○ (puis ○ : Poing aérien 2, puis ○ : Pied aérien)
+export default { id: 'apunch', info: { name: 'Poing aérien', input: 'En l\'air : ○' }, air: true, pose: 'apunch', su: 3, ac: 10, re: 4, dmg: 38, ox: 4, rx: 48, y0: 20, y1: 62, kb: 3, stun: 15, cancels: { kick: 'akick', punch: 'apunch2', high: 'apunch2', side: 'apunch2', low: 'akick' }, gain: 4, snd: 'punch' };

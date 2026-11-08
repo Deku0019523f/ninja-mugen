@@ -1,9 +1,10 @@
 // ============================================================
 //  COMBINAISONS DE BOUTONS (schéma « Storm ») : traduit les boutons physiques en actions du moteur.
 //  Entrées brutes : l r u d  o (○)  x (✕)  sq (□)  tri (△)  r2  l2  sup1 (R1)  sup2 (L1)
-//  Sorties : les actions du moteur (punch kick special super sq cdash cshuriken charge throw sub d u l r sup1 sup2 …)
+//  Sorties : les actions du moteur (punch high low side special super sq cdash cshuriken charge throw sub d u l r sup1 sup2 …)
 //
-//   ○            attaque : ↑+○ = uppercut (variante haute), ↓+○ = balayage (variante basse), ←/→+○ = coup de pied, sinon Poing
+//   ○            attaque : ○ seul = chaîne normale ; ↑+○ = chaîne haute (uppercut, lance dans les airs) ;
+//                ↓+○ = chaîne basse (jab bas, tibia, croc-en-jambe) ; ←/→+○ = chaîne latérale (paume, paume 2, finisseur du personnage)
 //   R2 + ○       projection (au contact ; sinon simple Poing)
 //   ✕            saut (comme ↑) ; un 2e appui en l'air = double saut
 //   □            Shuriken
@@ -12,23 +13,22 @@
 //   △ + ✕        Chakra Dash               △ + □        Chakra Shuriken
 //   R2           garde (un appui bref = parade parfaite)      L2   substitution (impulsion)
 //  « △ + X » vaut aussi quand △ vient d'être relâché (ARM_WIN frames) : △ → ✕ → ○ …
+//  La direction est lue au moment de l'appui sur ○ : chaque ○ d'une chaîne peut bifurquer vers une autre chaîne.
 // ============================================================
 export const TAP_WIN = 30;       // deux appuis sur △ dans cette fenêtre (frames) avant ○ = Technique ultime
 export const ARM_WIN = 8;        // △ relâché depuis moins de ARM_WIN frames compte encore comme « armé »
 export const CHARGE_AFTER = 6;   // frames de △ maintenu avant de charger
-const LATCH = 2;                 // ↑+○ : ↓ maintenu 2 frames de plus (le moteur lit ↓ au départ du coup)
 
 export class Chord {
-  constructor() { this.f = 0; this.prev = {}; this.taps = []; this.triT = 0; this.relF = -99; this.xUsed = false; this.latchD = 0; }
+  constructor() { this.f = 0; this.prev = {}; this.taps = []; this.triT = 0; this.relF = -99; this.xUsed = false; }
 
   map(raw) {
     const f = ++this.f, p = this.prev, edge = (k) => !!raw[k] && !p[k];
     const out = {
       l: raw.l ? 1 : 0, r: raw.r ? 1 : 0, u: raw.u || raw.x ? 1 : 0, d: raw.d || raw.r2 ? 1 : 0,
-      punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, throw: 0,
+      punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, throw: 0,
       sup1: raw.sup1 ? 1 : 0, sup2: raw.sup2 ? 1 : 0, guard: raw.r2 ? 1 : 0, sub: edge('l2') ? 1 : 0,
     };
-    if (this.latchD > 0) { this.latchD--; out.d = 1; out.u = 0; }
 
     if (edge('tri')) this.taps.push(f);
     if (p.tri && !raw.tri) this.relF = f;
@@ -46,10 +46,10 @@ export class Chord {
     }
     if (!chord) {
       if (edge('o')) {
-        if (raw.r2) out.throw = 1;                                                // R2 + ○ : projection
-        else if (raw.u) { out.punch = 1; out.d = 1; out.u = 0; this.latchD = LATCH; }   // ↑ + ○ : variante haute (uppercut du moteur = ↓ + Poing)
-        else if (raw.d) out.kick = 1;                                            // ↓ + ○ : variante basse (balayage = ↓ + Pied)
-        else if (raw.l || raw.r) out.kick = 1;                                   // ← / → + ○ : variante directionnelle (coup de pied)
+        if (raw.r2) out.throw = 1;                  // R2 + ○ : projection
+        else if (raw.u) out.high = 1;               // ↑ + ○ : chaîne haute
+        else if (raw.d) out.low = 1;                // ↓ + ○ : chaîne basse
+        else if (raw.l || raw.r) out.side = 1;      // ← / → + ○ : chaîne latérale
         else out.punch = 1;
       } else if (edge('sq')) out.sq = 1;
       if (raw.tri && this.triT >= CHARGE_AFTER) out.charge = 1;

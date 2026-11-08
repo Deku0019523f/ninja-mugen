@@ -15,6 +15,9 @@ const BREAK_STUN = 55;  // étourdissement après une garde brisée (frames)
 // Coups normaux : le buffer vaut 8 à l'appui puis décroît d'1 par frame. Le coup part quand il est <= TAP.
 // 7 = 1 frame après l'appui (le temps de détecter Poing+Pied simultanés) ; 5 = ancien réglage (3 frames).
 const TAP = 7;
+// Annulations par bouton (chaînes de combos) et équivalent aérien d'un coup quand on enchaîne en l'air
+const CANCEL_KEYS = ['punch', 'kick', 'high', 'low', 'side'];
+const AIRMAP = { punch1: 'apunch', punch2: 'apunch', punch3: 'akick', kick: 'akick', upper: 'apunch', palm: 'apunch', palm2: 'apunch', cjab: 'apunch', shin: 'akick', trip: 'akick', sidefin: 'akick', rise: 'apunch', hook: 'akick', sweep: 'akick' };
 
 export class Fighter {
   constructor(char, team) {
@@ -24,7 +27,7 @@ export class Fighter {
     this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.face = 1; this.scale = 1;
     this.state = 'idle'; this.t = 0; this.stun = 0; this.move = null;
     this.hitSet = new Set(); this.connected = false; this.lock = null;
-    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, sub: 0, throw: 0 };
+    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, sub: 0, throw: 0, high: 0, low: 0, side: 0 };
     this.invuln = 0; this.combo = 0; this.juggle = 0; this.chain = 0; this.chainT = 0;
     this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
     this.fade = false; this.fx = null; this.dying = false; this.dead = false;
@@ -127,8 +130,9 @@ export class Fighter {
         w.event({ t: 'jump', x: this.x }); w.event({ t: 'puff', x: this.x, y: this.y + 10, color: '#cfe8ff' });
         return;
       }
-      if (this.take('punch')) return this.startMove('apunch');
-      if (this.take('kick')) return this.startMove('akick');
+      if (this.take('cdash', 20)) return this.startMove('cdash');                 // Chakra Dash en l'air : poursuite
+      if (this.take('punch') || this.take('high') || this.take('side')) return this.startMove('apunch');
+      if (this.take('kick') || this.take('low')) return this.startMove('akick');
       if (this.take('cshuriken', 20)) return this.startMove('cshuriken');
       if (this.take('special', 10)) return this.startMove('special');
       if (this.take('sq')) return this.startMove('shuriken');
@@ -143,8 +147,12 @@ export class Fighter {
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
     // Projection (R2 + ○) : au contact elle passe la garde (adversaire au sol ; la roulade ou la substitution l'esquivent), sinon simple Poing
     if (this.buf.throw > 0 && this.take('throw')) return this.startMove(e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R ? 'throw' : 'punch1');
-    // Projection de l'IA : arrière + Poing au contact
+    // Projection de l'ancienne IA : arrière + Poing au contact
     if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= TAP && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
+    // Chaînes directionnelles de ○ : ↑ = uppercut (lance), ↓ = jab bas (puis tibia, croc-en-jambe), ← / → = paume (puis finisseur du personnage)
+    if (this.take('high')) return this.startMove('upper');
+    if (this.take('low')) return this.startMove('cjab');
+    if (this.take('side')) return this.startMove('palm');
     if (this.buf.punch > 0 && this.buf.punch <= TAP && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
     if (this.buf.kick > 0 && this.buf.kick <= TAP && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
     if (this.take('sq')) return this.startMove('shuriken');                // Shuriken (□)
@@ -212,11 +220,13 @@ export class Fighter {
       if (ground && B.super > 0 && this.chi >= 50) { B.super = 0; return void this.startMove('super'); }
       if (ground && B.move2 > 0 && this.chi >= 15) { B.move2 = 0; return void this.startMove('move2'); }
       if (B.special > 0 && this.chi >= 10) { B.special = 0; return void this.startMove('special'); }
+      if (B.cdash > 0 && this.chi >= 20 && m.id !== 'cdash') { B.cdash = 0; return void this.startMove('cdash'); }   // Chakra Dash : prolonge le combo / poursuit
       if (ground && m.id !== 'smash' && B.punch > 0 && B.kick > 0) { B.punch = B.kick = 0; return void this.startMove('smash'); }
       const c = m.cancels;
       if (c) {
-        if (B.punch > 0 && c.punch) { B.punch = 0; return void this.startMove(c.punch); }
-        if (B.kick > 0 && c.kick) { B.kick = 0; return void this.startMove(c.kick); }
+        for (const key of CANCEL_KEYS) {
+          if (B[key] > 0 && c[key]) { B[key] = 0; return void this.startMove(!ground && AIRMAP[c[key]] ? AIRMAP[c[key]] : c[key]); }
+        }
       }
     }
     if (this.t >= m.su + m.ac + m.re) this.endMove();
