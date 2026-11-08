@@ -11,7 +11,7 @@ export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', '
 import { touch, initTouch } from './touch.js';
 const down = new Set();
 const menuQ = [];
-const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back' };
+const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back', KeyQ: 'pgl', KeyE: 'pgr', PageUp: 'pgl', PageDown: 'pgr' };
 let padPrev = [];
 
 export function initInput() {
@@ -45,7 +45,7 @@ export function pollMenu() {
   const out = menuQ.splice(0);
   const pads = [...((navigator.getGamepads && navigator.getGamepads()) || [])].filter(Boolean);
   pads.forEach((p, i) => {
-    const prev = padPrev[i] || {}, cur = { up: p.axes[1] < -0.6 || (p.buttons[12] && p.buttons[12].pressed), down: p.axes[1] > 0.6 || (p.buttons[13] && p.buttons[13].pressed), left: p.axes[0] < -0.6 || (p.buttons[14] && p.buttons[14].pressed), right: p.axes[0] > 0.6 || (p.buttons[15] && p.buttons[15].pressed), ok: p.buttons[0] && p.buttons[0].pressed, back: p.buttons[1] && p.buttons[1].pressed, pause: p.buttons[9] && p.buttons[9].pressed };
+    const prev = padPrev[i] || {}, cur = { up: p.axes[1] < -0.6 || (p.buttons[12] && p.buttons[12].pressed), down: p.axes[1] > 0.6 || (p.buttons[13] && p.buttons[13].pressed), left: p.axes[0] < -0.6 || (p.buttons[14] && p.buttons[14].pressed), right: p.axes[0] > 0.6 || (p.buttons[15] && p.buttons[15].pressed), ok: p.buttons[0] && p.buttons[0].pressed, back: p.buttons[1] && p.buttons[1].pressed, pause: p.buttons[9] && p.buttons[9].pressed, pgl: p.buttons[4] && p.buttons[4].pressed, pgr: p.buttons[5] && p.buttons[5].pressed };
     for (const k of Object.keys(cur)) if (cur[k] && !prev[k]) out.push(k);
     padPrev[i] = cur;
   });
