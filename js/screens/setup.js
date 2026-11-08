@@ -12,6 +12,6 @@ export default function sSetup() {
   if (!m.solo) items.push({ label: 'Difficulté', get: () => `${S.diff} — ${DIFF[S.diff - 1]}`, desc: m.diffDesc, ...cyc('diff', [1, 2, 3, 4, 5]) });
   if (m.manches) items.push({ label: 'Manches', get: () => `Au meilleur de ${S.need * 2 - 1}`, desc: 'Nombre de manches pour gagner un match.', ...cyc('need', [1, 2, 3]) });
   if (m.chrono) items.push({ label: 'Chrono', get: () => (S.timer ? S.timer + ' s' : '∞'), desc: 'Temps limité par manche, ou illimité (∞).', ...cyc('timer', [0, 60, 99]) });
-  items.push({ label: '▶ CHOISIR LES COMBATTANTS', ok: () => { sfx.ok(); G.go('select'); } });
-  listMenu(items, { title: m.label, onBack: () => G.go('title'), desc: m.desc });
+  items.push({ label: 'CHOISIR LES COMBATTANTS', go: true, desc: 'Passer au choix du ou des combattants.', ok: () => { sfx.ok(); G.go('select'); } });
+  listMenu(items, { page: true, title: 'RÈGLES', tag: `<span class="tag org">${m.label}</span>`, onBack: () => G.go('title'), desc: m.desc });
 }

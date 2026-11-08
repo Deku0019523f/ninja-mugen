@@ -2,7 +2,7 @@
 export const DIFF = ['Novice', 'Facile', 'Normal', 'Difficile', 'Maître'];
 export const G = {
   S: { fmt: 1, vs: 'cpu', diff: 3, need: 2, timer: 0, sound: true, music: true, sup: true },
-  run: null, mode: 'arcade', handler: null, ticker: null, screenEl: null, view: null,
+  run: null, cur: null, mode: 'arcade', handler: null, ticker: null, screenEl: null, view: null,
   go: () => {}, launch: () => {}, nextOpponent: () => {},
 };
 try { Object.assign(G.S, JSON.parse(localStorage.getItem('ninja-mugen') || '{}')); } catch (e) { /* ignore */ }
