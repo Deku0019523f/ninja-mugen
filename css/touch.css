@@ -1,4 +1,4 @@
-/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite, L1 R1 L2 R2 au-dessus (paysage) */
+/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite, L1 R1 au-dessus du losange, L2 R2 au-dessus du stick (paysage) */
 :root{--bs:clamp(54px,17.5vh,96px)}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
 .is-touch #padzone,.is-touch #padswitch,.is-touch #acts,.is-touch #sups{pointer-events:auto}
@@ -28,8 +28,12 @@
 #acts .bl{left:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff8ac8;border-color:#ff8ac8cc}
 #acts .br{right:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff6a6a;border-color:#ff6a6acc}
 
-/* L1 R1 (soutiens) / L2 R2 (substitution, garde) : grille 2 x 2 au-dessus du losange */
-#sups{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*3.5);display:grid;grid-template-columns:repeat(2,auto);gap:calc(var(--bs)*.12) calc(var(--bs)*.3);touch-action:none}
-#sups .sb{width:calc(var(--bs)*.95);height:calc(var(--bs)*.6);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.3);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none}
+/* L1 R1 (soutiens) au-dessus du losange à droite ; L2 R2 (substitution, garde) de l'autre côté, au-dessus du stick à gauche */
+#sups{display:contents}
+#sups .sb{position:absolute;bottom:calc(var(--bs)*3.5);width:calc(var(--bs)*.95);height:calc(var(--bs)*.6);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.3);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none;touch-action:none}
+#sups .sb[data-s=sup1]{right:calc(var(--bs)*.45)}
+#sups .sb[data-s=sup2]{right:calc(var(--bs)*1.7)}
 #sups .sb[data-s=l2],#sups .sb[data-s=r2]{border-color:#9ad0ffcc;color:#9ad0ff}
+#sups .sb[data-s=l2]{left:calc(var(--bs)*1.1)}
+#sups .sb[data-s=r2]{left:calc(var(--bs)*2.35)}
 #sups .sb.on{background:#ff7a1add;color:#fff;border-color:#fff;transform:scale(.94)}
