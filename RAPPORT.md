@@ -3,46 +3,40 @@
 Mémoire du projet : à mettre à jour après chaque étape importante.
 
 ## Objectif
-Jeu de combat 2D façon M.U.G.E.N en three.js : 56 combattants originaux (18 styles), 1v1 et 2v2, 6 décors, modes Arcade / Combat individuel / Survie / Entraînement, IA à 5 niveaux, 2 joueurs, manette et tactile (paysage).
+Jeu de combat 2D façon M.U.G.E.N en three.js : 56 combattants originaux (18 styles), 1v1 et 2v2, 6 décors, modes Arcade / Combat individuel / Survie / Entraînement, IA à 5 niveaux, 2 joueurs, manette et tactile (paysage). Direction en cours : schéma de commandes « Storm » (voir plan.md, phase 6).
 
 ## Stack et technologies
 - JavaScript ES Modules (sans framework), rendu three.js 0.170 (caméra orthographique, sprites dessinés sur canvas, particules shader)
 - Navigateur : `index.html` + importmap vers three via jsDelivr (CDN)
 - Build : esbuild (`build.mjs`) → un seul fichier `dist/ninja-mugen.html` (three inclus, hors-ligne)
-- Tests : simulation du moteur sans navigateur (`test/sim.mjs`, `test/phase3.mjs`, Node)
+- Tests : simulation du moteur sans navigateur (`test/sim.mjs`, `test/phase3.mjs`, `test/support.mjs`, Node)
 - Hébergement : GitHub Pages (déploiement depuis la branche `main`, racine)
 
 ## Architecture et structure des fichiers
-Voir `plan.md` (structure détaillée + constat sur le moteur + règles des nouveaux coups + IA + feuille de route).
+Voir `plan.md` (structure détaillée, constat sur le moteur, règles des nouveaux coups et des soutiens, IA, feuille de route, cahier des charges Storm).
 
 ## Fonctionnalités développées
-- 56 personnages (un dossier chacun), 18 archétypes, combos, techniques, supers (un fichier chacun)
-- 6 décors procéduraux à parallaxe
-- 4 modes de jeu, écrans séparés (titre, réglages, sélection, décor, VS, options, commandes, résultat)
-- Clavier 2 joueurs, manette, commandes tactiles (stick analogique ou croix + boutons)
-- Rendu large : caméra dynamique 640→1200 × 480
-- Sons et musique synthétisés (WebAudio)
-- Moteur : pas fixe 60 Hz, hitstop, buffer d'entrées 8 frames, annulations, roulade, garde auto, anti-infini
-- Fondu entre poses (2 à 4 frames) et tremblement du combattant touché
-- Latence des coups normaux réduite de 3 à 1 frame (`TAP = 7`)
-- Parade parfaite (tap ↓), projection (arrière + Poing au contact), Spécial ↑ (diagonale) et ↓ (tir bas), écran Commandes mis à jour
-- IA : 4 personnalités tirées au hasard par adversaire, parade volontaire, usage de la projection et des Spéciaux ↑/↓
+- 56 personnages, 18 archétypes, combos, techniques, supers (un fichier chacun) ; 6 décors ; 4 modes de jeu ; écrans séparés
+- Clavier 2 joueurs, manette, commandes tactiles ; rendu large ; sons et musique synthétisés
+- Moteur : pas fixe 60 Hz, hitstop, buffer d'entrées, annulations, roulade, garde auto, anti-infini, fondu de poses, latence des coups réduite (`TAP = 7`)
+- Parade parfaite (tap ↓), projection (arrière + Poing), Spécial ↑ / ↓
+- IA : 4 personnalités, parade volontaire, projection, Spéciaux ↑/↓, appel des soutiens
+- **Soutiens (6.1)** : 2 soutiens par combattant (sélection après le combattant, réglage Oui/Non dans la configuration), appel R1 / L1 (E / Q au clavier J1, P / N J2, boutons manette R1 / L1, boutons tactiles), présence 3 s, rappel 12 s, comportements interrupt / range / melee, vignettes HUD, 1 contre 1 uniquement
 
 ## Fonctionnalités restantes
-Voir les phases 1 à 5 de `plan.md` (cases non cochées).
+Voir `plan.md` : phase 6 (6.1b à 6.6), phases 1 à 5.
 
 ## Modifications importantes
 - 2026-11-07 : refonte multifichier (stages, écrans, modes, CSS par domaine), rendu large, commandes tactiles.
-- 2026-11-07 : ajout de `.nojekyll` (voir problèmes).
-- 2026-11-07 : `plan.md` avec feuille de route (fluidité, techniques, visuel).
-- 2026-11-07 : phase 1 — `js/input.js` (délai ○/✕ 45→20 ms), `js/render/sprites.js` (`poseFor` = pose brute + fondu ; tremblement hit/blockstun).
-- 2026-11-07 : phase 3 — `js/game/fighter.js` (parry, throw, variantes), `js/combos/throw.js`, `js/techniques/special.js`, `js/game/moves.js`, `js/game/ai.js`, `js/screens/controls.js`, `test/phase3.mjs`, `package.json`.
-- 2026-11-07 : latence des coups normaux (`TAP` dans `fighter.js`), personnalités et parade de l'IA (`ai.js`, `match.js`), tests ajoutés (latence, personnalités).
-- **Tout ceci a été écrit sans pouvoir lancer le jeu ni les tests** : à vérifier avec `npm test` puis en jeu. Les diffs du dernier commit ont été relus (seules les modifications prévues y figurent).
+- 2026-11-07 : `.nojekyll` ; `plan.md` (feuille de route) ; phase 1 (`input.js` délai 20 ms, `sprites.js` fondu de poses) ; phase 3 (parade, projection, Spécial ↑/↓) ; latence `TAP` ; personnalités de l'IA.
+- 2026-11-07 : cahier des charges Storm dans `plan.md` ; décisions d'Alec : remplacement complet des commandes, boutons tactiles ajoutés, commencer par les soutiens.
+- 2026-11-07/08 : **6.1 Soutiens** — nouveaux/modifiés : `js/game/support.js` (nouveau), `world.js` (soutiens exclus des cibles/équipe/bousculade, hors-jeu sauté), `match.js`, `ai.js`, `input.js`, `touch.js`, `css/touch.css`, `index.html` / `template.html` (boutons R1/L1, `?v=4`), `ui/hud.js`, `screens/select.js` / `setup.js` / `ctx.js` / `controls.js`, `main.js`, `test/support.mjs`, `package.json`.
+- **Tout ceci a été écrit sans pouvoir lancer le jeu ni les tests** : à vérifier avec `npm test` puis en jeu. Les diffs des commits ont été relus (seules les modifications prévues y figurent).
 
 ## Problèmes rencontrés et solutions
-- **Écran tout noir sur GitHub Pages** (le jeu marchait en local / via `dist/`) : GitHub Pages passe par Jekyll, qui ignore tout fichier ou dossier dont le nom commence par `_`. `js/stages/_draw.js` et `js/characters/_make.js` renvoyaient donc 404, ce qui cassait tout le graphe de modules (page vide, aucun menu). Solution : fichier vide `.nojekyll` à la racine.
-- **Latence des coups normaux** (~3 frames, `buf <= 5`) : réduite à 1 frame (`TAP = 7`). Contrepartie : Poing+Pied à plus d'1 frame d'écart ne donne plus la frappe lourde (Poing puis Pied à la place).
+- **Écran tout noir sur GitHub Pages** : Jekyll ignore les fichiers en `_nom.js` (`js/stages/_draw.js`, `js/characters/_make.js`) → 404, graphe de modules cassé. Solution : `.nojekyll` à la racine.
+- **Latence des coups normaux** (~3 frames) : réduite à 1 frame (`TAP = 7`). Contrepartie : Poing+Pied à plus d'1 frame d'écart donne Poing puis Pied.
+- **Conflit de touches** pour R1 / L1 : Y était déjà le Super de J1 ; choix de E / Q (J1) et P / N (J2). La manette passe le Super sur R2 seul.
 
 ## Dépendances installées
 - `three@^0.170.0` (dependencies)
@@ -51,16 +45,16 @@ Voir les phases 1 à 5 de `plan.md` (cases non cochées).
 ## Commandes importantes
 - `npm install` : installer les dépendances
 - `npm run build` : régénérer `dist/ninja-mugen.html`
-- `npm test` : `test/sim.mjs` puis `test/phase3.mjs` (Node)
+- `npm test` : `test/sim.mjs`, `test/phase3.mjs`, `test/support.mjs` (Node)
 - `npm start` : serveur local (`npx serve .`)
 
 ## Variables d'environnement
 Aucune.
 
 ## État actuel
-Jouable. Phases 1 et 3 en grande partie faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** depuis ces modifications (lancer `npm run build`).
+Jouable. Phases 1, 3 et 6.1 en grande partie faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** depuis ces modifications (lancer `npm run build`). Pour GitHub Pages, vider le cache (les CSS/JS passent en `?v=4`).
 
 ## Prochaines étapes
-- Lancer `npm test` : si un test échoue (`sim.mjs` ou `phase3.mjs`), envoyer la sortie ; réglages : `TAP`, `PARRY`, `THROW_R` en haut de `fighter.js`, `PARRY_CH` et `PERSONALITIES` dans `ai.js`
-- Tester en jeu (mobile et PC) : latence des coups, parade, projection, Spécial ↑/↓, fondu de poses, délai tactile, équilibre des personnalités de l'IA
-- Puis : jauge de garde (avec HUD), variantes de la Technique, 2v2, visuel (phases 4-5), performance (phase 2)
+- Lancer `npm test` ; en cas d'échec, envoyer la sortie (réglages : `SUP_STAY` / `SUP_CD` / `SUP_START` dans `support.js`, `TAP`, `PARRY`, `THROW_R` dans `fighter.js`, `PARRY_CH` / `PERSONALITIES` dans `ai.js`)
+- Tester en jeu (mobile) : placement des boutons R1 / L1, vignettes HUD, comportement des 3 modes de soutien
+- Puis 6.2 (chakra : △, Chakra Dash, Chakra Shuriken, Ninjutsu, Ultime, Shuriken), 6.3 (défense : R2, substitution, guard break), 6.4 (combos directionnels et aériens), 6.5, 6.6

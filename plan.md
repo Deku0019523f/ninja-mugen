@@ -10,10 +10,11 @@ Ce fichier contient (1) la structure détaillée du projet, (2) la feuille de ro
 index.html            page de dev (importmap three via CDN, charge js/main.js)
 template.html         gabarit pour le build mono-fichier
 build.mjs             esbuild -> dist/ninja-mugen.html (three + CSS inclus)
-dist/                 jeu en un seul fichier, hors-ligne
+dist/                 jeu en un seul fichier, hors-ligne (a besoin de `npm run build` après chaque modification)
 test/sim.mjs          simulation du moteur sans navigateur
 test/phase3.mjs       tests latence, parade parfaite, projection, Spécial ↑/↓, personnalités de l'IA
-package.json          scripts build / test (sim + phase3) / start
+test/support.mjs      tests des soutiens (apparition, rappel, corps à corps, tir, interruption, IA)
+package.json          scripts build / test (sim + phase3 + support) / start
 README.md             présentation et commandes de jeu
 RAPPORT.md            mémoire du projet
 plan.md               ce fichier
@@ -23,12 +24,12 @@ css/
   base.css            plein écran paysage, #view, #ui, bouton retour/pause, message « tournez le téléphone »
   hud.css             barres de vie, chakra, chrono, combos, bannières
   menus.css           écrans et listes de menu
-  touch.css           commandes tactiles
+  touch.css           commandes tactiles (stick/croix, losange, R1/L1)
 
 js/
   main.js             routeur d'écrans, lancement des matchs, pause, boucle principale
   input.js            clavier (2 joueurs), manette, lecture des commandes
-  touch.js            stick analogique / croix, boutons △ □ ○ ✕
+  touch.js            stick analogique / croix, boutons △ □ ○ ✕, boutons R1 / L1
   audio.js            sons et musique synthétisés
   data/roster.js      agrégateur : ROSTER (56) + ARCH (18) + hexShade
   characters/<nom>/<nom>.js   un dossier par personnage (56) + index.js (ordre = identifiant) + _make.js (fabrique)
@@ -38,10 +39,10 @@ js/
   supers/<nom>.js             une super attaque par fichier
   stages/<nom>.js             un fichier par décor (forest, plains, desert, snow, night, volcano) + _draw.js + index.js
   modes/<mode>.js             arcade, single, survival, training + util.js + index.js
-  screens/<écran>.js          title, setup, select, stage, vs, options, controls, result + ctx.js (état partagé) + index.js
-  game/                       moteur : fighter (états), world, match, ai (niveaux + personnalités), moves (agrégateur), helpers
+  screens/<écran>.js          title, setup, select (combattant + 2 soutiens), stage, vs, options, controls, result + ctx.js (état partagé) + index.js
+  game/                       moteur : fighter (états), world, match, ai (niveaux + personnalités), support (soutiens), moves (agrégateur), helpers
   render/                     sprites.js (squelette 2D + fondu de poses), view.js (three.js, caméra large 640->1200 x 480)
-  ui/                         hud.js (barres, combos), menu.js (liste de menu)
+  ui/                         hud.js (barres, combos, soutiens), menu.js (liste de menu)
 ```
 
 ## Flux
@@ -52,12 +53,21 @@ js/
 - `World.update` : `hitstop` gèle la simulation (les entrées continuent d'être bufferisées)
 - `Fighter` : `buf` = buffer d'entrées de 8 frames ; annulations après un coup au but ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
 - Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames ; parade parfaite 9
-- **Coups normaux** : le buffer vaut 8 à l'appui puis décroît ; le coup part quand il est <= `TAP` (fighter.js). `TAP = 7` : 1 frame après l'appui (avant : 5, soit 3 frames). Un bouton maintenu ne tire qu'après relâchement (inchangé). Poing+Pied avec plus d'1 frame d'écart donne désormais Poing puis Pied (enchaîné) au lieu de la frappe lourde.
+- **Coups normaux** : le coup part quand le buffer est <= `TAP` (fighter.js). `TAP = 7` : 1 frame après l'appui (avant : 5, soit 3 frames). Un bouton maintenu ne tire qu'après relâchement.
 
 ## Règles des nouveaux coups (phase 3)
-- **Parade parfaite** : appui frais sur ↓ -> fenêtre de 6 frames (`parryT`). Si un coup non-super arrive de face pendant la garde : 0 dégât, +12 chakra, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames. Événement `clash` avec `parry: true`. Maintenir ↓ ne suffit pas ; reculer (garde automatique) ne déclenche pas la parade.
-- **Projection** : arrière (mémorisé 8 frames, `backT`) + Poing, adversaire au sol à moins de 52 px. `unblock`, `ground`. La roulade l'esquive (invulnérable).
-- **Spécial ↑ / ↓** : ↑ = tir en diagonale ascendante (anti-aérien), ↓ = tir bas rasant ; 90 % des dégâts, un seul projectile.
+- **Parade parfaite** : appui frais sur ↓ -> fenêtre de 6 frames (`parryT`). Coup non-super de face pendant la garde : 0 dégât, +12 chakra, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames. Événement `clash` avec `parry: true`.
+- **Projection** : arrière (mémorisé 8 frames, `backT`) + Poing, adversaire au sol à moins de 52 px. `unblock`, `ground`. La roulade l'esquive.
+- **Spécial ↑ / ↓** : tir en diagonale (anti-aérien) / tir bas rasant ; 90 % des dégâts, un seul projectile.
+
+## Règles des soutiens (6.1)
+- 2 soutiens par combattant, choisis après le combattant (écran de sélection) ; l'IA en tire 2 au hasard. Réglage « Soutiens : Oui / Non » dans l'écran de configuration ; **1 contre 1 uniquement** (indisponible en 2 contre 2).
+- Appel : **R1 = soutien 1, L1 = soutien 2** — clavier J1 : **E / Q**, J2 : **P / N** ; manette : R1 / L1 (le Super de la manette passe sur R2) ; tactile : deux boutons au-dessus du losange.
+- Présence 3 s (`SUP_STAY` = 180 frames), invulnérable, ne bouscule personne ; délai de rappel 12 s (`SUP_CD` = 720, compté une fois le soutien reparti) ; 4 s (`SUP_START`) au début de chaque manche.
+- Trois comportements choisis à l'appel (`support.js`) : **interrupt** (l'adversaire est en train d'attaquer à moins de 260 px : le soutien apparaît devant lui et frappe tout de suite), **range** (adversaire à plus de 220 px : 2 tirs de Spécial), **melee** (marche vers l'adversaire et enchaîne les Poings). Dégâts × 0,85.
+- Les soutiens ne sont pas des cibles (les coups adverses les traversent), ne comptent pas dans la barre de vie ni dans le KO (`World.team` les exclut). Hors-jeu = `hp 0`, `dead`, `x = 99999`, ignorés par `World.update` (`f.out`).
+- HUD : deux vignettes sous la barre de chakra (bord jaune = prêt, bleu = présent, gris = en recharge, jauge de recharge).
+- IA : appelle les soutiens (0,3 à 0,9 % par frame une fois prêts, 5 % quand elle est touchée).
 
 ## IA
 - 5 niveaux (`REACT`, `BLOCK`, `CHAIN`, `AGGR`, `PARRY_CH` dans ai.js)
@@ -72,24 +82,20 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 
 ## Phase 0 — Préparation
 - [x] Correctif écran noir GitHub Pages (`.nojekyll`)
-- [x] Lire le moteur : `fighter.js`, `match.js`, `world.js`, `ai.js`, `helpers.js`, `special.js`
-- [x] Pas fixe 1/60 s : déjà en place
-- [x] `test/phase3.mjs` ajouté (lancé par `npm test`)
+- [x] Lire le moteur ; pas fixe 1/60 s déjà en place ; `test/phase3.mjs` et `test/support.mjs` lancés par `npm test`
 
 ## Phase 1 — Fluidité immédiate
 - [x] Hitstop et buffer d'entrées : déjà présents
-- [x] Tactile : délai ○ / ✕ réduit de 45 ms à 20 ms
-- [x] Fondu entre poses ; tremblement du combattant touché
+- [x] Tactile : délai ○ / ✕ réduit de 45 ms à 20 ms ; fondu entre poses ; tremblement du combattant touché
 - [x] Latence des coups normaux : 3 frames -> 1 frame (`TAP = 7`) — **à confirmer par `npm test`**
-- [ ] Tir immédiat d'un bouton maintenu
-- [ ] Poses de coup : anticipation / dépassement ; hitstop plus long sur coups lourds
+- [ ] Tir immédiat d'un bouton maintenu ; poses de coup (anticipation / dépassement) ; hitstop plus long sur coups lourds
 
 ## Phase 2 — Performance mobile
-- [ ] Cache de poses (ne redessiner que si la pose change) ; résolution adaptative ; interpolation du rendu ; réutilisation des matériaux d'effets
+- [ ] Cache de poses ; résolution adaptative ; interpolation du rendu ; réutilisation des matériaux d'effets
 
 ## Phase 3 — Techniques de combat (ancien schéma)
 - [x] Spécial ↑/↓, parade parfaite, projection, IA (personnalités + parade)
-- [ ] Variantes de la Technique, jauge de garde, combos aériens, annulations, dash/recul, 2v2, entraînement → **repris et redéfinis par la phase 6**
+- [ ] Reste → **repris et redéfini par la phase 6**
 
 ## Phase 4 — Visuel des personnages
 - [ ] Ombrage à deux tons, contour coloré, torse formé et tenues, visage expressif, mouvement secondaire, squash & stretch, traînées, poses uniques
@@ -123,7 +129,7 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 | L2 | Substitution |
 | R1 / L1 | Appel des soutiens (le coéquipier apparaît 3 s pour lancer une attaque) |
 
-## 3.2 Correspondance proposition (modifiable dans Options)
+## 3.2 Correspondance clavier / manette / tactile (modifiable dans Options)
 
 | Action | Joueur 1 (clavier, touches physiques) | Joueur 2 | Manette (mapping standard) | Tactile |
 |---|---|---|---|---|
@@ -132,26 +138,25 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 | ✕ Saut | G | K | bouton 0 | ✕ |
 | □ Shuriken | R | U | bouton 2 | □ |
 | △ Chakra | T | I | bouton 3 | △ |
-| R2 Garde | H | L | gâchette 7 | bouton ajouté |
-| L2 Substitution | E | O | gâchette 6 | bouton ajouté |
-| R1 Soutien 1 | Y | P | bouton 5 | bouton ajouté |
-| L1 Soutien 2 | Q | N | bouton 4 | bouton ajouté |
+| R2 Garde | H | L | gâchette 7 | bouton à ajouter |
+| L2 Substitution | Y | O | gâchette 6 | bouton à ajouter |
+| **R1 Soutien 1 (fait)** | **E** | **P** | **bouton 5** | **bouton R1 (fait)** |
+| **L1 Soutien 2 (fait)** | **Q** | **N** | **bouton 4** | **bouton L1 (fait)** |
+
+Note : R1 / L1 ont été placés sur E / Q (et non Y / Q comme proposé d'abord) parce que Y est encore le Super de l'ancien schéma ; L2 prendra Y quand l'ancien Super disparaîtra. Sur la manette, le Super est passé de R1/R2 à R2 seul.
 
 Détection des enchaînements : △ maintenu + (○ / ✕ / □) = Ninjutsu / Chakra Dash / Chakra Shuriken ; △ tap, △ tap, ○ (fenêtre ~20 frames) = Ultime ; R2 maintenu + ○ = Projection.
 
 ## 3.3 Combos directionnels (○ répété avec le stick gauche)
-- ○ répété : combo normal
-- ↑ + ○ répété : variante haute (lanceur, anti-aérien)
-- ↓ + ○ répété : variante basse (balayage, fait tomber)
-- ← ou → + ○ : variante directionnelle selon le personnage
+- ○ répété : combo normal · ↑ + ○ répété : variante haute · ↓ + ○ répété : variante basse · ← ou → + ○ : variante directionnelle selon le personnage
 - Les variantes ont des projections différentes : lancer dans les airs, repousser, faire tomber.
 - Traduction avec le moteur actuel : ↑+○ = `upper`, ↓+○ = `sweep`, ←/→+○ = `kick` (variante par archétype à définir). L'ancien Pied n'existe plus comme bouton.
 
 ## 3.4 Combo aérien
-Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner les attaques, terminer par une technique spéciale si les conditions le permettent (chakra suffisant).
+Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner les attaques, terminer par une technique spéciale si le chakra le permet.
 
 ## 3.5 Chakra Dash Combo
-△ (charger) → ✕ (Chakra Dash : fonce vers l'adversaire, peut servir à le poursuivre) → ○ ○ ○. Le Chakra Dash peut prolonger certaines séquences.
+△ (charger) → ✕ (Chakra Dash : fonce vers l'adversaire, peut servir à le poursuivre) → ○ ○ ○.
 
 ## 3.6 Techniques spéciales
 - **Ninjutsu** (△+○) : propre à chaque personnage (aujourd'hui : le « Spécial » de l'archétype).
@@ -168,25 +173,28 @@ Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner
 | Double saut | ✕ puis ✕ | Sauter deux fois |
 
 - **Substitution Jutsu** : L2 au moment d'un impact remplace le personnage par une bûche, réapparition ailleurs. **Réserve limitée qui se recharge progressivement** (proposition : 3 charges, +1 toutes les 5 s).
-- **Guard Break** : si la garde encaisse trop d'attaques, elle est brisée ; l'adversaire en profite pour lancer un combo. (jauge de garde + affichage HUD)
+- **Guard Break** : si la garde encaisse trop d'attaques, elle est brisée ; l'adversaire en profite pour lancer un combo (jauge de garde + affichage HUD).
 
 ## 3.8 Système de soutien (Support System)
-Le joueur sélectionne **deux personnages de soutien**. Ils peuvent : attaquer l'adversaire, prolonger un combo, interrompre une attaque ennemie, protéger le joueur, participer à certaines techniques combinées.
+Le joueur sélectionne **deux personnages de soutien**. Ils peuvent : attaquer l'adversaire, prolonger un combo, interrompre une attaque ennemie, protéger le joueur, participer à certaines techniques combinées. (Règles implémentées : voir « Règles des soutiens (6.1) » plus haut.)
 
-## 3.9 Architecture proposée (pour limiter les régressions)
-- `js/input.js` traduit les nouveaux boutons en actions logiques : `o x sq tri r2 l2 r1 l1` + directions ; le moteur reçoit ces actions. Les anciens noms (`punch kick special move2 super`) sont supprimés au fur et à mesure ; `test/sim.mjs` et `test/phase3.mjs` sont réécrits avec les nouvelles actions.
-- **Soutiens** = `Fighter` supplémentaires de l'équipe, marqués `support: true`, hors écran tant qu'ils ne sont pas appelés ; à l'appel (R1/L1) ils apparaissent, jouent une attaque (selon leur archétype) pendant 3 s, puis repartent ; cooldown par soutien. Ils ne comptent pas dans la barre de vie ni dans la condition de KO de l'équipe. Le format 2v2 simultané actuel est remplacé par « équipe » = 1 combattant + 2 soutiens.
-- Écran de sélection : choix du combattant puis de 2 soutiens ; l'IA choisit ses soutiens au hasard.
+## 3.9 Architecture
+- `js/input.js` traduit les boutons en actions logiques. Pour l'instant les anciennes actions (`punch kick special move2 super`) coexistent avec `sup1 sup2` ; elles seront remplacées par `o x sq tri r2 l2` (6.2 à 6.4) et `test/sim.mjs`, `test/phase3.mjs` réécrits.
+- **Soutiens** = `Fighter` supplémentaires de l'équipe (`support: true`), voir `js/game/support.js`.
+- Le format 2v2 simultané existe encore ; il sera retiré quand l'équipe « 1 combattant + 2 soutiens » sera validée en jeu.
 
 ## 3.10 Étapes (du plus dur au plus simple, selon la demande)
-- [ ] **6.1 Soutiens + combat en équipe** (R1/L1, sélection de 2 soutiens, IA, tests)
+- [x] **6.1 Soutiens (première version)** : sélection de 2 soutiens, R1/L1 (clavier, manette, tactile), présence 3 s, rappel 12 s, 3 comportements, IA, HUD, tests — **non testé en jeu**
+  - [ ] 6.1b Soutien qui « protège » le joueur (bouclier / garde du combattant) et qui prolonge un combo en cours
+  - [ ] 6.1c Techniques d'équipe (attaque combinée) ; soutiens en mode Entraînement (dummy sans soutien)
+  - [ ] 6.1d Retirer le 2v2 simultané une fois l'équipe validée
 - [ ] 6.2 Chakra : △ charge, Chakra Dash, Chakra Shuriken, Ninjutsu (△+○), Ultime (△△○), Shuriken (□)
 - [ ] 6.3 Défense : R2 garde, projection R2+○, substitution L2 avec réserve, guard break + HUD, double saut
 - [ ] 6.4 Combos directionnels (○ + direction) et combos aériens
 - [ ] 6.5 Éveil et techniques ultimes d'équipe
-- [ ] 6.6 Nouveau tactile (boutons R2/L2/R1/L1), écran Commandes, options de remappage, tests réécrits, README
+- [ ] 6.6 Nouveau tactile (R2/L2), écran Commandes, options de remappage, tests réécrits, README
 
 ## Points à trancher en cours de route
 - Quels coups précis pour ←/→ + ○ par personnage ou par archétype ?
-- Durée de présence (3 s), cooldown des soutiens, comportement des soutiens (attaque unique, ou action selon la situation : prolonger un combo / interrompre / protéger).
+- Durée de présence (3 s) et délai de rappel (12 s) des soutiens : à régler en jeu.
 - Coût en chakra du Ninjutsu, du Chakra Dash et de l'Ultime ; vitesse de charge du △.
