@@ -1,34 +1,76 @@
+// Guide des combos : onglets TACTILE / MANETTE / CLAVIER, deux cartes (attaques · défense), schéma illustré, pictogrammes.
 import { G, el } from './ctx.js';
 import { KEYMAPS } from '../input.js';
+import { getPadMode } from '../touch.js';
+import { isTouch } from '../input.js';
+import { ICON, pic, pics } from '../ui/icons.js';
+import { pageHead } from '../ui/shell.js';
 import { sfx } from '../audio.js';
 
+const chip = (cls, ...ks) => `<span class="chip ${cls}">${pics(...ks)}</span>`;
+const txt = (cls, s) => `<span class="chip txt ${cls}">${s}</span>`;
+const row = (label, sub, chips, hot = '') => `<div class="crow ${hot}"><div class="cl">${label}${sub ? `<small>${sub}</small>` : ''}</div><div class="cc">${chips}</div></div>`;
+
+const ATTAQUES = row('Enchaînement de poings', 'Poing · Poing · Poing', chip('red', 'o', 'o', 'o'))
+  + row('Variantes de ○', 'Uppercut · Balayage · Pied', chip('red', 'up', '+', 'o') + chip('red', 'down', '+', 'o') + chip('red', 'left', '+', 'o'))
+  + row('Charger le chakra', 'Immobile, vulnérable', chip('gold', 'tri') + txt('gold', 'maintenu'))
+  + row('Shuriken', '', chip('grey', 'sq'))
+  + row('Chakra Dash rapide', '20 chakra, puis ○ ○ ○', chip('gold', 'tri', '+', 'x'))
+  + row('Chakra Shuriken', '20 chakra, 3 shurikens', chip('gold', 'tri', '+', 'sq'))
+  + row('Ninjutsu spécial', '10 chakra · ↑ / ↓ = tir diagonal / bas', chip('cy', 'tri', '+', 'o'))
+  + row('Technique ultime', '50 chakra', chip('fill', 'tri', 'right', 'tri', 'right', 'o'), 'hot');
+const DEFENSE = row('Garde', 'Reculer face à un coup : garde auto', chip('grey', 'r2') + `<span class="or">ou</span>` + chip('grey', 'down'))
+  + row('Parade parfaite (contre)', 'Juste avant l\'impact, sans dégâts', txt('gold', 'R2 timing serré'))
+  + row('Permutation (bûche)', '3 charges, +1 toutes les 5 s', txt('cy', 'L2 à l\'impact'))
+  + row('Projection', 'Passe la garde, au contact', chip('red', 'r2', '+', 'o'))
+  + row('Roulade', '', chip('grey', 'down', '+', 'left') + chip('grey', 'down', '+', 'right'))
+  + row('Double saut', 'En l\'air', chip('grey', 'x', 'x'))
+  + row('Appel soutien ninja', '3 s d\'invulnérabilité, rappel 12 s', chip('cy', 'l1') + `<span class="or">ou</span>` + chip('cy', 'r1'));
+const WARN = `<div class="warn">${ICON.warn}<span><b>Brise-garde :</b> chaque coup encaissé en garde remplit la jauge orange ; pleine, la garde casse et vous êtes étourdi.</span></div>`;
+
+// schémas SVG (touches dessinées en trait, étiquettes de zone)
+const SYM = { tri: 'M0-5.2L5.4 4.2H-5.4Z', sq: 'M-4.6-4.6h9.2v9.2h-9.2Z', o: 'M-5 0a5 5 0 1010 0a5 5 0 10-10 0', x: 'M-4.6-4.6l9.2 9.2M4.6-4.6l-9.2 9.2' };
+const btn = (k, x, y) => `<g transform="translate(${x} ${y})"><circle r="11.5" class="sb"/><path d="${SYM[k]}" class="sy"/></g>`;
+const pill = (t, x, y, w = 28) => `<g transform="translate(${x} ${y})"><rect width="${w}" height="13" rx="4" class="sp"/><text x="${w / 2}" y="9.8" text-anchor="middle">${t}</text></g>`;
+const phoneSvg = () => `<svg viewBox="0 0 230 150" class="sch"><rect x="4" y="14" width="222" height="122" rx="16" class="sd"/><rect x="11" y="21" width="208" height="108" rx="9" class="ss"/>
+  <circle cx="56" cy="88" r="24" class="sr"/><circle cx="56" cy="88" r="10" class="sk"/>
+  ${btn('tri', 176, 66)}${btn('sq', 154, 88)}${btn('o', 198, 88)}${btn('x', 176, 110)}
+  ${pill('L2', 30, 28)}${pill('L1', 62, 28)}${pill('R1', 140, 28)}${pill('R2', 172, 28)}
+  <text x="56" y="124" text-anchor="middle" class="cap">DÉPLACEMENT</text><text x="176" y="52" text-anchor="middle" class="cap">ATTAQUES</text></svg>`;
+const padSvg = () => `<svg viewBox="0 0 230 150" class="sch"><path class="sd" d="M62 44C36 44 20 64 15 98c-3 24 6 38 22 33 12-4 18-17 30-25h96c12 8 18 21 30 25 16 5 25-9 22-33-5-34-21-54-47-54z"/>
+  <path class="sp2" d="M52 34h26v7H52zM152 34h26v7h-26z"/>${pill('L2', 50, 12)}${pill('L1', 50, 25, 28)}${pill('R2', 152, 12)}${pill('R1', 152, 25, 28)}
+  <path class="dp" d="M54 62h8v-7h8v7h8v8h-8v7h-8v-7h-8z"/><circle cx="96" cy="96" r="11" class="sr"/><circle cx="134" cy="96" r="11" class="sr"/>
+  ${btn('tri', 172, 56)}${btn('sq', 152, 76)}${btn('o', 192, 76)}${btn('x', 172, 96)}
+  <text x="66" y="52" text-anchor="middle" class="cap">DIRECTION</text><text x="172" y="42" text-anchor="middle" class="cap">ATTAQUES</text></svg>`;
+
+const keyName = (c) => ({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' }[c] || c.replace('Key', ''));
+const keyTable = () => {
+  const L = [['Gauche', 'l'], ['Droite', 'r'], ['Saut (haut)', 'u'], ['Garde (bas)', 'd'], ['o', 'o'], ['x', 'x'], ['sq', 'sq'], ['tri', 'tri'], ['r2', 'r2'], ['l2', 'l2'], ['r1', 'sup1'], ['l1', 'sup2']];
+  return `<table class="kt"><tr><th></th><th>JOUEUR 1</th><th>JOUEUR 2</th></tr>${L.map(([l, i]) => `<tr><td>${ICON[l] || /^[lr][12]$/.test(l) ? pic(l) : l}</td>${[0, 1].map((p) => `<td><kbd>${keyName(KEYMAPS[p][i])}</kbd></td>`).join('')}</tr>`).join('')}</table><p class="kn">Touches physiques : sur un clavier AZERTY, W A S D = Z Q S D.</p>`;
+};
+
 export default function sControls() {
-  const name = (c) => ({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' }[c] || c.replace('Key', ''));
-  const row = (l, i) => `<tr><td>${l}</td>${[0, 1].map((p) => `<td>${name(KEYMAPS[p][i])}</td>`).join('')}</tr>`;
-  const w = el('div', 'panel ctrl');
-  w.innerHTML = `<h2>COMMANDES</h2>
-  <table><tr><th>Clavier</th><th>Joueur 1</th><th>Joueur 2</th></tr>
-  ${row('Gauche', 'l')}${row('Droite', 'r')}${row('Haut (saut)', 'u')}${row('Bas (garde)', 'd')}${row('○ Attaque', 'o')}${row('✕ Saut (double saut)', 'x')}${row('□ Shuriken', 'sq')}${row('△ Chakra', 'tri')}${row('R2 Garde', 'r2')}${row('L2 Substitution', 'l2')}${row('R1 Soutien 1', 'sup1')}${row('L1 Soutien 2', 'sup2')}</table>
-  <div class="tips">
-    <h3>TACTILE (paysage)</h3><ul>
-      <li>Gauche : <b>stick analogique</b> ou <b>croix</b> (bouton ✚ / 🕹 pour changer)</li>
-      <li>Droite : <b>○</b> attaque · <b>✕</b> saut · <b>□</b> shuriken · <b>△</b> chakra — un doigt entre deux boutons appuie sur les deux (△+○…)</li>
-      <li>Au-dessus : <b>L1 / R1</b> soutiens · <b>L2</b> substitution · <b>R2</b> garde</li></ul>
-    <h3>ATTAQUES</h3><ul>
-      <li><b>○ répété</b> : combo normal (Poing · Poing · Poing)</li>
-      <li><b>↑ + ○</b> : variante haute (uppercut, lance dans les airs) · <b>↓ + ○</b> : variante basse (balayage) · <b>← / → + ○</b> : coup de pied</li>
-      <li><b>△ maintenu</b> : charger le chakra (immobile, vulnérable)</li>
-      <li><b>△ + ○</b> : Ninjutsu (10 chakra ; ↑ / ↓ en plus = tir diagonal / bas) · <b>△ → △ → ○</b> : Technique ultime (50 chakra)</li>
-      <li><b>△ + ✕</b> : Chakra Dash (20), puis enchaînez <b>○ ○ ○</b> · <b>△ + □</b> : Chakra Shuriken (20, 3 shurikens)</li>
-      <li><b>R2 + ○</b> au contact : projection (passe la garde, adversaire au sol ; la roulade ou la substitution l'esquivent)</li></ul>
-    <h3>DÉFENSE</h3><ul>
-      <li><b>R2</b> (ou ↓) : garde · reculer face à un coup : garde automatique · ↓ + gauche/droite : roulade</li>
-      <li><b>Parade parfaite</b> : tapez R2 (ou ↓) juste avant l'impact : aucun dégât, +chakra, l'adversaire est déséquilibré. Maintenir ne suffit pas.</li>
-      <li><b>Garde brisée</b> : chaque coup encaissé en garde remplit la jauge orange sous le chakra ; pleine, la garde casse et vous restez étourdi. Elle se vide hors garde.</li>
-      <li><b>Substitution (L2)</b> : appuyez juste avant l'impact (ou pendant un combo) : une bûche prend le coup et vous réapparaissez derrière l'adversaire. 3 charges (pastilles marron), +1 toutes les 5 s.</li>
-      <li><b>Double saut</b> : ✕ puis ✕ (ou ↑ puis ↑) en l'air</li>
-      <li><b>Soutiens</b> : appel 3 s (invulnérables), rappel au bout de 12 s. Ils interrompent une attaque, tirent de loin ou enchaînent au corps à corps.</li>
-      <li>P / Échap : pause · Manette : ✕ ○ □ △ comme sur PlayStation, R1 / L1 soutiens, R2 garde, L2 substitution</li></ul>
-  </div><div class="foot">Échap / G ou toucher « Retour » : revenir</div>`;
-  G.screenEl.appendChild(w); G.handler = (k) => { if (k === 'back' || k === 'ok') { sfx.back(); G.go('title'); } };
+  const TABS = [['tactile', 'TACTILE'], ['manette', 'MANETTE'], ['clavier', 'CLAVIER']];
+  let tab = isTouch() ? 'tactile' : 'clavier';
+  const wrap = el('div', 'ctl'), seg = el('div', 'seg');
+  const segEls = TABS.map(([id, l]) => { const b = el('b', '', l); b.onclick = () => { tab = id; sfx.ui(); draw(); }; seg.appendChild(b); return b; });
+  const head = pageHead({ title: 'GUIDE DES COMBOS', onBack: () => act('back'), right: seg });
+  const body = el('div', 'ctl-body'), foot = el('div', 'ctl-foot');
+  const cA = el('section', 'plate gold card'), cC = el('section', 'ctl-mid'), cD = el('section', 'plate cy card');
+  cA.innerHTML = `<div class="plate-h gold">${ICON.sword}<span>ATTAQUES &amp; COMBOS</span></div><div class="cbody">${ATTAQUES}</div>`;
+  cD.innerHTML = `<div class="plate-h cy">${ICON.shield}<span>DÉFENSE &amp; TÉLÉPORTATION</span></div><div class="cbody">${DEFENSE}${WARN}</div>`;
+  body.append(cA, cC, cD); wrap.append(head, body, foot); G.screenEl.appendChild(wrap);
+
+  const draw = () => {
+    segEls.forEach((b, i) => b.classList.toggle('on', TABS[i][0] === tab));
+    cC.innerHTML = tab === 'tactile' ? phoneSvg() + '<p>Un doigt entre deux boutons appuie sur les deux (△ + ○…).</p>' : tab === 'manette' ? padSvg() + '<p>✕ ○ □ △ comme sur PlayStation.</p>'.replace('✕ ○ □ △', 'Boutons ✕ ○ □ △') : keyTable();
+    cC.classList.toggle('keys', tab === 'clavier');
+    foot.innerHTML = tab === 'tactile' ? `<span>Sticks virtuels : <b>${getPadMode() === 'stick' ? 'analogique' : 'croix'}</b> (Options ou bouton en combat)</span><span>Toucher ✚ / 🕹 pour changer</span>`
+      : tab === 'manette' ? '<span>R1 / L1 soutiens · R2 garde · L2 substitution</span><span>Croix ou stick gauche pour bouger</span>' : '<span>P ou Échap : pause en combat</span><span>Joueur 2 : flèches + J K U I L O P N</span>';
+  };
+  const act = (k) => {
+    if (k === 'back') { sfx.back(); return G.go('title'); }
+    if (k === 'left' || k === 'pgl' || k === 'right' || k === 'pgr') { const i = TABS.findIndex((t) => t[0] === tab), n = (i + (k === 'left' || k === 'pgl' ? TABS.length - 1 : 1)) % TABS.length; tab = TABS[n][0]; sfx.ui(); draw(); }
+  };
+  G.handler = act; draw();
 }

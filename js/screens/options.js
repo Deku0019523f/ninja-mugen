@@ -11,6 +11,6 @@ export default function sOptions() {
     { label: 'Commande tactile', get: () => (getPadMode() === 'stick' ? 'Analogique' : 'Croix'), desc: 'Gauche de l\'écran : stick analogique ou croix directionnelle. Modifiable aussi en combat avec le bouton ✚ / 🕹.', left: () => setPadMode(getPadMode() === 'stick' ? 'dpad' : 'stick'), right: () => setPadMode(getPadMode() === 'stick' ? 'dpad' : 'stick') },
   ];
   if (document.fullscreenEnabled) items.push({ label: 'Plein écran', get: () => (document.fullscreenElement ? 'Oui' : 'Non'), desc: 'Masque la barre du navigateur pour agrandir le jeu.', right: () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().then(() => window.screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {}); setTimeout(() => G.go('options'), 350); } });
-  items.push({ label: 'Retour', ok: () => G.go('title') });
-  listMenu(items, { title: 'OPTIONS', onBack: () => G.go('title') });
+  
+  listMenu(items, { page: true, title: 'OPTIONS', onBack: () => G.go('title') });
 }

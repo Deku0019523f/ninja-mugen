@@ -1,18 +1,34 @@
 /* Base : plein écran paysage. L'interface (#ui) fait 480 px de haut et VW px de large (640 à 1200), mise à l'échelle par main.js */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:#05060c;font-family:"Trebuchet MS","Arial Black",Impact,sans-serif;color:#fff;touch-action:none}
+:root{
+  --gold:#ffc83a;--org:#ff7a1a;--amb:#ffa11f;--cy:#38e0ff;--ok:#35d49a;--red:#ff4d5e;--vio:#9a7bff;
+  --dk:#0b0d1c;--ink:#060818;--ink2:#0a0e28;--ind:#121843;--line:#232b5c;--line2:#3a4690;
+  --tx:#e9edff;--mut:#8f9bd0;
+  --f-ui:"Rajdhani","Arial Narrow",Impact,sans-serif;--f-body:"Inter","Segoe UI",Arial,sans-serif;
+}
+html,body{width:100%;height:100%;overflow:hidden;overscroll-behavior:none;background:#05060c;font-family:var(--f-body);color:var(--tx);touch-action:none}
 #view{position:fixed;inset:0;background:radial-gradient(circle at 50% 40%,#1a1d3a,#05060c)}
 #view canvas{image-rendering:pixelated}
-#ui{position:fixed;overflow:hidden;pointer-events:none}
+#ui{position:fixed;overflow:hidden;pointer-events:none;z-index:2}
 #ui>*{pointer-events:auto}
-#hud{position:absolute;inset:0;pointer-events:none;display:none}
-#screen{position:absolute;inset:0}
-:root{--gold:#ffc83a;--org:#ff7a1a;--cy:#38e0ff;--dk:#0b0d1c}
+#hud{position:absolute;inset:0;pointer-events:none;display:none;font-family:var(--f-ui)}
+#screen{position:absolute;inset:0;font-family:var(--f-ui)}
+#ui.shelled #screen{top:48px}
 
-#backbtn,#pausebtn{display:none;position:fixed;z-index:12;background:#0b0d1cdd;color:#fff;border:2px solid #ffffff55;border-radius:12px;font:bold 15px "Trebuchet MS",sans-serif;padding:9px 16px;touch-action:manipulation}
+/* voile derrière les menus : assombrit et (en option) floute le décor 3D */
+#veil{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1.5px) 0 0/8px 8px,
+             radial-gradient(900px 420px at 28% 38%,rgba(70,50,150,.22),transparent 70%),
+             linear-gradient(180deg,rgba(5,6,22,.80),rgba(4,5,18,.93))}
+#veil.on{opacity:1}
+#veil.heavy{background:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1.5px) 0 0/8px 8px,linear-gradient(180deg,rgba(4,5,18,.90),rgba(3,4,14,.96))}
+@supports (backdrop-filter:blur(2px)){#veil.blur{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}}
+
+#backbtn,#pausebtn{display:none;position:fixed;z-index:12;background:#0b0d1cdd;color:#fff;border:1px solid #ffffff44;border-radius:8px;font:700 15px var(--f-ui);letter-spacing:1px;padding:9px 16px;touch-action:manipulation}
 #backbtn{left:12px;bottom:12px}
 #pausebtn{left:50%;transform:translateX(-50%);top:calc(100vh * 54 / 480);padding:5px 18px;letter-spacing:3px;opacity:.8}
-#rotate{display:none;position:fixed;inset:0;z-index:50;background:#05060cf5;color:#fff;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-size:20px;line-height:28px}
+#rotate{display:none;position:fixed;inset:0;z-index:50;background:#05060cf5;color:#fff;align-items:center;justify-content:center;flex-direction:column;text-align:center;font-size:20px;line-height:28px;font-family:var(--f-ui)}
 #rotate .ph{font-size:70px;animation:rot 2s infinite ease-in-out}
 @keyframes rot{0%,30%{transform:rotate(0)}70%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait){.is-touch #rotate{display:flex}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.001s!important}}
