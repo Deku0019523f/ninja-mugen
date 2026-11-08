@@ -4,6 +4,7 @@
 import { World, NOIN } from './world.js';
 import { Fighter } from './fighter.js';
 import { AI, PERSONALITIES } from './ai.js';
+import { Chord } from './chords.js';
 import { attachSupports, resetSupports, callSupports, tickSupports, SupportAI } from './support.js';
 import { ROSTER } from '../data/roster.js';
 import { randomTeam } from '../modes/util.js';
@@ -34,9 +35,9 @@ export class Match {
     const f = this.world.add(new Fighter(ROSTER[id], team));
     const c = this.cfg;
     let ctl;
-    if (c.mode === 'training') ctl = team === 0 ? { k: 'h', p: 0 } : { k: 'dummy' };
-    else if (team === 0 && idx === 0) ctl = { k: 'h', p: 0 };
-    else if (team === 1 && idx === 0 && c.vs === 'p2') ctl = { k: 'h', p: 1 };
+    if (c.mode === 'training') ctl = team === 0 ? { k: 'h', p: 0, chord: new Chord() } : { k: 'dummy' };
+    else if (team === 0 && idx === 0) ctl = { k: 'h', p: 0, chord: new Chord() };
+    else if (team === 1 && idx === 0 && c.vs === 'p2') ctl = { k: 'h', p: 1, chord: new Chord() };
     else ctl = { k: 'ai', ai: new AI(team === 0 ? Math.max(2, c.diff) : c.diff, pickPersonality()) };
     this.ctrl[f.slot] = ctl;
     return f;
@@ -69,7 +70,7 @@ export class Match {
     return this.world.fighters.map((f, i) => {
       const c = this.ctrl[i];
       if (this.phase !== 'fight' || !c) return NOIN;
-      if (c.k === 'h') return readPlayer(c.p);
+      if (c.k === 'h') return c.chord.map(readPlayer(c.p));   // boutons physiques → actions du moteur (combinaisons △…)
       if (c.k === 'ai') return c.ai.think(this.world, f);
       if (c.k === 'sup') return c.ai.think(this.world, f);
       return NOIN;

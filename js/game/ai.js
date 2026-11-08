@@ -3,7 +3,7 @@
 // ============================================================
 import { supReady } from './support.js';
 
-const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, sup1: 0, sup2: 0 });
+const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sup1: 0, sup2: 0 });
 const REACT = [46, 34, 24, 15, 8];
 const BLOCK = [0.04, 0.18, 0.38, 0.6, 0.82];
 const CHAIN = [0.35, 0.55, 0.7, 0.85, 0.95];
@@ -55,7 +55,7 @@ export class AI {
       if (dist < 90 && R() < 0.12) inp[R() < 0.5 ? 'kick' : 'punch'] = 1;
       return inp;
     }
-    if (f.state !== 'idle' && f.state !== 'walk' && f.state !== 'block') return inp;
+    if (f.state !== 'idle' && f.state !== 'walk' && f.state !== 'block' && f.state !== 'charge') return inp;
 
     // parade volontaire : tape ↓ 1 à 3 frames avant l'activation d'un coup adverse, puis garde quelques frames
     if (this.holdD > 0) { this.holdD--; inp.d = 1; return inp; }
@@ -72,6 +72,7 @@ export class AI {
       case 'approach': inp[dir > 0 ? 'r' : 'l'] = 1; break;
       case 'retreat': inp[dir > 0 ? 'l' : 'r'] = 1; break;
       case 'block': inp.d = 1; break;
+      case 'charge': inp.charge = 1; break;
       case 'jump': if (!p.done) { inp.u = 1; inp[p.dirv > 0 ? 'r' : 'l'] = 1; p.done = true; } break;
       case 'press': if (!p.done) { inp[p.key] = 1; if (p.down) inp.d = 1; if (p.up) inp.u = 1; if (p.back) inp[dir > 0 ? 'l' : 'r'] = 1; p.done = true; } break;
       default: break;
@@ -90,6 +91,7 @@ export class AI {
     if (f.chi >= 50 && R() < 0.1 + L * 0.06 && dist < 420) return set('press', 40, { key: 'super' });
     if (R() > aggr) return set(R() < 0.5 ? 'retreat' : 'wait', react);
     if (P.keepAway && dist < 140 && R() < 0.35) return set('retreat', react);   // zoner : garde ses distances
+    if (dist > 220 && f.chi < 60 && R() < 0.1) return set('charge', 40 + Math.floor(R() * 40));   // recharge le chakra quand l'adversaire est loin
 
     if (dist > 300) {
       const r = R();
@@ -98,6 +100,9 @@ export class AI {
       return set('approach', react + 10);
     }
     if (dist > 120) {
+      const q = R();
+      if (q < 0.12) return set('press', react + 4, { key: 'sq' });                                   // Shuriken
+      if (q < 0.2 && f.chi >= 20) return set('press', react + 6, { key: 'cdash' });                // Chakra Dash pour fermer la distance
       const r = R();
       if (r < 0.22 * P.sp && f.chi >= 10) return set('press', react + 8, { key: 'special', down: R() < 0.3 });
       if (r < 0.42 && f.chi >= 15) return set('press', react + 12, { key: 'move2' });

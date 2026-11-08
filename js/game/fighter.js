@@ -1,6 +1,6 @@
 // ============================================================
 //  FIGHTER : machine à états d'un combattant (logique pure, sans rendu)
-//  États : idle walk jump block atk hit blockstun launch down getup ko intro win
+//  États : idle walk jump block charge atk hit blockstun launch down getup ko intro win
 // ============================================================
 import { MOVES, BTN, getMove } from './moves.js';
 
@@ -8,6 +8,7 @@ const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
 const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitesse, frames d'invulnérabilité
 const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui sur ↓
 const THROW_R = 52;     // projection : distance maximale (arrière + Poing)
+const CHARGE_RATE = 0.5;   // chakra gagné par frame en chargeant (△ maintenu) : 0 → 100 en ~3,5 s
 // Coups normaux : le buffer vaut 8 à l'appui puis décroît d'1 par frame. Le coup part quand il est <= TAP.
 // 7 = 1 frame après l'appui (le temps de détecter Poing+Pied simultanés) ; 5 = ancien réglage (3 frames).
 const TAP = 7;
@@ -20,7 +21,7 @@ export class Fighter {
     this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.face = 1; this.scale = 1;
     this.state = 'idle'; this.t = 0; this.stun = 0; this.move = null;
     this.hitSet = new Set(); this.connected = false; this.lock = null;
-    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0 };
+    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0 };
     this.invuln = 0; this.combo = 0; this.juggle = 0; this.chain = 0; this.chainT = 0;
     this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
     this.fade = false; this.fx = null; this.dying = false; this.dead = false;
@@ -86,7 +87,7 @@ export class Fighter {
     const rollNow = inp.d && (inp.l ? 1 : 0) !== (inp.r ? 1 : 0) ? (inp.r ? 1 : -1) : 0;   // ↙ / ↘ (bas + direction)
     this.rollEdge = rollNow !== 0 && rollNow !== this.rollPrev;
     switch (this.state) {
-      case 'idle': case 'walk': case 'jump': case 'block': this.control(w, inp); break;
+      case 'idle': case 'walk': case 'jump': case 'block': case 'charge': this.control(w, inp); break;
       case 'roll':
         this.vx = this.rollDir * (this.t < ROLL_T - 6 ? ROLL_V : ROLL_V * 0.4);
         if (this.t >= ROLL_T) this.free();
@@ -111,18 +112,23 @@ export class Fighter {
       this.go('jump');
       if (this.take('punch')) return this.startMove('apunch');
       if (this.take('kick')) return this.startMove('akick');
+      if (this.take('cshuriken', 20)) return this.startMove('cshuriken');
       if (this.take('special', 10)) return this.startMove('special');
+      if (this.take('sq')) return this.startMove('shuriken');
       return;
     }
     if (this.take('super', 50)) return this.startMove('super');
     if (this.take('move2', 15)) return this.startMove('move2');
-    // Spécial : ↑ = tir en diagonale (anti-aérien), ↓ = tir bas, sinon tir normal
+    if (this.take('cdash', 20)) return this.startMove('cdash');           // Chakra Dash (△ + ✕)
+    if (this.take('cshuriken', 20)) return this.startMove('cshuriken');   // Chakra Shuriken (△ + □)
+    // Spécial / Ninjutsu : ↑ = tir en diagonale (anti-aérien), ↓ = tir bas, sinon tir normal
     if (this.take('special', 10)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
     // Projection : arrière + Poing au contact (passe la garde, l'adversaire doit être au sol ; la roulade l'esquive)
     if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= TAP && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
     if (this.buf.punch > 0 && this.buf.punch <= TAP && this.take('punch')) return this.startMove(inp.d ? 'upper' : 'punch1');
     if (this.buf.kick > 0 && this.buf.kick <= TAP && this.take('kick')) return this.startMove(inp.d ? 'sweep' : 'kick');
+    if (this.take('sq')) return this.startMove('shuriken');                // Shuriken (□)
 
     if (this.rollEdge && dir) {                       // roulade vers l'avant / l'arrière
       this.rollDir = dir; this.setState('roll'); this.invuln = Math.max(this.invuln, ROLL_INV); this.combo = 0;
@@ -134,6 +140,11 @@ export class Fighter {
       this.go('block'); this.vx *= 0.6; return;
     }
     if (inp.u) { this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
+    if (inp.charge) {                                  // △ maintenu : charge le chakra (immobile, vulnérable)
+      this.vx *= 0.6; this.go('charge'); this.chi = Math.min(100, this.chi + CHARGE_RATE);
+      if (this.t % 8 === 1) w.event({ t: 'puff', x: this.x, y: 14, color: '#6cf' });
+      return;
+    }
     if (dir) { this.vx = dir * spd * (dir === this.face ? 1 : BACK); this.go('walk'); }
     else { this.vx *= 0.6; this.go('idle'); }
   }

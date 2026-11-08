@@ -1,6 +1,5 @@
 import { G, el } from './ctx.js';
 import { ROSTER, ARCH } from '../data/roster.js';
-import { MOVE2 } from '../game/moves.js';
 import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
 import { MODES } from '../modes/index.js';
 import { sfx } from '../audio.js';
@@ -38,11 +37,11 @@ export default function sSelect() {
     head.innerHTML = !s ? '' : s.kind === 'sup'
       ? `<b>${s.who}</b> — choisissez le <b>soutien ${s.n}/2</b> (${s.n === 1 ? 'R1' : 'L1'})`
       : `<b>${s.who}</b> — choisissez ${fmt > 1 ? 'combattant ' + (picks.filter((_, k) => slots[k].t === s.t && slots[k].kind === 'main').length + 1) + '/' + fmt : 'votre combattant'}`;
-    const c = ROSTER[cur], a = ARCH[c.arch], m2 = MOVE2[a.m2];
+    const c = ROSTER[cur], a = ARCH[c.arch];
     side.querySelector('.nm').textContent = c.name.toUpperCase(); side.querySelector('.ti').textContent = c.title;
     const bar = (l, v) => `<div class="b"><span>${l}</span><i><u style="width:${Math.min(100, v * 70)}%"></u></i></div>`;
     side.querySelector('.st').innerHTML = bar('Vitesse', c.spd) + bar('Puissance', c.pow) + bar('Défense', c.def);
-    side.querySelector('.tc').innerHTML = `<div><em>${a.label}</em></div><div>⚡ ${a.spName}</div><div>✦ ${m2.name}</div><div>★ ${a.supName}</div>`;
+    side.querySelector('.tc').innerHTML = `<div><em>${a.label}</em></div><div>⚡ Ninjutsu : ${a.spName}</div><div>★ Ultime : ${a.supName}</div>`;
   };
   const act = (k) => {
     const n = ROSTER.length;

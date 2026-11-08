@@ -1,11 +1,10 @@
 // ============================================================
 //  COMMANDES TACTILES façon manette (paysage)
 //  Gauche : stick analogique flottant OU croix 8 directions (au choix, mémorisé)
-//  Droite : △ □ ○ ✕ en losange ; un doigt entre deux boutons appuie sur les deux (□+△ = frappe lourde, ○+✕ = super)
-//  Au-dessus du losange : R1 / L1 = appel des soutiens
+//  Droite : △ (tri) □ (sq) ○ (o) ✕ (x) en losange ; un doigt entre deux boutons appuie sur les deux (△+○ = Ninjutsu…)
+//  Au-dessus du losange : L1 R1 (soutiens) et L2 R2 (substitution, garde)
 // ============================================================
-export const touch = { l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, special: 0, move2: 0, sup1: 0, sup2: 0 };
-export const touchT = {};
+export const touch = { l: 0, r: 0, u: 0, d: 0, o: 0, x: 0, sq: 0, tri: 0, r2: 0, l2: 0, sup1: 0, sup2: 0 };
 const KEY = 'ninja-mugen-pad';
 let mode = 'stick';
 try { mode = localStorage.getItem(KEY) === 'dpad' ? 'dpad' : 'stick'; } catch (e) { /* ignore */ }
@@ -65,13 +64,13 @@ export function initTouch() {
   const refresh = () => {
     const bs = rect(btns[0]).width, hit = new Set();
     for (const p of ptr.values()) for (const b of btns) { const r = rect(b); if (Math.hypot(p.x - (r.left + r.width / 2), p.y - (r.top + r.height / 2)) < bs * 0.78) hit.add(b.dataset.a); }
-    for (const b of btns) { const a = b.dataset.a, v = hit.has(a) ? 1 : 0; if (v && !touch[a]) touchT[a] = performance.now(); touch[a] = v; b.classList.toggle('on', !!v); }
+    for (const b of btns) { const a = b.dataset.a, v = hit.has(a) ? 1 : 0; touch[a] = v; b.classList.toggle('on', !!v); }
   };
   acts.addEventListener('pointerdown', (e) => { e.preventDefault(); acts.setPointerCapture(e.pointerId); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); });
   acts.addEventListener('pointermove', (e) => { if (ptr.has(e.pointerId)) { ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); } });
   ['pointerup', 'pointercancel'].forEach((n) => acts.addEventListener(n, (e) => { ptr.delete(e.pointerId); refresh(); }));
 
-  // R1 / L1 : appel des soutiens (boutons indépendants)
+  // L1 / R1 / L2 / R2 : boutons indépendants (soutiens, substitution, garde)
   const sups = $('#sups');
   if (sups) {
     for (const b of sups.querySelectorAll('[data-s]')) {

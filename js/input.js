@@ -1,20 +1,18 @@
 // ============================================================
-//  ENTRÉES : clavier (2 joueurs), manettes, boutons tactiles
+//  ENTRÉES : clavier (2 joueurs), manettes, boutons tactiles — renvoie les boutons PHYSIQUES (schéma « Storm »).
+//  Les combinaisons (△+○, △△○…) sont résolues par game/chords.js.
+//  o = ○ attaque · x = ✕ saut · sq = □ shuriken · tri = △ chakra · r2 garde · l2 substitution · sup1 = R1 · sup2 = L1
 // ============================================================
 export const KEYMAPS = [
-  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', punch: 'KeyF', kick: 'KeyG', special: 'KeyH', move2: 'KeyT', super: 'KeyY', smash: 'KeyR', sup1: 'KeyE', sup2: 'KeyQ' },
-  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', punch: 'KeyJ', kick: 'KeyK', special: 'KeyL', move2: 'KeyI', super: 'KeyO', smash: 'KeyU', sup1: 'KeyP', sup2: 'KeyN' },
+  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', o: 'KeyF', x: 'KeyG', sq: 'KeyR', tri: 'KeyT', r2: 'KeyH', l2: 'KeyY', sup1: 'KeyE', sup2: 'KeyQ' },
+  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', o: 'KeyJ', x: 'KeyK', sq: 'KeyU', tri: 'KeyI', r2: 'KeyL', l2: 'KeyO', sup1: 'KeyP', sup2: 'KeyN' },
 ];
-export const ACTIONS = ['l', 'r', 'u', 'd', 'punch', 'kick', 'special', 'move2', 'super', 'sup1', 'sup2'];
-import { touch, touchT, initTouch } from './touch.js';
+export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2'];
+import { touch, initTouch } from './touch.js';
 const down = new Set();
 const menuQ = [];
 const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back' };
 let padPrev = [];
-
-// Délai (ms) avant de valider ○ ou ✕ seul, pour laisser le temps d'appuyer sur les deux (= SUPER).
-// 20 ms ≈ 1 frame : quasi instantané, mais un appui simultané des deux boutons reste reconnu.
-const PAIR_DELAY = 20;
 
 export function initInput() {
   addEventListener('keydown', (e) => {
@@ -31,23 +29,13 @@ export function initInput() {
 export function readPlayer(i) {
   const km = KEYMAPS[i], o = {};
   for (const a of ACTIONS) o[a] = down.has(km[a]) ? 1 : 0;
-  if (i === 0) {
-    for (const a of ['l', 'r', 'u', 'd', 'punch', 'kick', 'sup1', 'sup2']) if (touch[a]) o[a] = 1;
-    // ○ et ✕ ensemble = SUPER ; sinon on attend PAIR_DELAY ms pour laisser le temps d'appuyer sur les deux
-    const now = performance.now();
-    if (touch.special && touch.move2) o.super = 1;
-    else {
-      if (touch.special && now - touchT.special > PAIR_DELAY) o.special = 1;
-      if (touch.move2 && now - touchT.move2 > PAIR_DELAY) o.move2 = 1;
-    }
-  }
-  if (down.has(km.smash)) o.punch = o.kick = 1;
+  if (i === 0) for (const a of ACTIONS) if (touch[a]) o[a] = 1;
   const pads = (navigator.getGamepads && navigator.getGamepads()) || [], pad = [...pads].filter(Boolean)[i];
   if (pad) {
     const b = (n) => pad.buttons[n] && pad.buttons[n].pressed, ax = pad.axes;
     if (ax[0] < -0.5 || b(14)) o.l = 1; if (ax[0] > 0.5 || b(15)) o.r = 1; if (ax[1] < -0.6 || b(12)) o.u = 1; if (ax[1] > 0.6 || b(13)) o.d = 1;
-    if (b(2)) o.punch = 1; if (b(0)) o.kick = 1; if (b(1)) o.special = 1; if (b(3)) o.move2 = 1; if (b(7)) o.super = 1;
-    if (b(5)) o.sup1 = 1; if (b(4)) o.sup2 = 1;
+    if (b(0)) o.x = 1; if (b(1)) o.o = 1; if (b(2)) o.sq = 1; if (b(3)) o.tri = 1;      // ✕ ○ □ △ (manette PlayStation)
+    if (b(5)) o.sup1 = 1; if (b(4)) o.sup2 = 1; if (b(7)) o.r2 = 1; if (b(6)) o.l2 = 1;
   }
   if (o.l && o.r) o.l = o.r = 0;
   return o;

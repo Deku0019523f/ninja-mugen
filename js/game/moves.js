@@ -7,16 +7,21 @@
 import { ARCH } from '../archetypes/index.js';
 import { MOVES, COMBO_LIST } from '../combos/index.js';
 import { SPECIAL, SPECIAL_UP, SPECIAL_DOWN, fireSpecial } from '../techniques/special.js';
+import { SHURIKEN, CHAKRA_SHURIKEN, CHAKRA_DASH } from '../techniques/chakra.js';
 import { MOVE2 } from '../techniques/index.js';
 import { SUPERS } from '../supers/index.js';
 
-export const BTN = ['punch', 'kick', 'special', 'move2', 'super'];
+// Boutons mémorisés (buffer de 8 frames) : sq = Shuriken (□), cdash = Chakra Dash, cshuriken = Chakra Shuriken
+export const BTN = ['punch', 'kick', 'special', 'move2', 'super', 'sq', 'cdash', 'cshuriken'];
 export { MOVES, COMBO_LIST, SPECIAL, MOVE2, SUPERS, fireSpecial };
 
 export function getMove(f, key) {
   if (key === 'special') return SPECIAL;
   if (key === 'special_up') return SPECIAL_UP;
   if (key === 'special_down') return SPECIAL_DOWN;
+  if (key === 'shuriken') return SHURIKEN;
+  if (key === 'cshuriken') return CHAKRA_SHURIKEN;
+  if (key === 'cdash') return CHAKRA_DASH;
   const a = ARCH[f.char.arch];
   if (key === 'move2') return MOVE2[a.m2];
   if (key === 'super') return SUPERS[a.sup];

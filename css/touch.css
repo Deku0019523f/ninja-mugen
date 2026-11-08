@@ -1,4 +1,4 @@
-/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite (paysage) */
+/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite, L1 R1 L2 R2 au-dessus (paysage) */
 :root{--bs:clamp(54px,17.5vh,96px)}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
 .is-touch #padzone,.is-touch #padswitch,.is-touch #acts,.is-touch #sups{pointer-events:auto}
@@ -19,7 +19,7 @@
 #dpad i.on{background:#ff7a1add;border-color:#fff}
 #padswitch{position:absolute;left:calc(var(--bs)*.2);bottom:calc(var(--bs)*2.95);width:calc(var(--bs)*.62);height:calc(var(--bs)*.62);border-radius:50%;border:2px solid #fff6;background:#141a3acc;color:#fff;font-size:calc(var(--bs)*.3);line-height:1;touch-action:manipulation}
 
-/* boutons d'action en losange (PlayStation) */
+/* boutons d'action en losange (PlayStation) : △ haut, □ gauche, ○ droite, ✕ bas */
 #acts{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*.4);width:calc(var(--bs)*3);height:calc(var(--bs)*3);touch-action:none}
 #acts .ab{position:absolute;width:var(--bs);height:var(--bs);border-radius:50%;border:3px solid;background:#141a3a99;font-size:calc(var(--bs)*.5);font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:inherit}
 #acts .ab.on{background:#ff7a1add;color:#fff!important;border-color:#fff!important;transform:scale(.94)}
@@ -28,7 +28,8 @@
 #acts .bl{left:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff8ac8;border-color:#ff8ac8cc}
 #acts .br{right:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff6a6a;border-color:#ff6a6acc}
 
-/* R1 / L1 : appel des soutiens, au-dessus du losange */
-#sups{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*3.55);display:flex;gap:calc(var(--bs)*.3);touch-action:none}
-#sups .sb{width:calc(var(--bs)*.95);height:calc(var(--bs)*.7);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.32);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none}
+/* L1 R1 (soutiens) / L2 R2 (substitution, garde) : grille 2 x 2 au-dessus du losange */
+#sups{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*3.5);display:grid;grid-template-columns:repeat(2,auto);gap:calc(var(--bs)*.12) calc(var(--bs)*.3);touch-action:none}
+#sups .sb{width:calc(var(--bs)*.95);height:calc(var(--bs)*.6);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.3);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none}
+#sups .sb[data-s=l2],#sups .sb[data-s=r2]{border-color:#9ad0ffcc;color:#9ad0ff}
 #sups .sb.on{background:#ff7a1add;color:#fff;border-color:#fff;transform:scale(.94)}

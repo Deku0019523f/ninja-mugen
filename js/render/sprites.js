@@ -70,6 +70,7 @@ function rawPose(f, clock) {
     case 'walk': pose = walkPose(clock); if (f.vx * f.face < 0) pose = { ...pose, lean: 2 }; break;
     case 'jump': pose = f.vy > 0 ? KEY.jump : { ...KEY.jump, la: [60, 60], ra: [80, 50], ll: [-10, 30], rl: [14, 30] }; break;
     case 'block': pose = KEY.block; break;
+    case 'charge': pose = { ...STANCE, hy: 12 + Math.sin(clock * 0.5) * 0.8, lean: 2, la: [-50, 70], ra: [-40, 70], ll: [-30, 40], rl: [30, 40] }; break;   // chakra : accroupi, bras en arrière
     case 'blockstun': pose = { ...KEY.block, hx: -2 + (t < 5 ? shake(1.5) : 0) }; break;
     case 'hit': pose = KEY.hit; if (t < 4) pose = { ...KEY.hit, lean: -30 }; if (t < 6) pose = { ...pose, hx: pose.hx + shake(2.5) }; break;
     case 'launch': pose = KEY.launch; rot = -clamp01((Math.abs(f.vy) < 3 ? 0.5 : f.vy > 0 ? 0.25 : 0.75)) * 150 * (f.vy > 0 ? 0.6 : 1); break;
