@@ -12,11 +12,12 @@ template.html         gabarit pour le build mono-fichier
 build.mjs             esbuild -> dist/ninja-mugen.html (three + CSS inclus)
 dist/                 jeu en un seul fichier, hors-ligne (a besoin de `npm run build` après chaque modification)
 test/sim.mjs          simulation du moteur sans navigateur (actions internes punch/kick/special/move2/super)
-test/phase3.mjs       latence, parade parfaite, projection, Spécial ↑/↓, personnalités de l'IA
+test/phase3.mjs       latence, parade parfaite, projection (arrière + Poing), Spécial ↑/↓, personnalités de l'IA
 test/support.mjs      soutiens (apparition, rappel, corps à corps, tir, interruption, IA)
-test/chords.mjs       combinaisons de boutons (△+○, △△○, △+✕, △+□, charge, variantes de ○, R2)
+test/chords.mjs       combinaisons de boutons (△+○, △△○, △+✕, △+□, charge, variantes de ○, R2, R2+○, L2)
 test/chakra.mjs       charge du chakra, Shuriken, Chakra Shuriken, Chakra Dash
-package.json          scripts build / test (les 5 fichiers de test) / start
+test/defense.mjs      projection R2+○, double saut, substitution (esquive, sortie de combo, recharge), rupture de garde
+package.json          scripts build / test (les 6 fichiers de test) / start
 README.md             présentation et commandes de jeu (à réécrire pour le nouveau schéma : 6.6)
 RAPPORT.md            mémoire du projet
 plan.md               ce fichier
@@ -44,7 +45,7 @@ js/
   screens/<écran>.js          title, setup, select (combattant + 2 soutiens), stage, vs, options, controls, result + ctx.js + index.js
   game/                       moteur : fighter (états), world, match, ai, chords (combinaisons), support (soutiens), moves (agrégateur), helpers
   render/                     sprites.js (squelette 2D + fondu de poses), view.js (three.js, caméra large 640->1200 x 480)
-  ui/                         hud.js (barres, combos, soutiens), menu.js (liste de menu)
+  ui/                         hud.js (barres, chakra, garde, substitution, combos, soutiens), menu.js (liste de menu)
 ```
 
 ## Flux
@@ -57,12 +58,15 @@ Entrées d'un joueur humain : `readPlayer()` (boutons physiques) -> `Chord.map()
 - `Fighter` : `buf` = buffer d'entrées de 8 frames (`BTN` dans moves.js) ; annulations après un coup au but ; roulade (bas + direction), garde automatique, relevé (invuln 22), anti-infini (`combo` réduit les dégâts de 7 % par coup, min 30 %), `juggle` max 3
 - Hitstop actuel : garde 3, coup 4, gros coup 7, KO 16, super 34 frames ; parade parfaite 9
 - **Coups normaux** : le coup part quand le buffer est <= `TAP` (fighter.js). `TAP = 7` : 1 frame après l'appui.
-- **Vocabulaire interne des actions** (reste valide pour l'IA et les tests) : `l r u d punch kick special move2 super sq cdash cshuriken charge sup1 sup2`.
+- **Vocabulaire interne des actions** (valide pour l'IA et les tests) : `l r u d punch kick special move2 super sq cdash cshuriken charge sub throw sup1 sup2`.
 
-## Règles des nouveaux coups (phase 3)
-- **Parade parfaite** : appui frais sur ↓ **ou R2** -> fenêtre de 6 frames (`parryT`). Coup non-super de face pendant la garde : 0 dégât, +12 chakra, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames.
-- **Projection** : arrière (mémorisé 8 frames) + Poing (← + ○), adversaire au sol à moins de 52 px. `unblock`, `ground`. La roulade l'esquive.
+## Règles des coups et de la défense
+- **Parade parfaite** : appui frais sur ↓ **ou R2** -> fenêtre de 6 frames (`parryT`). Coup non-super de face pendant la garde : 0 dégât, +12 chakra, -25 de jauge de garde, hitstop 9, l'attaquant au corps à corps passe en `hit` 22 frames.
+- **Projection** : **R2 + ○** (action `throw`) : au contact (< 52 px, adversaire au sol) coup `throw` (70 dégâts, `unblock`, `ground`, lance l'adversaire) ; sinon simple Poing. L'IA utilise toujours arrière + Poing. La roulade et la substitution l'esquivent.
 - **Spécial / Ninjutsu ↑ / ↓** : tir en diagonale / tir bas ; 90 % des dégâts, un seul projectile.
+- **Substitution (L2)** : réserve de 3 charges, +1 toutes les 300 frames (5 s). L'action est mémorisée 8 frames : pressée juste avant un impact, le coup « tombe sur la bûche » (`receive` renvoie `miss`) ; pressée pendant `hit`, `launch` ou `blockstun`, elle sort du combo. Dans les deux cas : réapparition 70 px derrière l'attaquant, au sol, invulnérable 22 frames, jauge de garde remise à 0. Événements `puff` (fumée marron / blanche) et `sub`.
+- **Garde brisée** : chaque coup bloqué ajoute `dégâts x 0,55` à la jauge de garde (`guard`, max 100) ; hors garde elle baisse de 0,35 par frame. Pleine : le coup passe, étourdissement de 55 frames, jauge remise à 0, événements `break` et `clash`. Les coups `unblock` ne remplissent pas la jauge.
+- **Double saut** : un nouvel appui sur ↑ / ✕ en l'air (`uEdge`), une fois par saut (`airJumps`, remis à 0 à l'atterrissage), vitesse × 0,88. L'IA ne double-saute pas.
 
 ## Règles des soutiens (6.1)
 - 2 soutiens par combattant, choisis après le combattant ; l'IA en tire 2 au hasard. Réglage « Soutiens : Oui / Non » ; **1 contre 1 uniquement**.
@@ -77,11 +81,11 @@ Entrées d'un joueur humain : `readPlayer()` (boutons physiques) -> `Chord.map()
 - **△ + ○** : Ninjutsu = Spécial de l'archétype (10 chakra, ↑ / ↓ en plus = tir diagonal / bas). **△ → △ → ○** (deux appuis dans 30 frames) : Technique ultime = Super de l'archétype (50 chakra, cinématique).
 - **△ + ✕** : Chakra Dash (20 chakra, invulnérable 8 frames, fonce à 13 px/frame sur ~12 frames, 36 dégâts) ; après un coup au but, ○ enchaîne un Poing (△ → ✕ → ○ ○ ○). **△ + □** : Chakra Shuriken (20 chakra, 3 shurikens à tête chercheuse).
 - « △ + bouton » vaut aussi dans les 8 frames qui suivent le relâchement de △.
-- **○** (impulsion, pas de répétition en maintenant) : Poing ; **↑ + ○** uppercut (lanceur) ; **↓ + ○** balayage ; **← / → + ○** coup de pied. **✕** = saut. **R2** = garde (↓ aussi). **L2** : pas encore utilisé.
-- **Perdu pour le joueur humain avec le nouveau schéma** (toujours utilisé par l'IA) : Technique d'archétype (`move2`), Frappe lourde (Poing + Pied), Pied aérien (`akick`), balayage en l'air ; le Pied sert seulement via ←/→ + ○.
+- **○** (impulsion, pas de répétition en maintenant) : Poing ; **↑ + ○** uppercut (lanceur) ; **↓ + ○** balayage ; **← / → + ○** coup de pied. **✕** = saut. **R2** = garde (↓ aussi).
+- **Perdu pour le joueur humain avec le nouveau schéma** (toujours utilisé par l'IA) : Technique d'archétype (`move2`), Frappe lourde (Poing + Pied), Pied aérien (`akick`) ; le Pied sert seulement via ←/→ + ○.
 
 ## IA
-- 5 niveaux ; 4 personnalités tirées au hasard (`balanced`, `rush`, `zoner`, `turtle`) ; parade volontaire ; projection ; Spéciaux ↑/↓ ; appel des soutiens ; **chakra** : charge quand l'adversaire est loin (« charge »), Shuriken et Chakra Dash à distance moyenne.
+- 5 niveaux ; 4 personnalités tirées au hasard (`balanced`, `rush`, `zoner`, `turtle`) ; parade volontaire ; projection ; Spéciaux ↑/↓ ; appel des soutiens ; chakra (charge quand l'adversaire est loin, Shuriken, Chakra Dash) ; **substitution** : esquive un coup sur le point de toucher (2 à 12 % par frame selon le niveau, dans les 4 frames avant l'activation) et s'échappe parfois d'un combo.
 
 ---
 
@@ -103,10 +107,10 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 - [x] Spécial ↑/↓, parade parfaite, projection, IA → le reste est **repris par la phase 6**
 
 ## Phase 4 — Visuel des personnages
-- [ ] Ombrage à deux tons, contour coloré, torse formé et tenues, visage expressif, mouvement secondaire, squash & stretch, traînées, poses uniques, effet visuel de charge du chakra
+- [ ] Ombrage à deux tons, contour coloré, torse formé et tenues, visage expressif, mouvement secondaire, squash & stretch, traînées, poses uniques, effet visuel de charge du chakra, de la substitution (vraie bûche) et du double saut
 
 ## Phase 5 — Effets et décors
-- [ ] Étincelles d'impact, effet de parade, flash sur gros coups, avant-plan des décors, sprites 192 px (option)
+- [ ] Étincelles d'impact, effet de parade et de garde brisée, flash sur gros coups, avant-plan des décors, sprites 192 px (option)
 
 ---
 
@@ -115,7 +119,7 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 ## Décisions d'Alec (2026-11-07)
 - Le nouveau schéma **remplace entièrement** les commandes actuelles.
 - Clavier + manette, et **boutons tactiles ajoutés** pour R2, L2, R1, L1.
-- On commence par **les soutiens + le combat en équipe**, puis le chakra.
+- On commence par **les soutiens + le combat en équipe**, puis le chakra, puis la défense.
 
 ## 3.1 Boutons et fonctions
 
@@ -144,7 +148,7 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 | □ Shuriken | R | U | bouton 2 | □ |
 | △ Chakra | T | I | bouton 3 | △ |
 | R2 Garde | H | L | gâchette 7 | R2 |
-| L2 Substitution (pas encore active) | Y | O | gâchette 6 | L2 |
+| L2 Substitution | Y | O | gâchette 6 | L2 |
 | R1 Soutien 1 | E | P | bouton 5 | R1 |
 | L1 Soutien 2 | Q | N | bouton 4 | L1 |
 
@@ -153,7 +157,7 @@ Règle : une phase = un commit poussé sur `main`, `npm test` doit passer, `RAPP
 - À faire (6.4) : vraies séquences répétées par direction (« ↑ + ○ répété », « ↓ + ○ répété »), projections différentes (lancer dans les airs, repousser, faire tomber), variantes par personnage / archétype pour ←/→.
 
 ## 3.4 Combo aérien
-Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner les attaques, terminer par une technique spéciale si le chakra le permet.
+Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut : **double saut en place**), enchaîner les attaques, terminer par une technique spéciale si le chakra le permet. À faire (6.4) : enchaînements aériens répétés, poursuite.
 
 ## 3.5 Chakra Dash Combo
 △ (charger) → ✕ (Chakra Dash) → ○ ○ ○ : **en place** au sol (6.2). À faire : poursuivre un adversaire en l'air (6.4).
@@ -163,10 +167,8 @@ Projeter l'adversaire en l'air, le poursuivre (✕ puis double saut), enchaîner
 - **Éveil / Awakening** : activé quand les conditions de combat sont réunies ; changement de forme et de capacités (le système `buff` giant / power sert de base) — 6.5.
 - **Technique ultime d'équipe** : attaque combinée avec les soutiens — 6.5.
 
-## 3.7 Mécaniques défensives
-- Garde R2 : en place (mêmes règles que ↓, parade parfaite incluse). Projection R2 + ○, substitution L2, double saut, guard break : 6.3.
-- **Substitution Jutsu** : L2 au moment d'un impact remplace le personnage par une bûche, réapparition ailleurs. **Réserve limitée qui se recharge** (proposition : 3 charges, +1 toutes les 5 s).
-- **Guard Break** : jauge de garde ; si elle se vide, la garde est brisée et l'adversaire enchaîne (affichage HUD).
+## 3.7 Mécaniques défensives (6.3 : **en place**)
+Garde R2, projection R2+○, substitution L2 (réserve limitée rechargeable), garde brisée (jauge), double saut : voir « Règles des coups et de la défense » plus haut.
 
 ## 3.8 Système de soutien
 Selon la section « Règles des soutiens (6.1) ». Reste : protéger le joueur, prolonger un combo, techniques combinées.
@@ -174,10 +176,12 @@ Selon la section « Règles des soutiens (6.1) ». Reste : protéger le joueur, 
 ## 3.9 Étapes (du plus dur au plus simple)
 - [x] **6.1 Soutiens** (première version) — non testé en jeu
   - [ ] 6.1b Soutien qui protège / prolonge un combo ; 6.1c techniques d'équipe ; 6.1d retirer le 2v2 simultané
-- [x] **6.2 Chakra + nouveau schéma de boutons** (△ charge, Chakra Dash, Chakra Shuriken, Shuriken, Ninjutsu, Ultime, ○ ✕ □ R2 R1 L1 sur clavier / manette / tactile, IA, écrans) — non testé en jeu
-  - [ ] 6.2b Effet visuel de la charge (aura), jauge de chakra qui indique les coûts (10 / 20 / 50), HUD d'entraînement à mettre à jour (`ui/hud.js` affiche encore l'ancien texte de combos)
+- [x] **6.2 Chakra + nouveau schéma de boutons** — non testé en jeu
+  - [ ] 6.2b Effet visuel de la charge (aura), jauge de chakra qui indique les coûts (10 / 20 / 50)
   - [ ] 6.2c Équilibrage : coût du Ninjutsu (10 aujourd'hui, 25 envisagé), vitesse de charge, portée du Chakra Dash
-- [ ] 6.3 Défense : projection R2+○, substitution L2 avec réserve, guard break + HUD, double saut
+- [x] **6.3 Défense** : projection R2+○, substitution L2 (3 charges, +1 / 5 s), garde brisée + jauge HUD, double saut, IA, HUD d'entraînement mis à jour — non testé en jeu
+  - [ ] 6.3b Vraie bûche visible à l'ancienne position (aujourd'hui : fumée), pastilles de substitution plus lisibles, double saut pour l'IA
+  - [ ] 6.3c Équilibrage : usure de la garde (0,55 par point de dégâts), étourdissement 55 frames, substitution gratuite pendant un combo (envisager un coût en chakra)
 - [ ] 6.4 Combos directionnels (○ répété par direction) et combos aériens (poursuite, Chakra Dash en l'air), retour d'une frappe lourde
 - [ ] 6.5 Éveil et techniques ultimes d'équipe
 - [ ] 6.6 Écran Commandes final, options de remappage, tests de `sim.mjs` / `phase3.mjs` réécrits avec les nouvelles actions, README
@@ -185,4 +189,4 @@ Selon la section « Règles des soutiens (6.1) ». Reste : protéger le joueur, 
 ## Points à trancher en cours de route
 - Quels coups précis pour ←/→ + ○ par personnage ou par archétype ?
 - Les Techniques d'archétype (`move2` : dash, teleport, pillar, leap, slam, uppercut) : les supprimer, les rattacher au Chakra Dash, ou en faire des variantes du Ninjutsu ?
-- Durée de présence (3 s) et rappel (12 s) des soutiens ; coûts du chakra : à régler en jeu.
+- Durée de présence (3 s) et rappel (12 s) des soutiens ; coûts du chakra ; substitution : à régler en jeu.
