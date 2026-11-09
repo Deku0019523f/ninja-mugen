@@ -97,7 +97,7 @@ export class Hud {
       if (this.comboT[t] > 0 && this.combo[t] >= 2) { const txt = `<b>${this.combo[t]}</b> HITS`; if (ce.innerHTML !== txt) { ce.innerHTML = txt; ce.classList.remove('pop'); void ce.offsetWidth; ce.classList.add('pop'); } ce.style.opacity = 1; } else ce.style.opacity = 0;
     }
     if (match.cfg.mode === 'training') {
-      const d = w.team(1)[0]; this.dmg.textContent = `Dégâts du dernier combat : ${Math.round(d.maxHp - d.hp)}`;
+      const d = w.team(1)[0]; this.dmg.textContent = `Dégâts du dernier combo : ${Math.round(d.maxHp - d.hp)}`;
       this.dmg.style.display = 'block'; this.combos.style.display = 'block';
     }
   }
