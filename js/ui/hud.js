@@ -63,7 +63,7 @@ export class Hud {
   event(e) {
     if (e.t === 'super') {
       const a = ARCH[e.f.char.arch], s = SUPERS[a.sup];
-      this.cutEl.innerHTML = `<div class="cut-name">${e.f.char.name.toUpperCase()}</div><div class="cut-tech" style="color:${a.c1}">${a.supName}</div>`;
+      this.cutEl.innerHTML = `<div class="cut-name">${e.f.char.name.toUpperCase()}</div><div class="cut-tech" style="color:${a.c1}">${e.f.char.supName || a.supName}</div>`;
       this.cutEl.style.setProperty('--c', a.c1); this.cutEl.classList.remove('go'); void this.cutEl.offsetWidth; this.cutEl.classList.add('go'); void s;
     }
     if (e.t === 'ko' || e.t === 'nova' || e.t === 'break') { this.flashEl.classList.remove('go'); void this.flashEl.offsetWidth; this.flashEl.classList.add('go'); }
@@ -79,7 +79,7 @@ export class Hud {
       T.hp.style.width = (p * 100) + '%';
       T.ghostV = T.ghostV > p ? Math.max(p, T.ghostV - 0.006) : p; T.ghost.style.width = (T.ghostV * 100) + '%';
       T.box.classList.toggle('low', p < 0.25 && p > 0);
-      const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => ['h', 'net'].includes(match.ctrl[f.slot].k)) || lead;
+      const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => match.ctrl[f.slot].k === 'h') || lead;
       const chi = hum.chi; T.chi.style.width = chi + '%'; T.chiBar.classList.toggle('ready', chi >= 50);
       T.gdf.style.width = Math.min(100, hum.guard) + '%'; T.gdf.style.background = hum.guard > 70 ? '#ff4a3a' : '#ffb02e';
       T.pipEls.forEach((pp, i) => { pp.style.opacity = i < hum.subCharges ? 1 : 0.2; });
@@ -97,7 +97,7 @@ export class Hud {
       if (this.comboT[t] > 0 && this.combo[t] >= 2) { const txt = `<b>${this.combo[t]}</b> HITS`; if (ce.innerHTML !== txt) { ce.innerHTML = txt; ce.classList.remove('pop'); void ce.offsetWidth; ce.classList.add('pop'); } ce.style.opacity = 1; } else ce.style.opacity = 0;
     }
     if (match.cfg.mode === 'training') {
-      const d = w.team(1)[0]; this.dmg.textContent = `Dégâts du dernier combo : ${Math.round(d.maxHp - d.hp)}`;
+      const d = w.team(1)[0]; this.dmg.textContent = `Dégâts du dernier combat : ${Math.round(d.maxHp - d.hp)}`;
       this.dmg.style.display = 'block'; this.combos.style.display = 'block';
     }
   }
