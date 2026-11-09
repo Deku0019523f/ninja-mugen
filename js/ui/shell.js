@@ -8,7 +8,7 @@ import { sfx, setMuted, setMusic, initAudio } from '../audio.js';
 const TABS = [['accueil', 'ACCUEIL', 'title'], ['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORS', 'stage'], ['touches', 'TOUCHES', 'controls']];
 // écran → [onglet actif, style du voile]. Les écrans absents (vs, résultat, combat) n'ont pas de barre.
 const SCREEN = { title: ['accueil', 'on'], select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: ['touches', 'on blur'], options: [null, 'on blur'] };
-const VEIL_ONLY = { result: 'on blur' };
+const VEIL_ONLY = { result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
 
 let ui, bar, veil, slashEl, toastEl, tabEls = {}, snd, hideT = 0, slashT = 0;
 
@@ -53,8 +53,9 @@ export const shell = {
 
   // appelé par le routeur à chaque changement d'écran
   setScreen(name) {
-    const def = SCREEN[name]; ui.classList.toggle('shelled', !!def);
-    bar.style.display = def ? 'flex' : 'none';
+    const def = SCREEN[name], online = G.mode === 'online' && (name === 'select' || name === 'stage');   // en ligne : pas d'onglets (ils casseraient la partie)
+    ui.classList.toggle('shelled', !!def && !online);
+    bar.style.display = def && !online ? 'flex' : 'none';
     const v = def ? def[1] : VEIL_ONLY[name];
     veil.className = v || '';
     for (const [id] of TABS) { const t = tabEls[id]; t.classList.toggle('on', !!def && def[0] === id); t.classList.toggle('dis', !tabState(id).ok); }

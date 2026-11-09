@@ -7,5 +7,7 @@ import vs from './vs.js';
 import options from './options.js';
 import controls from './controls.js';
 import result from './result.js';
+import online from './online.js';
+import onlineResult from './onlineResult.js';
 
-export const SCREENS = { title, setup, select, stage, vs, options, controls, result };
+export const SCREENS = { title, setup, select, stage, vs, options, controls, result, online, onlineResult };

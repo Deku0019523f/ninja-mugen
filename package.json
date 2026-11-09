@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node test/sim.mjs && node test/phase3.mjs && node test/support.mjs && node test/chords.mjs && node test/chakra.mjs && node test/defense.mjs && node test/combos.mjs && node test/ai_all.mjs",
+    "test": "node test/net.mjs && node test/sim.mjs && node test/phase3.mjs && node test/support.mjs && node test/chords.mjs && node test/chakra.mjs && node test/defense.mjs && node test/combos.mjs && node test/ai_all.mjs",
+    "build:app": "node build.mjs && node scripts/www.mjs",
     "start": "npx --yes serve ."
   },
   "dependencies": { "three": "^0.170.0" },

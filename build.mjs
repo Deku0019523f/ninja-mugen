@@ -1,7 +1,7 @@
 // Assemble tout (three.js inclus) en UN SEUL fichier HTML : dist/ninja-mugen.html
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-export const CSS = ['fonts', 'base', 'ui', 'shell', 'hud', 'menus', 'home', 'select', 'stage', 'controls', 'touch'];
+export const CSS = ['fonts', 'base', 'ui', 'shell', 'hud', 'menus', 'home', 'select', 'stage', 'controls', 'online', 'touch'];
 const r = await build({ entryPoints: ['js/main.js'], bundle: true, minify: true, format: 'iife', target: 'es2020', write: false, legalComments: 'none' });
 const js = r.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 // polices : les fichiers woff2 sont intégrés en base64 pour garder un seul fichier hors-ligne
