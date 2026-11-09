@@ -142,6 +142,8 @@ function drawHair(g, ch, cx, cy, tiltDeg, front) {
     if (S === 'long') pl([[-9, -4], [-13, 14], [-8, 22], [-2, 16], [4, 0]], dk);
     if (S === 'pony') pl([[-9, -6], [-18, 2], [-17, 14], [-11, 8], [-7, 0]], dk);
     if (S === 'topknot') {}
+    if (S === 'twin') { pl([[-9, -4], [-16, 6], [-14, 18], [-9, 8]], dk); pl([[-6, -6], [-18, -2], [-20, 10], [-12, 6]], dk); }
+    if (S === 'swoop') pl([[-9, -5], [-14, 8], [-9, 12], [-4, 2]], dk);
     if (S === 'wild') pl([[-9, -8], [-19, -10], [-14, -2], [-21, 4], [-12, 6], [-14, 14], [-6, 6]], dk);
     if (S === 'hood') pl([[-10, -8], [-14, 6], [-6, 14], [4, 8]], dk);
     if (S === 'buns') { dot(g, -8, -11, 4.2, hc); dot(g, 1, -14, 4.2, hc); }
@@ -154,6 +156,8 @@ function drawHair(g, ch, cx, cy, tiltDeg, front) {
     case 'long': pl([[-10, 2], [-11, -9], [-3, -14], [7, -12], [11, -5], [11, -1], [4, -8], [-3, -6]]); break;
     case 'bob': pl([[-11, 8], [-11, -8], [-3, -14], [7, -12], [11, -5], [11, -1], [4, -7], [-3, -6], [-5, 8]]); break;
     case 'topknot': pl([[-10, -1], [-9, -9], [-2, -12], [7, -10], [10, -3], [4, -7], [-3, -6]]); dot(g, 0, -16, 4, hc); break;
+    case 'swoop': pl([[-10, 2], [-10, -9], [-3, -14], [7, -12], [11, -6], [11, 2], [9, -1], [4, -5], [-3, -6]]); break;
+    case 'twin': pl([[-10, 0], [-10, -8], [-3, -12], [7, -11], [11, -5], [11, -1], [4, -7], [-3, -6]]); break;
     case 'pony': case 'short': pl([[-10, 0], [-10, -9], [-3, -13], [7, -12], [11, -6], [11, -2], [4, -7], [-3, -6]]); break;
     case 'buns': pl([[-10, 0], [-10, -8], [-3, -12], [7, -11], [11, -5], [11, -1], [4, -7], [-3, -6]]); break;
     case 'mohawk': pl([[-8, -6], [-6, -16], [-2, -12], [1, -20], [4, -12], [8, -17], [8, -6], [2, -9]]); break;
@@ -179,6 +183,10 @@ function drawHead(g, ch, cx, cy, tilt, f) {
   const ex = ch.ex;
   if (ex.includes('mask')) { poly(g, [[0, 2.4], [10, 1.6], [9, 8], [2, 9.4]], hexShade(ch.acc, -0.2)); }
   if (ex.includes('glasses')) { g.strokeStyle = '#222'; g.lineWidth = 1.2; g.strokeRect(1.4, -3.8, 4.6, 4.8); g.strokeRect(6.6, -3.4, 3.8, 4.4); g.fillStyle = 'rgba(160,220,255,.5)'; g.fillRect(1.4, -3.8, 4.6, 4.8); }
+  if (ex.includes('beard')) poly(g, [[0, 7], [9, 6.5], [8, 12], [1, 12.5]], hexShade(ch.hc, -0.1));
+  if (ex.includes('markings')) { g.strokeStyle = '#7a2a2a'; g.lineWidth = 0.9; g.beginPath(); for (const y of [1.4, 3.2, 5]) { g.moveTo(5.4, y); g.lineTo(10.4, y - 0.8); } g.stroke(); }
+  if (ex.includes('scar')) { g.strokeStyle = '#b03030'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(3, -6); g.lineTo(8, 3); g.stroke(); g.strokeStyle = '#f0c0b0'; g.lineWidth = 0.5; g.stroke(); }
+  if (ex.includes('eyepatch')) { g.fillStyle = '#121218'; g.fillRect(6.2, -3.6, 4, 4.2); g.strokeStyle = '#121218'; g.lineWidth = 1; g.beginPath(); g.moveTo(-9, -6); g.lineTo(6.2, -3.4); g.stroke(); }
   if (ex.includes('horn')) { poly(g, [[-2, -9], [-5, -20], [3, -10]], '#f4ecd8'); }
   drawHair(g, ch, 0, 0, 0, true);
   if (ex.includes('band')) { g.fillStyle = ch.acc; g.fillRect(-10, -6.4, 21, 3.6); g.fillStyle = '#d8d8e8'; g.fillRect(1, -6.2, 6, 3.2); g.fillStyle = '#555'; g.fillRect(2.4, -5.6, 3.2, 2); g.strokeStyle = OUT; g.lineWidth = 0.8; g.strokeRect(-10, -6.4, 21, 3.6); poly(g, [[-10, -5], [-17, -2], [-14, -7]], ch.acc); }
@@ -215,6 +223,9 @@ export function drawFighter(g, ch, pose, opt = {}) {
   g.strokeStyle = top; g.lineWidth = 12.6; g.beginPath(); g.moveTo(hx, hy); g.lineTo(sx, sy); g.stroke();
   g.strokeStyle = ch.acc; g.lineWidth = 3; g.beginPath(); g.moveTo(hx - 6 * ly, hy - 6 * lx); g.lineTo(hx + 6 * ly, hy + 6 * lx); g.stroke();   // ceinture
   g.strokeStyle = hexShade(top, .3); g.lineWidth = 1.4; g.beginPath(); g.moveTo(sx + 2 * ly, sy + 2 * lx); g.lineTo(hx + 2 * ly, hy + 2 * lx); g.stroke();
+
+  if (ch.ex.includes('sash')) { g.strokeStyle = OUT; g.lineWidth = 5; g.beginPath(); g.moveTo(sx - 5 * ly, sy - 5 * lx); g.lineTo(hx + 6 * ly, hy + 6 * lx); g.stroke(); g.strokeStyle = ch.acc; g.lineWidth = 3; g.stroke(); }
+  if (ch.ex.includes('pauldron')) { dot(g, sx + 1, sy + 3, 6.4, hexShade(ch.acc, -0.05)); g.fillStyle = hexShade(ch.acc, 0.35); g.beginPath(); g.arc(sx - 0.5, sy + 1.5, 2.2, 0, 7); g.fill(); }
 
   // jambe avant
   const rl = limb(g, hx, hy, A.rl[0], A.rl[0] - A.rl[1], 12, 12, 6.8, pants); dot(g, rl[0] + 1.5, rl[1], 3.8, '#2a2230');
