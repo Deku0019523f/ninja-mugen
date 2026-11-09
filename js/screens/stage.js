@@ -5,6 +5,7 @@ import { ROSTER } from '../data/roster.js';
 import { randomTeam } from '../modes/util.js';
 import { ICON } from '../ui/icons.js';
 import { pageHead } from '../ui/shell.js';
+import { flow } from '../net/flow.js';
 import { sfx } from '../audio.js';
 
 // vignette d'un décor : ciel + montagnes + sol
@@ -34,8 +35,8 @@ export default function sStage() {
   const act = (k) => {
     const n = cards.length, run = G.run;
     if (k === 'left') idx = (idx + n - 1) % n; else if (k === 'right') idx = (idx + 1) % n; else if (k === 'up') idx = (idx + n - COLS) % n; else if (k === 'down') idx = (idx + COLS) % n;
-    else if (k === 'ok') { sfx.ok(); run.stage = idx === STAGES.length ? Math.floor(Math.random() * STAGES.length) : idx; if (G.mode === 'training') run.p2 = [Math.floor(Math.random() * ROSTER.length)]; else if (!run.p2.length) run.p2 = randomTeam(run.fmt, run.p1); return G.launch(); }
-    else if (k === 'back') { sfx.back(); return G.go('select'); }
+    else if (k === 'ok') { sfx.ok(); const si = idx === STAGES.length ? Math.floor(Math.random() * STAGES.length) : idx; if (G.mode === 'online') return flow.stagePicked(si); run.stage = si; if (G.mode === 'training') run.p2 = [Math.floor(Math.random() * ROSTER.length)]; else if (!run.p2.length) run.p2 = randomTeam(run.fmt, run.p1); return G.launch(); }
+    else if (k === 'back') { sfx.back(); if (G.mode === 'online') return flow.backToSelect(); return G.go('select'); }
     else return;
     sfx.ui(); draw();
   };

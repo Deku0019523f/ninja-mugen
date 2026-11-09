@@ -20,6 +20,7 @@ export default function sTitle() {
   const MAIN = () => [
     { icon: 'swords', label: `DUEL ${S.fmt}V${S.fmt}`, sub: S.vs === 'p2' ? 'VS J2' : 'VS IA', feat: true, ok: play('single') },
     { icon: 'star', label: 'ARCADE RUN', sub: '8 COMBATS', ok: play('arcade') },
+    { icon: 'net', label: 'MULTIJOUEUR', sub: 'WI-FI · BLUETOOTH', ok: () => { sfx.ok(); G.mode = 'online'; G.go('online'); } },
     { icon: 'dice', label: 'AUTRES MODES', sub: '2 MODES', ok: () => { sfx.ok(); level = 1; idx = 0; build(); } },
     { icon: 'pad', label: 'COMMANDES', sub: 'COMBO LIST', ok: () => { sfx.ok(); G.go('controls'); } },
     { icon: 'sliders', label: 'OPTIONS', sub: 'AUDIO · TACTILE', ok: () => { sfx.ok(); G.go('options'); } },
@@ -27,7 +28,7 @@ export default function sTitle() {
   const MORE = () => [
     { icon: 'shield', label: 'SURVIE', sub: 'SÉRIE SANS FIN', ok: play('survival') },
     { icon: 'fist', label: 'ENTRAÎNEMENT', sub: 'MANNEQUIN', ok: play('training') },
-    { icon: 'back', label: 'RETOUR', sub: '', ok: () => { sfx.back(); level = 0; idx = 2; build(); } },
+    { icon: 'back', label: 'RETOUR', sub: '', ok: () => { sfx.back(); level = 0; idx = 3; build(); } },
   ];
   let level = 0, idx = 0, items = [], rows = [];
   const draw = () => rows.forEach((r, i) => r.classList.toggle('sel', i === idx));
@@ -46,7 +47,7 @@ export default function sTitle() {
   G.handler = (k) => {
     if (k === 'up') idx = (idx + items.length - 1) % items.length; else if (k === 'down') idx = (idx + 1) % items.length;
     else if (k === 'ok') return items[idx].ok();
-    else if (k === 'back') { if (level) { sfx.back(); level = 0; idx = 2; build(); } return; }
+    else if (k === 'back') { if (level) { sfx.back(); level = 0; idx = 3; build(); } return; }
     else return;
     sfx.ui(); draw();
   };

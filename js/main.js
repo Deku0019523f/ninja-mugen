@@ -27,10 +27,17 @@ view.resize(); fit(); addEventListener('resize', () => { view.resize(); fit(); }
 const backBtn = $('#backbtn'), pauseBtn = $('#pausebtn');
 let screen = null, match = null, bgWorld = null, bgT = 0;
 backBtn.onclick = () => G.handler && G.handler('back');
-pauseBtn.onclick = () => setPause(!match?.paused);
+const pauseOpen = () => pauseEl.style.display !== 'none';
+pauseBtn.onclick = () => setPause(!pauseOpen());
+
+// bandeau d'état réseau (reconnexion, synchronisation)
+const netEl = el('div', 'netmsg'); ui.appendChild(netEl); let netTxt = null;
+G.netStatus = (t) => { netTxt = t; netEl.textContent = t || ''; netEl.classList.toggle('on', !!t); };
 
 function go(name, data) {
   const first = screen === null;
+  if (G.onLeave) { const f = G.onLeave; G.onLeave = null; f(); }       // désabonne les écrans de leurs événements
+  if (name === 'title') { if (G.net && G.net.state !== 'closed') G.net.leave(); G.net = null; if (G.mode === 'online') G.mode = 'single'; }
   if (name === 'title' || name === 'setup') { if (match) { match.destroy(); match = null; } bgWorld = null; G.run = null; }
   pauseBtn.style.display = 'none'; screen = name; G.cur = name;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; hudEl.style.display = 'none'; touchEl.style.display = 'none';
@@ -48,7 +55,7 @@ G.launch = () => {
   const run = G.run;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; screen = 'fight';
   shell.setScreen('fight'); hudEl.style.display = 'block'; backBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if (isTouch()) touchEl.style.display = 'block';
-  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2 };
+  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: !run.net && G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2, seed: run.seed, net: run.net ? G.net : null };
   if (match) match.destroy();
   match = new Match(cfg, view, hud, onMatchEnd); hud.built = false;
   setMusicMode('fight'); initAudio(); pauseEl.style.display = 'none';
@@ -56,6 +63,7 @@ G.launch = () => {
 
 function onMatchEnd(res) {
   const m = match, run = G.run, mode = MODES[run.mode]; match = null; bgWorld = null; hud.built = false; setMusicMode('menu');
+  if (run.mode === 'online') { G.net.endMatch(); return go('onlineResult', { win: res.winner === G.net.me, wins: res.wins }); }
   if (mode.series) {
     if (res.winner !== 0) return go('result', { done: true, win: false });
     run.fight++; run.score += 1000 + run.fight * 250; if (mode.onWin) mode.onWin(run, res, m);
@@ -68,14 +76,16 @@ function onMatchEnd(res) {
 // ------------------------------------------------------------ pause
 const pauseEl = el('div', 'pause'); ui.appendChild(pauseEl); pauseEl.style.display = 'none';
 function setPause(on) {
-  if (!match) return; match.paused = on; pauseEl.style.display = on ? 'flex' : 'none';
+  if (!match) return; const net = !!match.net; if (!net) match.paused = on; pauseEl.style.display = on ? 'flex' : 'none';   // en ligne, le combat ne s'arrête pas : le menu est seulement superposé
   if (!on) { G.handler = null; return; }
-  pauseEl.innerHTML = '<div class="panel"><h2>PAUSE</h2><div class="list"></div></div>';
+  pauseEl.innerHTML = `<div class="panel"><h2>${net ? 'MENU' : 'PAUSE'}</h2><div class="list"></div></div>`;
   const list = pauseEl.querySelector('.list'); let idx = 0;
-  const items = [['Reprendre', () => setPause(false)], ['Recommencer', () => { setPause(false); G.launch(); }], ['Quitter vers le menu', () => { setPause(false); match.destroy(); match = null; bgWorld = null; go('title'); }]];
+  const quit = () => { setPause(false); match.destroy(); match = null; bgWorld = null; go('title'); };
+  const items = net ? [['Reprendre', () => setPause(false)], ['Quitter la partie', quit]]
+    : [['Reprendre', () => setPause(false)], ['Recommencer', () => { setPause(false); G.launch(); }], ['Quitter vers le menu', quit]];
   const rows = items.map(([l, fn], i) => { const r = el('div', 'row', `<span class="lb">${l}</span>`); r.onclick = () => { idx = i; fn(); }; r.onmouseenter = () => { idx = i; dr(); }; list.appendChild(r); return r; });
   const dr = () => rows.forEach((r, i) => r.classList.toggle('sel', i === idx)); dr();
-  G.handler = (k) => { if (k === 'up') idx = (idx + 2) % 3; else if (k === 'down') idx = (idx + 1) % 3; else if (k === 'ok') return items[idx][1](); else if (k === 'back' || k === 'pause') return setPause(false); sfx.ui(); dr(); };
+  G.handler = (k) => { const n = items.length; if (k === 'up') idx = (idx + n - 1) % n; else if (k === 'down') idx = (idx + 1) % n; else if (k === 'ok') return items[idx][1](); else if (k === 'back' || k === 'pause') return setPause(false); sfx.ui(); dr(); };
 }
 
 // ------------------------------------------------------------ boucle principale
@@ -84,10 +94,11 @@ function loop(now) {
   const dt = Math.min(0.1, (now - last) / 1000); last = now;
   for (const k of pollMenu()) {
     initAudio();
-    if (screen === 'fight') { if (k === 'pause') setPause(!match?.paused); else if (match && match.paused && G.handler) G.handler(k); }
+    if (screen === 'fight') { if (k === 'pause') setPause(!pauseOpen()); else if (match && (match.paused || pauseOpen()) && G.handler) G.handler(k); }
     else if (G.handler) G.handler(k === 'pause' ? 'back' : k);
   }
   if (G.ticker) G.ticker();
+  if (match && match.net && G.net && G.net.state !== 'reconnecting') G.netStatus(match.stalled > 30 ? 'Synchronisation avec l\'adversaire…' : null);
   if (match) match.frame(dt); else if (screen !== 'fight') idleBg(dt);
   requestAnimationFrame(loop);
 }

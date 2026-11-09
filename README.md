@@ -26,6 +26,10 @@ Combos : ○○○ poings · △+○ Ninjutsu (10 chakra) · △▶△▶○ Tec
 
 Barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCHES + son), voile sombre / flou derrière les menus, transition « coup de sabre », polices Rajdhani et Inter intégrées (hors-ligne). Tab = adversaire manuel / aléatoire dans ROSTER.
 
+## Multijoueur local (Android)
+
+Combat 1v1 entre deux téléphones via Google Nearby Connections (Wi-Fi / Bluetooth automatiques), application Android par Capacitor : voir [docs/MULTIJOUEUR.md](docs/MULTIJOUEUR.md).
+
 ## Structure
 ```
 js/characters/<nom>/<nom>.js   UN DOSSIER PAR PERSONNAGE (56) + index.js (ordre = identifiant)
@@ -38,6 +42,7 @@ js/modes/<mode>.js             un fichier par mode (arcade, combat individuel, s
 js/screens/<écran>.js          un fichier par écran (titre, réglages, sélection, décor, VS, options, commandes, résultat)
 js/game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
 js/render/                     sprites.js (squelette 2D) · view.js (three.js, caméra large 640→1200 × 480)
+js/net/                        multijoueur : lockstep, session, flow, transports (Nearby / test navigateur)
 js/ui/                         hud.js (barres, combos) · menu.js (liste de menu) · shell.js (barre, voile, transition) · icons.js (pictogrammes SVG)
 js/touch.js                    commandes tactiles : stick analogique ou croix + △ □ ○ ✕
 js/input.js · js/audio.js      clavier / manette / tactile · sons et musique synthétisés
