@@ -4,7 +4,7 @@ import { ARCH } from '../archetypes/index.js';
 import { projSize } from '../game/helpers.js';
 
 export function fireSpecial(f, w, variant = '') {
-  const p = ARCH[f.char.arch].proj, n = variant ? 1 : (p.n || 1);
+  const p = { ...ARCH[f.char.arch].proj, ...(f.char.proj || {}) }, n = variant ? 1 : (p.n || 1);
   for (let i = 0; i < n; i++) {
     const ang = n > 1 ? (i - (n - 1) / 2) * (p.spread || 10) * Math.PI / 180 : 0;
     const [pw, ph] = projSize(p.type, p.size);
