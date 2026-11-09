@@ -32,6 +32,8 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4 à 6.6, phases 1 à 5.
 - 2026-11-08 : **6.3 Défense** — modifiés : `fighter.js` (`substitute`, `guard`, `airJumps`, action `throw`, front montant de ↑), `moves.js` (BTN + `sub`, `throw`), `chords.js` (R2+○ → `throw`, L2 en impulsion), `ai.js` (substitution), `ui/hud.js` (jauge de garde, pastilles, texte d'aide), `screens/controls.js`, `package.json` ; nouveau : `test/defense.mjs` ; `test/chords.mjs` étendu.
 - **Tout ceci a été écrit sans pouvoir lancer le jeu ni les tests** : à vérifier avec `npm test` puis en jeu. Les diffs de chaque commit ont été relus (seules les modifications prévues y figurent).
 
+- 2026-11-08 : **Refonte de l'interface** (inspirée des maquettes + document de direction artistique) : barre de navigation (`js/ui/shell.js`), accueil, règles, roster à 4 colonnes avec aperçu animé et adversaire aléatoire par défaut (Tab / toucher pour choisir), décors 16:9, guide des combos à onglets avec schémas, pause / résultat / VS restylés, polices intégrées, composants `css/ui.css`, pictogrammes `js/ui/icons.js`. Le moteur n'a pas été touché ; `npm test` passe. Écrans vérifiés par captures (800×360, 800×600). Reste : HUD de combat à peine retouché (police et noms).
+
 ## Problèmes rencontrés et solutions
 - **Écran tout noir sur GitHub Pages** : Jekyll ignore les fichiers en `_nom.js` → 404. Solution : `.nojekyll`.
 - **Latence des coups normaux** (~3 frames) : réduite à 1 frame (`TAP = 7`).
@@ -42,6 +44,7 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4 à 6.6, phases 1 à 5.
 ## Dépendances installées
 - `three@^0.170.0` (dependencies)
 - `esbuild@^0.24.0` (devDependencies)
+- `@fontsource/rajdhani`, `@fontsource/inter` (devDependencies, polices intégrées au build)
 
 ## Commandes importantes
 - `npm install` : installer les dépendances
@@ -53,7 +56,7 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4 à 6.6, phases 1 à 5.
 Aucune.
 
 ## État actuel
-Jouable. Phases 1, 3, 6.1, 6.2 et 6.3 faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** (lancer `npm run build`). Pour GitHub Pages, vider le cache (CSS / JS en `?v=5`).
+Jouable. Phases 1, 3, 6.1, 6.2 et 6.3 faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** (lancer `npm install && npm run build`). Pour GitHub Pages, vider le cache (CSS / JS en `?v=7`).
 
 ## Prochaines étapes
 - Lancer `npm test` ; en cas d'échec, envoyer la sortie (réglages : `SUB_MAX` / `SUB_REGEN` / `GUARD_*` / `BREAK_STUN` / `CHARGE_RATE` / `TAP` / `PARRY` / `THROW_R` dans `fighter.js` ; `SUB_CH` / `PARRY_CH` dans `ai.js` ; `CHARGE_AFTER` / `ARM_WIN` / `TAP_WIN` dans `chords.js` ; `SUP_*` dans `support.js` ; coûts dans `techniques/chakra.js`)
