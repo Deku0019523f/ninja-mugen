@@ -8,16 +8,23 @@ modes Arcade / Combat individuel / Survie / Entraînement, IA à 5 niveaux, 2 jo
 - Développer : `npm install && npm run build` (régénère dist/) · `npm test` (simulation du moteur sans navigateur).
 
 ## Commandes
+
 | | Joueur 1 | Joueur 2 |
 |---|---|---|
-| Déplacer / saut / garde | Q D / Z / S (WASD) | Flèches |
-| Poing (×3 = combo) | F | J |
-| Pied | G | K |
-| Spécial (10 chakra) | H | L |
-| Technique (15) | T | I |
-| SUPER (50) | Y | O |
-↓+Poing = uppercut · ↓+Pied = balayage · reculer face à un coup = garde auto · P/Échap = pause.
-Manette : X poing, A pied, B spécial, Y technique, R1 super.
+| Déplacer / saut / garde | Q D / Z / S (touches physiques WASD) | Flèches |
+| ○ Poing (×3 = combo) | F | J |
+| ✕ Saut (double saut) | G | K |
+| □ Shuriken | R | U |
+| △ Chakra (maintenu = charge) | T | I |
+| R2 garde / parade | H | L |
+| L2 substitution | Y | O |
+| R1 / L1 soutiens | E / Q | P / N |
+
+Combos : ○○○ poings · △+○ Ninjutsu (10 chakra) · △▶△▶○ Technique ultime (50) · △+✕ Chakra Dash · △+□ Chakra Shuriken · R2+○ projection. Détail illustré dans le jeu (onglet TOUCHES : tactile, manette, clavier). Manette : ✕ ○ □ △ comme sur PlayStation. P / Échap : pause.
+
+## Interface
+
+Barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCHES + son), voile sombre / flou derrière les menus, transition « coup de sabre », polices Rajdhani et Inter intégrées (hors-ligne). Tab = adversaire manuel / aléatoire dans ROSTER.
 
 ## Structure
 ```
@@ -31,10 +38,11 @@ js/modes/<mode>.js             un fichier par mode (arcade, combat individuel, s
 js/screens/<écran>.js          un fichier par écran (titre, réglages, sélection, décor, VS, options, commandes, résultat)
 js/game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
 js/render/                     sprites.js (squelette 2D) · view.js (three.js, caméra large 640→1200 × 480)
-js/ui/                         hud.js (barres, combos) · menu.js (liste de menu)
+js/ui/                         hud.js (barres, combos) · menu.js (liste de menu) · shell.js (barre, voile, transition) · icons.js (pictogrammes SVG)
 js/touch.js                    commandes tactiles : stick analogique ou croix + △ □ ○ ✕
 js/input.js · js/audio.js      clavier / manette / tactile · sons et musique synthétisés
-css/base|hud|menus|touch.css   styles par domaine
+css/fonts|base|ui|shell|hud|menus|home|select|stage|controls|touch.css   styles par domaine
+npm @fontsource (Rajdhani, Inter ; OFL) : intégrées en base64 par build.mjs
 ```
 Tactile (paysage uniquement) : stick analogique flottant ou croix 8 directions (bouton ✚/🕹 ou Options),
 ↗ ↖ saut avant/arrière, ↘ ↙ roulade, □ poing, △ pied, ○ spécial, ✕ technique, □+△ frappe lourde, ○+✕ super.
