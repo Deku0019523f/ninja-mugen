@@ -138,7 +138,7 @@ export default function sSelect() {
     const tg = info.querySelector('.tag'); tg.textContent = rnd ? 'MYSTÈRE' : a.label.toUpperCase(); tg.style.setProperty('--tc', a ? a.c1 : '#a9b4e8');
     info.querySelector('.mst').innerHTML = c ? bar('VIT', c.spd) + bar('PUI', c.pow) + bar('DÉF', c.def) : '';
     const sk = (cls, icon, k, v, col) => `<div class="sk ${cls}" style="--sc:${col}"><span class="si">${ICON[icon]}</span><div><em>${k}</em><b>${v}</b></div></div>`;
-    info.querySelector('.sks').innerHTML = sk('st', 'fist', 'STYLE', a ? a.label : '???', a ? a.c1 : '#6a76b0') + sk('jt', 'swirl', 'JUTSU (10 CK)', a ? a.spName : '???', '#38e0ff') + sk('ul', 'star', 'ULTIME (50 CK)', a ? a.supName : '???', '#ff5c78');
+    info.querySelector('.sks').innerHTML = sk('st', 'fist', 'STYLE', a ? a.label : '???', a ? a.c1 : '#6a76b0') + sk('jt', 'swirl', 'JUTSU (10 CK)', c ? (c.spName || a.spName) : '???', '#38e0ff') + sk('ul', 'star', 'ULTIME (50 CK)', c ? (c.supName || a.supName) : '???', '#ff5c78');
     drawRight(); drawBtn();
   };
 
