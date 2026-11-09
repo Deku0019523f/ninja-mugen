@@ -12,15 +12,16 @@ import { initAudio, sfx, setMuted, setMusic, setMusicMode } from './audio.js';
 import { G, el } from './screens/ctx.js';
 import { SCREENS } from './screens/index.js';
 import { MODES } from './modes/index.js';
+import { shell } from './ui/shell.js';
 
 const $ = (s) => document.querySelector(s);
 const host = $('#view'), ui = $('#ui'), screenEl = $('#screen'), hudEl = $('#hud'), touchEl = $('#touch');
 const view = new View(host), hud = new Hud(hudEl);
-G.view = view; G.screenEl = screenEl;
+G.view = view; G.screenEl = screenEl; shell.mount(ui);
 setMuted(!G.S.sound); setMusic(G.S.music);
 
 // interface 480 px de haut × VW de large, mise à l'échelle pour remplir l'écran
-function fit() { const b = view.box; if (b) ui.style.cssText = `width:${b.vw}px;height:480px;left:${b.l}px;top:${b.t}px;transform:scale(${b.s});transform-origin:0 0`; }
+function fit() { const b = view.box; if (b) shell.fit(b.vw); if (b) ui.style.cssText = `width:${b.vw}px;height:480px;left:${b.l}px;top:${b.t}px;transform:scale(${b.s});transform-origin:0 0`; }
 view.resize(); fit(); addEventListener('resize', () => { view.resize(); fit(); });
 
 const backBtn = $('#backbtn'), pauseBtn = $('#pausebtn');
@@ -29,9 +30,12 @@ backBtn.onclick = () => G.handler && G.handler('back');
 pauseBtn.onclick = () => setPause(!match?.paused);
 
 function go(name, data) {
-  if (name === 'title' || name === 'setup') { if (match) { match.destroy(); match = null; } bgWorld = null; }
-  pauseBtn.style.display = 'none'; screen = name; backBtn.style.display = name === 'title' || name === 'fight' ? 'none' : 'block';
+  const first = screen === null;
+  if (name === 'title' || name === 'setup') { if (match) { match.destroy(); match = null; } bgWorld = null; G.run = null; }
+  pauseBtn.style.display = 'none'; screen = name; G.cur = name;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; hudEl.style.display = 'none'; touchEl.style.display = 'none';
+  shell.setScreen(name); if (!first) shell.slash();
+  backBtn.style.display = name === 'vs' || name === 'result' ? 'block' : 'none';    // les pages à barre ont leur propre bouton RETOUR
   setMusicMode('menu'); SCREENS[name](data);
 }
 G.go = go;
@@ -43,7 +47,7 @@ G.nextOpponent = () => { MODES[G.run.mode].next(G.run); go('vs'); };
 G.launch = () => {
   const run = G.run;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; screen = 'fight';
-  hudEl.style.display = 'block'; backBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if (isTouch()) touchEl.style.display = 'block';
+  shell.setScreen('fight'); hudEl.style.display = 'block'; backBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if (isTouch()) touchEl.style.display = 'block';
   const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2 };
   if (match) match.destroy();
   match = new Match(cfg, view, hud, onMatchEnd); hud.built = false;
