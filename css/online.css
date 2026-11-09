@@ -1,4 +1,4 @@
-/* Multijoueur local : accueil, salon, recherche, salle de combat, bandeau réseau */
+/* Multijoueur local : accueil, salon, recherche, salle de combat, bannière réseau */
 .ol{position:absolute;inset:0;display:flex;flex-direction:column}
 .ol-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:10px 40px 22px}
 .ol-hub{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:min(760px,100%)}
@@ -33,3 +33,7 @@
 .netmsg{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:9;padding:8px 20px;border:1px solid #7a5a1a;border-left:4px solid var(--org);background:#1a1204e6;color:#ffe2a8;font:700 17px var(--f-ui);letter-spacing:1px;display:none;white-space:nowrap}
 .netmsg.on{display:block}
 .compact .ol-hub{grid-template-columns:1fr}.compact .ol-body{gap:10px}
+.ol-code{margin:6px auto 4px;display:inline-block;padding:6px 22px;border:2px dashed var(--gold);background:#1a1204cc;font:700 44px var(--f-ui);letter-spacing:10px;color:var(--gold);text-indent:10px}
+.ol-in{display:block;margin:10px auto;width:230px;height:62px;text-align:center;text-transform:uppercase;font:700 38px var(--f-ui);letter-spacing:10px;text-indent:10px;color:#fff;background:#0b1030;border:2px solid var(--cy);outline:none}
+.ol-in:focus{border-color:var(--org);box-shadow:0 0 14px #ff7a1a55}
+.ol-sub{font:400 14px var(--f-body);color:#aab5e6;text-align:center}

@@ -1,10 +1,10 @@
 // ============================================================
 //  SESSION RÉSEAU : salon (hôte / invité), échange du choix des combattants et de l'arène, lockstep du combat,
-//  coupure et reprise. Indépendante du transport (Nearby Android ou BroadcastChannel de test) et du DOM.
+//  coupure et reprise. Indépendante du transport (Nearby Android, WebRTC ou BroadcastChannel de test) et du DOM.
 //
 //  États : idle → hosting | searching → connecting → lobby ⇄ reconnecting → closed
 //  Messages texte :  F<frame>,<touches>,<ack>  entrées · H<frame>,<hash> contrôle de synchro · {json} le reste
-//  Événements : hosts peer state phase pick start rematch rtt quality failed error reconnecting resumed desync closed
+//  Événements : hosts peer state phase pick start rematch rtt quality failed error code reconnecting resumed desync closed
 // ============================================================
 import { Emitter } from './emitter.js';
 import { Lockstep, pack, unpack, hashWorld } from './lockstep.js';
@@ -31,12 +31,14 @@ export class NetSession extends Emitter {
     tr.on('message', (e) => this.onMessage(e.text));
     tr.on('quality', (e) => { this.quality = e.quality; this.emit('quality', e.quality); });
     tr.on('error', (e) => this.emit('error', e.message));
+    tr.on('code', (e) => this.emit('code', e.code));
   }
 
   advName() { return `${this.name}#${this.sid}`; }
   setState(s) { this.state = s; this.emit('state', s); }
   linkLabel() {
     if (this.tr.kind === 'web') return 'TEST NAVIGATEUR';
+    if (this.tr.kind === 'webrtc') return 'INTERNET (WEBRTC)';
     return { high: 'Wi-Fi', medium: 'Bluetooth', low: 'Bluetooth LE' }[this.quality] || 'Nearby';
   }
 

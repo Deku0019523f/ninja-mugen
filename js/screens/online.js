@@ -4,9 +4,10 @@ import { G, el, save } from './ctx.js';
 import { ICON } from '../ui/icons.js';
 import { pageHead } from '../ui/shell.js';
 import { sfx } from '../audio.js';
-import { createTransport } from '../net/index.js';
+import { createTransport, isNative } from '../net/index.js';
 import { NetSession } from '../net/session.js';
 import { flow } from '../net/flow.js';
+import { cleanCode } from '../net/webrtc.js';
 
 const playerName = () => {
   if (!G.S.pname) { G.S.pname = 'NINJA-' + Math.random().toString(16).slice(2, 6).toUpperCase(); save(); }
@@ -15,7 +16,7 @@ const playerName = () => {
 const alive = () => G.net && G.net.state !== 'closed' && G.net.state !== 'idle';
 
 export default function sOnline(d = {}) {
-  let view = d.view || 'hub', err = '', idx = 0, items = [];
+  let view = d.view || 'hub', err = '', idx = 0, items = [], lastCode = '';
   let net = alive() ? G.net : null;
   const root = el('div', 'ol'), body = el('div', 'ol-body');
   const titles = { hub: 'MULTIJOUEUR LOCAL', host: 'VOTRE SALON', search: 'SALONS PROCHES', connecting: 'CONNEXION', lobby: 'SALLE DE COMBAT', wait: 'EN ATTENTE' };
@@ -33,7 +34,8 @@ export default function sOnline(d = {}) {
     on('peer', () => { view = 'lobby'; sfx.ok(); render(); });
     on('rtt', () => { if (view === 'lobby') updateStats(); });
     on('quality', () => { if (view === 'lobby') render(); });
-    on('failed', () => { err = 'Connexion impossible, nouvelle recherche…'; render(); });
+    on('code', () => { if (view === 'host') render(); });
+    on('failed', () => { err = net.tr.kind === 'webrtc' ? 'Salon introuvable : vérifiez le code et que l\'hôte a bien créé son salon.' : 'Connexion impossible, nouvelle recherche…'; if (view === 'connecting') view = 'search'; render(); });
     on('error', (m) => { err = m; if (['host', 'search'].includes(view) && net.state === 'idle') view = 'hub'; render(); });
   };
   if (net) bindNet();
@@ -54,13 +56,26 @@ export default function sOnline(d = {}) {
     head.querySelector('h2').firstChild.textContent = titles[view];
     if (view === 'hub') {
       const wrap = el('div', 'ol-hub');
-      wrap.append(add(card('org', 'swords', 'CRÉER UN SALON', 'Devenez l\'hôte : les joueurs proches vous trouvent', () => { sfx.ok(); err = ''; view = 'host'; ensure().host(); render(); })),
-        add(card('cy', 'net', 'REJOINDRE UN SALON', 'Recherche automatique des salons proches', () => { sfx.ok(); err = ''; view = 'search'; ensure().search(); render(); })));
-      body.append(wrap, el('div', 'ol-foot', `${ICON.net}<span>${window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'Google Nearby : Wi-Fi, point d\'accès et Bluetooth choisis automatiquement' : 'Mode test navigateur (BroadcastChannel) : ouvrez le jeu dans deux onglets'} · Pseudo <b>${playerName()}</b></span>`));
+      wrap.append(add(card('org', 'swords', 'CRÉER UN SALON', (isNative() ? 'Devenez l\'hôte : les joueurs proches vous trouvent' : 'Vous obtenez un code à donner à votre adversaire'), () => { sfx.ok(); err = ''; view = 'host'; ensure().host(); render(); })),
+        add(card('cy', 'net', 'REJOINDRE UN SALON', (isNative() ? 'Recherche automatique des salons proches' : 'Saisissez le code donné par l\'hôte'), () => { sfx.ok(); err = ''; view = 'search'; ensure().search(); render(); })));
+      body.append(wrap, el('div', 'ol-foot', `${ICON.net}<span>${window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform() ? 'Google Nearby : Wi-Fi, point d\'accès et Bluetooth choisis automatiquement' : 'Version web (WebRTC) : l\'hôte donne son code de salon, l\'invité le saisit'} · Pseudo <b>${playerName()}</b></span>`));
       if (err) body.insertAdjacentHTML('beforeend', errEl);
     } else if (view === 'host') {
-      body.append(el('div', 'ol-mid', radar(`Salon <b>${playerName()}</b> ouvert<br><small>En attente d'un adversaire proche…</small>`) + errEl), add(btn('ANNULER', () => act('back'))));
+      const code = net.tr.code;
+      body.append(el('div', 'ol-mid', radar(`Salon <b>${playerName()}</b> ouvert<br><small>${code ? 'Donnez ce code à votre adversaire' : 'En attente d\'un adversaire proche…'}</small>`) + (code ? `<div class="ol-code">${code}</div>` : '') + errEl), add(btn('ANNULER', () => act('back'))));
     } else if (view === 'search') {
+      if (net.tr.kind === 'webrtc') {
+        const go = () => { const c = cleanCode(inp.value); lastCode = c; if (c.length !== 5) { err = 'Le code comporte 5 caractères.'; return render(); } err = ''; sfx.ok(); if (net.tr.setCode(c)) { view = 'connecting'; net.join(c); render(); } };
+        const inp = el('input', 'ol-in'); inp.value = lastCode; inp.maxLength = 5; inp.placeholder = 'CODE'; inp.autocomplete = 'off'; inp.spellcheck = false; inp.autocapitalize = 'characters';
+        inp.oninput = () => { inp.value = cleanCode(inp.value); };
+        inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') go(); else if (e.key === 'Escape') act('back'); else if (e.key === 'ArrowDown') inp.blur(); };
+        inp.onkeyup = (e) => e.stopPropagation();
+        body.append(el('div', 'ol-mid', `<div class="rd-t">Code du salon</div><div class="ol-sub">Demandez-le à l'hôte (5 caractères)</div>` + errEl));
+        body.querySelector('.ol-mid').insertBefore(inp, body.querySelector('.ol-sub').nextSibling);
+        body.append(add(btn('REJOINDRE', go, 'btn-main')), add(btn('ANNULER', () => act('back'))));
+        setTimeout(() => inp.focus(), 0);
+        idx = 0; mark(); return;
+      }
       const left = el('div', 'ol-l', radar('Recherche de salons proches…') + errEl), list = el('div', 'ol-list');
       const hs = [...net.hosts.values()];
       if (!hs.length) list.innerHTML = '<div class="ol-empty">Aucun salon trouvé pour l\'instant.<br><small>L\'hôte doit avoir choisi « Créer un salon ». Bluetooth et Wi-Fi activés des deux côtés.</small></div>';
