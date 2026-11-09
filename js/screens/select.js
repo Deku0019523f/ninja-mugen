@@ -7,13 +7,15 @@ import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
 import { MODES } from '../modes/index.js';
 import { ICON } from '../ui/icons.js';
 import { pageHead } from '../ui/shell.js';
+import { flow } from '../net/flow.js';
 import { sfx } from '../audio.js';
 
 export default function sSelect() {
   const S = G.S, mode = G.mode, m = MODES[mode];
   const compact = G.view.vw < 820, COLS = compact ? 3 : 4, ROWS = 4, PER = COLS * ROWS;
   const fmt = m.solo ? 1 : S.fmt, humanP2 = mode === 'single' && S.vs === 'p2';
-  const useSup = S.sup !== false && fmt === 1;                 // soutiens R1 / L1 : 2 par joueur, en 1 contre 1
+  const online = mode === 'online';
+  const useSup = S.sup !== false && fmt === 1 && !online;                 // soutiens R1 / L1 : 2 par joueur, en 1 contre 1
   const canPickOpp = !humanP2 && (mode === 'single' || mode === 'training');   // adversaire CPU : aléatoire par défaut, choisissable
   let oppManual = false;
   const mkSlots = () => {
@@ -80,7 +82,7 @@ export default function sSelect() {
   const activeT = () => { const s = slotNow(); return s ? s.t : null; };
   const mainsOf = (t) => picks.filter((_, k) => slots[k] && slots[k].t === t && slots[k].kind === 'main');
   const shown = (t) => ({ i: curs[t], rnd: curs[t] >= N });
-  const lab = (t) => (t === 0 ? 'P1' : humanP2 ? 'P2' : 'CPU');
+  const lab = (t) => (t === 0 ? (online ? 'VOUS' : 'P1') : humanP2 ? 'P2' : online ? 'ADV' : 'CPU');
   const bar = (l, v) => `<span>${l}<i><u style="width:${Math.min(100, v * 70)}%"></u></i></span>`;
 
   const rebuildTops = () => {
@@ -100,7 +102,7 @@ export default function sSelect() {
     const pg = Math.floor(curs[t0] / PER);
     wrap.classList.toggle('p2on', t0 === 1);
     left.classList.toggle('org', t0 === 0); left.classList.toggle('cy', t0 === 1);
-    gh.querySelector('.who').textContent = 'ROSTER ' + lab(t0); gh.querySelector('.pgno').textContent = (pg + 1) + '/' + PAGES; pgl.textContent = 'PAGE';
+    gh.querySelector('.who').textContent = online ? 'ROSTER' : 'ROSTER ' + lab(t0); gh.querySelector('.pgno').textContent = (pg + 1) + '/' + PAGES; pgl.textContent = 'PAGE';
     cells.forEach((d, j) => {
       const idx = pg * PER + j; d.idx = idx; const g = d.cv.getContext('2d'); g.clearRect(0, 0, 48, 48);
       d.classList.toggle('void', idx >= TOTAL); d.classList.toggle('rnd', idx === N);
@@ -108,7 +110,7 @@ export default function sSelect() {
       else if (idx === N) { g.fillStyle = '#a9b4e8'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center'; g.fillText('?', 24, 35); d.nm.textContent = 'ALÉA.'; d.style.setProperty('--ac', '#a9b4e8'); }
       d.classList.toggle('sel', idx === curs[t0]); d.classList.toggle('picked', idx < N && picks.indexOf(idx) >= 0);
     });
-    sub.textContent = !s ? '' : s.kind === 'sup' ? `${s.who} ACTIF · SOUTIEN ${s.n}/2 (${s.n === 1 ? 'R1' : 'L1'})` : `${s.who} ACTIF` + (fmt > 1 ? ` · COMBATTANT ${mainsOf(s.t).length + 1}/${fmt}` : '');
+    sub.textContent = online ? 'CHOISISSEZ VOTRE COMBATTANT' : !s ? '' : s.kind === 'sup' ? `${s.who} ACTIF · SOUTIEN ${s.n}/2 (${s.n === 1 ? 'R1' : 'L1'})` : `${s.who} ACTIF` + (fmt > 1 ? ` · COMBATTANT ${mainsOf(s.t).length + 1}/${fmt}` : '');
     // soutiens / équipe
     tops.forEach((g, t) => g.sl && g.sl.forEach((sl, k) => {
       const e = g.els[k], idx = (() => { let n = -1; for (let q = 0; q < picks.length; q++) if (slots[q] === sl) n = picks[q]; return n; })();
@@ -136,13 +138,14 @@ export default function sSelect() {
     const tg = info.querySelector('.tag'); tg.textContent = rnd ? 'MYSTÈRE' : a.label.toUpperCase(); tg.style.setProperty('--tc', a ? a.c1 : '#a9b4e8');
     info.querySelector('.mst').innerHTML = c ? bar('VIT', c.spd) + bar('PUI', c.pow) + bar('DÉF', c.def) : '';
     const sk = (cls, icon, k, v, col) => `<div class="sk ${cls}" style="--sc:${col}"><span class="si">${ICON[icon]}</span><div><em>${k}</em><b>${v}</b></div></div>`;
-    info.querySelector('.sks').innerHTML = sk('st', 'fist', 'STYLE', a ? a.label : '???', a ? a.c1 : '#6a76b0') + sk('jt', 'swirl', 'JUTSU (10 CK)', c ? (c.spName || a.spName) : '???', '#38e0ff') + sk('ul', 'star', 'ULTIME (50 CK)', c ? (c.supName || a.supName) : '???', '#ff5c78');
+    info.querySelector('.sks').innerHTML = sk('st', 'fist', 'STYLE', a ? a.label : '???', a ? a.c1 : '#6a76b0') + sk('jt', 'swirl', 'JUTSU (10 CK)', a ? a.spName : '???', '#38e0ff') + sk('ul', 'star', 'ULTIME (50 CK)', a ? a.supName : '???', '#ff5c78');
     drawRight(); drawBtn();
   };
 
   const drawRight = () => {
     right.querySelector('.rt').textContent = humanP2 ? 'JOUEUR 2' : 'ADVERSAIRE';
-    const tg = right.querySelector('.rtag'); tg.textContent = humanP2 ? 'J2' : `CPU NV.${S.diff}`; tg.style.setProperty('--tc', 'var(--cy)');
+    const tg = right.querySelector('.rtag'); tg.textContent = online ? G.net.linkLabel().toUpperCase() : humanP2 ? 'J2' : `CPU NV.${S.diff}`; tg.style.setProperty('--tc', 'var(--cy)');
+    if (online) { const pk = G.net.peerPick != null, nm = G.net.peer.name.toUpperCase(); rcard.className = 'rcard on'; rcard.innerHTML = `<div class="rq">${pk ? ICON.check : '?'}</div><div class="rn">${nm}</div><div class="rs">${pk ? 'A fait son choix.' : 'Choisit son combattant…'}</div>`; return; }
     const t = 1, { i, rnd } = shown(t), started = activeT() === t || mainsOf(t).length > 0;
     if (humanP2 || (canPickOpp && oppManual)) {
       const c = !rnd && started ? ROSTER[i] : null;
@@ -158,7 +161,7 @@ export default function sSelect() {
   };
   const drawBtn = () => {
     const last = picks.length === slots.length - 1, s = slotNow();
-    btxt.innerHTML = !last ? `VALIDER${ICON.chev}` : m.series ? `COMMENCER${ICON.chev}` : `CHOISIR DÉCOR${ICON.chev}`;
+    btxt.innerHTML = !last || online ? `VALIDER${ICON.chev}` : m.series ? `COMMENCER${ICON.chev}` : `CHOISIR DÉCOR${ICON.chev}`;
     bOk.title = s ? '' : '';
   };
 
@@ -178,11 +181,12 @@ export default function sSelect() {
       curs[at] = c; picks.push(c);
       if (picks.length === slots.length) return finish(); return draw();
     }
-    else if (k === 'back') { sfx.back(); if (picks.length) { const l = picks.pop(); curs[slots[picks.length].t] = l; return draw(); } return G.go('title'); }
+    else if (k === 'back') { sfx.back(); if (picks.length) { const l = picks.pop(); curs[slots[picks.length].t] = l; return draw(); } return G.go(online ? 'online' : 'title'); }
     else return;
     curs[at] = c; sfx.ui(); draw();
   };
   const finish = () => {
+    if (online) return flow.picked(picks[0]);
     const pick = (t, kind) => picks.filter((_, k) => slots[k].t === t && slots[k].kind === kind);
     const p1 = pick(0, 'main'), p2h = pick(1, 'main'), sup1 = pick(0, 'sup'), sup2 = pick(1, 'sup');
     G.run = { mode, fmt, vs: humanP2 ? 'p2' : 'cpu', diff: S.diff, need: m.series || m.solo ? 1 : S.need, timer: m.chrono ? S.timer : 0, p1, p2: p2h, sup1, sup2: humanP2 ? sup2 : null, wins: 0, fight: 0, carry: null, score: 0 };
@@ -194,5 +198,6 @@ export default function sSelect() {
     const t = performance.now() / 16, f = { state: 'idle', t: 0, vx: 0, move: null, vy: 0 }; const { pose } = poseFor(f, t);
     for (const k of [0, 1]) { if (figs[k].cv.style.display === 'none') continue; const { i, rnd } = shown(k); ctx[k].clearRect(0, 0, 128, 128); drawFighter(ctx[k], ROSTER[rnd ? 0 : i], pose, { clock: t }); }
   };
+  if (online) G.onLeave = G.net.on('pick', draw);
   G.handler = act; rebuildTops(); draw();
 }
