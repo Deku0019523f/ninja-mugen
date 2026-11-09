@@ -35,6 +35,8 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5.
 - Une autre session a poussé : un écran de sélection façon Storm (82e0b03), des boutons tactiles L2 / R2 déplacés à gauche (f29a2c7) et une PR « UI refonte » (52de2ec : `js/ui/icons.js`, `js/ui/shell.js`, écrans roster / règles / options / guide des combos, CSS). Je n'ai pas relu ces fichiers en détail.
 - **Incident** : mon commit 6.4 (b3081ff) a écrasé `js/screens/controls.js` (le guide des combos de la PR) par ma version plus simple. Restauré depuis la PR dans le commit suivant (f7f2c4d) avec les lignes d'attaques mises à jour. **À vérifier** : `js/screens/select.js`, `setup.js`, `ctx.js`, `hud.js`, `index.html`, `css/touch.css` ont pu être modifiés par l'autre session ; ma réécriture complète de fichiers (`push_files`) ne doit plus écraser un fichier sans l'avoir relu sur `main`.
 
+- 2026-11-08/09 : **Refonte de l'interface** (maquettes + direction artistique) : barre de navigation (`js/ui/shell.js`), accueil, règles, roster à 4 colonnes avec aperçu animé et adversaire aléatoire par défaut (Tab / toucher pour choisir), décors 16:9, guide des combos à onglets, pause / résultat / VS restylés, polices Rajdhani + Inter (npm `@fontsource`, intégrées en base64 par `build.mjs`), `css/ui.css`, `js/ui/icons.js`. Moteur inchangé. Reste : HUD de combat à peine retouché (police des noms).
+
 ## Problèmes rencontrés et solutions
 - **Écran tout noir sur GitHub Pages** : Jekyll ignore les fichiers en `_nom.js` → 404. Solution : `.nojekyll`.
 - **Latence des coups normaux** (~3 frames) : réduite à 1 frame (`TAP = 7`).
@@ -46,6 +48,7 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5.
 ## Dépendances installées
 - `three@^0.170.0` (dependencies)
 - `esbuild@^0.24.0` (devDependencies)
+- `@fontsource/rajdhani`, `@fontsource/inter` (devDependencies, polices intégrées au build)
 
 ## Commandes importantes
 - `npm install` : installer les dépendances
@@ -57,7 +60,7 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5.
 Aucune.
 
 ## État actuel
-Jouable. Phases 1, 3, 6.1 à 6.4 faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** (lancer `npm run build`). Pour GitHub Pages, vider le cache.
+Jouable. Phases 1, 3, 6.1 à 6.4 faites, non testées ; `dist/ninja-mugen.html` **pas régénéré** (lancer `npm install && npm run build`). Pour GitHub Pages, vider le cache (CSS / JS en `?v=7`).
 
 ## Prochaines étapes
 - Lancer `npm test` ; en cas d'échec, envoyer la sortie. Les tests les plus fragiles (timings) : `test/combos.mjs` et `test/ai_all.mjs`.
