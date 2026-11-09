@@ -11,12 +11,12 @@ export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', '
 import { touch, initTouch } from './touch.js';
 const down = new Set();
 const menuQ = [];
-const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back', KeyQ: 'pgl', KeyE: 'pgr', PageUp: 'pgl', PageDown: 'pgr' };
+const MENU_KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right', Enter: 'ok', Space: 'ok', KeyF: 'ok', Escape: 'pause', Backspace: 'back', KeyG: 'back', KeyQ: 'pgl', KeyE: 'pgr', PageUp: 'pgl', PageDown: 'pgr', Tab: 'alt' };
 let padPrev = [];
 
 export function initInput() {
   addEventListener('keydown', (e) => {
-    if (/Arrow|Space/.test(e.code)) e.preventDefault();
+    if (/Arrow|Space|Tab/.test(e.code)) e.preventDefault();
     if (!e.repeat) { down.add(e.code); const m = MENU_KEYS[e.code]; if (m) menuQ.push(m); if (e.code === 'KeyP') menuQ.push('pause'); }
     else { const m = MENU_KEYS[e.code]; if (m && /up|down|left|right/.test(m)) menuQ.push(m); }
   });
