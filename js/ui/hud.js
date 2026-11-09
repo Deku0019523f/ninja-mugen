@@ -1,5 +1,6 @@
 // ============================================================
-//  HUD (DOM) : barres de vie angulaires, chakra, chrono ∞, combos, bannières, cut-in super, soutiens R1 / L1
+//  HUD (DOM) : barres de vie angulaires, chakra, jauge de garde, charges de substitution, chrono ∞, combos, bannières,
+//  cut-in super, soutiens R1 / L1
 // ============================================================
 import { ARCH, ROSTER } from '../data/roster.js';
 import { SUPERS } from '../game/moves.js';
@@ -20,10 +21,15 @@ export class Hud {
       const bars = el('div', 'hud-bars');
       const hp = el('div', 'bar hp'); hp.innerHTML = '<div class="ghost"></div><div class="fill"></div><div class="ticks"></div>';
       const chi = el('div', 'bar chi'); chi.innerHTML = '<div class="fill"></div><div class="lab">SUPER</div>';
+      // jauge de garde (orange → rouge) et charges de substitution (bûches)
+      const gd = el('div', 'hud-guard'); gd.style.cssText = 'height:4px;margin-top:2px;background:#0d122c99;border:1px solid #ffffff22;overflow:hidden';
+      const gdf = el('i'); gdf.style.cssText = 'display:block;height:100%;width:0;background:#ffb02e'; gd.appendChild(gdf);
+      const pips = el('div', 'hud-pips'); pips.style.cssText = 'display:flex;gap:3px;margin-top:3px';
+      const pipEls = [0, 1, 2].map(() => { const p = el('i'); p.style.cssText = 'width:12px;height:6px;border-radius:2px;background:#a87b4a;border:1px solid #ffffff44'; pips.appendChild(p); return p; });
       const names = el('div', 'names', fs.map((f) => `<span>${f.char.name.toUpperCase()}</span>`).join(''));
       const sub = el('div', 'subs'); const subEls = fs.length > 1 ? fs.map(() => { const s = el('div', 'sub'); s.innerHTML = '<div class="fill"></div>'; sub.appendChild(s); return s; }) : [];
       const wins = el('div', 'wins', '0');
-      bars.append(hp, chi, names, sub);
+      bars.append(hp, chi, gd, pips, names, sub);
       // soutiens (R1 / L1) : portrait, délai de rappel, état
       const leader = fs[0], supEls = [];
       if (leader.sup && leader.sup.length) {
@@ -38,7 +44,7 @@ export class Hud {
         bars.appendChild(row);
       }
       box.append(pc, bars, wins); top.appendChild(box);
-      this.team[t] = { box, hp: hp.querySelector('.fill'), ghost: hp.querySelector('.ghost'), chi: chi.querySelector('.fill'), chiBar: chi, wins, subEls, supEls, leader, ghostV: 1, fs };
+      this.team[t] = { box, hp: hp.querySelector('.fill'), ghost: hp.querySelector('.ghost'), chi: chi.querySelector('.fill'), chiBar: chi, wins, subEls, supEls, leader, gdf, pipEls, ghostV: 1, fs };
       if (fs.length > 1) box.classList.add('duo');
     }
     this.timer = el('div', 'hud-timer', '∞'); top.appendChild(this.timer);
@@ -47,7 +53,7 @@ export class Hud {
     this.cutEl = el('div', 'hud-cut'); this.root.appendChild(this.cutEl);
     this.flashEl = el('div', 'hud-flash'); this.root.appendChild(this.flashEl);
     this.hint = el('div', 'hud-hint', 'P : pause'); this.root.appendChild(this.hint);
-    this.combos = el('div', 'hud-combos', '<b>COMBOS</b><br>Poing · Poing · Poing = enchaînement + lancer<br>Poing · Poing · <b>Pied</b> = finisseur<br><b>Poing + Pied</b> ensemble = Frappe lourde (brise la garde)<br>Après un coup : <b>Spécial</b> / <b>Technique</b> / <b>SUPER</b><br>↓+Poing (uppercut) puis sauter + Poing/Pied = combo aérien'); this.root.appendChild(this.combos);
+    this.combos = el('div', 'hud-combos', '<b>COMMANDES</b><br>○ répété = combo · ↑+○ lanceur · ↓+○ balayage · ←/→+○ pied<br>□ shuriken · △ maintenu = charger le chakra<br>△+○ ninjutsu · △ △ ○ ultime · △+✕ Chakra Dash · △+□ Chakra Shuriken<br>R2 garde (tap = parade) · R2+○ projection · L2 substitution · ✕ ✕ double saut<br>R1 / L1 soutiens'); this.root.appendChild(this.combos);
     this.dmg = el('div', 'hud-dmg'); this.root.appendChild(this.dmg);
     this.built = true; this.bm = match;
   }
@@ -57,10 +63,10 @@ export class Hud {
   event(e) {
     if (e.t === 'super') {
       const a = ARCH[e.f.char.arch], s = SUPERS[a.sup];
-      this.cutEl.innerHTML = `<div class="cut-name">${e.f.char.name.toUpperCase()}</div><div class="cut-tech" style="color:${a.c1}">${e.f.char.supName || a.supName}</div>`;
+      this.cutEl.innerHTML = `<div class="cut-name">${e.f.char.name.toUpperCase()}</div><div class="cut-tech" style="color:${a.c1}">${a.supName}</div>`;
       this.cutEl.style.setProperty('--c', a.c1); this.cutEl.classList.remove('go'); void this.cutEl.offsetWidth; this.cutEl.classList.add('go'); void s;
     }
-    if (e.t === 'ko' || e.t === 'nova') { this.flashEl.classList.remove('go'); void this.flashEl.offsetWidth; this.flashEl.classList.add('go'); }
+    if (e.t === 'ko' || e.t === 'nova' || e.t === 'break') { this.flashEl.classList.remove('go'); void this.flashEl.offsetWidth; this.flashEl.classList.add('go'); }
   }
 
   update(match) {
@@ -73,8 +79,10 @@ export class Hud {
       T.hp.style.width = (p * 100) + '%';
       T.ghostV = T.ghostV > p ? Math.max(p, T.ghostV - 0.006) : p; T.ghost.style.width = (T.ghostV * 100) + '%';
       T.box.classList.toggle('low', p < 0.25 && p > 0);
-      const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => match.ctrl[f.slot].k === 'h') || lead;
+      const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => ['h', 'net'].includes(match.ctrl[f.slot].k)) || lead;
       const chi = hum.chi; T.chi.style.width = chi + '%'; T.chiBar.classList.toggle('ready', chi >= 50);
+      T.gdf.style.width = Math.min(100, hum.guard) + '%'; T.gdf.style.background = hum.guard > 70 ? '#ff4a3a' : '#ffb02e';
+      T.pipEls.forEach((pp, i) => { pp.style.opacity = i < hum.subCharges ? 1 : 0.2; });
       T.wins.textContent = match.wins[t];
       T.subEls.forEach((s, i) => { s.firstChild.style.width = Math.max(0, T.fs[i].hp / T.fs[i].maxHp * 100) + '%'; s.classList.toggle('dead', T.fs[i].hp <= 0); });
       T.supEls.forEach((s, i) => {

@@ -19,7 +19,8 @@ export class Match {
   // cfg : { mode, fmt, vs, diff, timer, need, p1:[ids], p2:[ids], stage, carry?, sup?, sup1?:[ids], sup2?:[ids] }
   constructor(cfg, view, hud, onEnd) {
     this.cfg = cfg; this.view = view; this.hud = hud; this.onEnd = onEnd;
-    this.world = new World((Math.random() * 1e9) | 0);
+    this.world = new World(cfg.seed != null ? cfg.seed : (Math.random() * 1e9) | 0);
+    this.net = cfg.net || null; this.readLocal = cfg.readLocal || (() => readPlayer(0)); this.nf = 0; this.used = null; this.stalled = 0;   // multijoueur : session lockstep, n° de la prochaine frame de combat
     this.ctrl = []; this.wins = [0, 0]; this.round = 0; this.acc = 0; this.finished = false; this.paused = false;
     cfg.p1.forEach((id, i) => this.addFighter(id, 0, i, cfg.p1.length));
     cfg.p2.forEach((id, i) => this.addFighter(id, 1, i, cfg.p2.length));
@@ -35,7 +36,8 @@ export class Match {
     const f = this.world.add(new Fighter(ROSTER[id], team));
     const c = this.cfg;
     let ctl;
-    if (c.mode === 'training') ctl = team === 0 ? { k: 'h', p: 0, chord: new Chord() } : { k: 'dummy' };
+    if (c.vs === 'net') ctl = { k: 'net', p: team, chord: new Chord() };      // multijoueur : entrées des deux joueurs échangées par le réseau
+    else if (c.mode === 'training') ctl = team === 0 ? { k: 'h', p: 0, chord: new Chord() } : { k: 'dummy' };
     else if (team === 0 && idx === 0) ctl = { k: 'h', p: 0, chord: new Chord() };
     else if (team === 1 && idx === 0 && c.vs === 'p2') ctl = { k: 'h', p: 1, chord: new Chord() };
     else ctl = { k: 'ai', ai: new AI(team === 0 ? Math.max(2, c.diff) : c.diff, pickPersonality()) };
@@ -67,17 +69,25 @@ export class Match {
   }
 
   inputs() {
-    return this.world.fighters.map((f, i) => {
+    const net = this.net, live = !!net && this.phase === 'fight';
+    if (live) net.capture(this.nf + net.delay, this.readLocal());     // ma touche d'aujourd'hui s'applique dans `delay` frames
+    const out = this.world.fighters.map((f, i) => {
       const c = this.ctrl[i];
       if (this.phase !== 'fight' || !c) return NOIN;
+      if (c.k === 'net') return c.chord.map(net.get(c.p, this.nf));
       if (c.k === 'h') return c.chord.map(readPlayer(c.p));   // boutons physiques → actions du moteur (combinaisons △…)
       if (c.k === 'ai') return c.ai.think(this.world, f);
       if (c.k === 'sup') return c.ai.think(this.world, f);
       return NOIN;
     });
+    if (live) { net.consume(this.nf); this.used = this.nf++; }
+    return out;
   }
 
   step() {
+    // multijoueur : on n'avance que si les entrées des deux joueurs pour cette frame sont arrivées (sinon on attend)
+    if (this.net && this.phase === 'fight' && !this.net.ready(this.nf)) { this.stalled++; return; }
+    this.stalled = 0;
     const w = this.world, t = ++this.pt;
     if (this.phase === 'intro') {
       if (t === 12) { this.hud.banner(this.cfg.mode === 'training' ? 'ENTRAÎNEMENT' : `MANCHE ${this.round}`, 80); sfx.round(); }
@@ -102,6 +112,7 @@ export class Match {
     const inp = this.inputs();
     if (this.phase === 'fight') callSupports(w, inp);
     const ran = w.update(inp);
+    if (this.used != null) { this.net.afterFrame(this.used, w); this.used = null; }
     if (ran) tickSupports(w);
     for (const e of w.events) { playEvent(e); this.view.handle(e); this.hud.event(e); }
     w.events.length = 0;
