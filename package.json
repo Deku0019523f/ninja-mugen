@@ -8,6 +8,12 @@
     "test": "node test/sim.mjs && node test/phase3.mjs && node test/support.mjs && node test/chords.mjs && node test/chakra.mjs && node test/defense.mjs",
     "start": "npx --yes serve ."
   },
-  "dependencies": { "three": "^0.170.0" },
-  "devDependencies": { "esbuild": "^0.24.0" }
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "@fontsource/rajdhani": "^5.1.0",
+    "@fontsource/inter": "^5.1.0"
+  }
 }

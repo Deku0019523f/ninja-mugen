@@ -21,7 +21,7 @@
 .t1 .bar.chi .lab{left:auto;right:5px}
 .bar.chi.ready{box-shadow:0 0 6px var(--cy)}.bar.chi.ready .fill{background:linear-gradient(#fff,#ffe060 40%,#ff9a20);animation:blink .5s steps(2) infinite}
 .bar.chi.ready .lab{opacity:1;color:#000}
-.names{font-size:12px;font-weight:bold;letter-spacing:.5px;margin-top:3px;text-shadow:1px 1px 0 #000,0 0 4px #000;color:#cfe4ff;line-height:13px}
+.names{font-size:15px;font-weight:700;letter-spacing:1px;margin-top:3px;text-shadow:1px 1px 0 #000,0 0 4px #000;color:#cfe4ff;line-height:13px}
 .names span{display:block}
 .t1 .names{text-align:right}
 .subs{display:flex;gap:3px;margin-top:2px}.sub{flex:1;height:3px;background:#222}.sub .fill{height:100%;background:#7f7;display:block}.sub.dead{opacity:.3}
