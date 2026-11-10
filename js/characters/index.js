@@ -4,7 +4,7 @@ import kaitoErmite from './kaito-ermite/kaito-ermite.js';
 import kaitoFurie from './kaito-furie/kaito-furie.js';
 import kaitoLegende from './kaito-legende/kaito-legende.js';
 import kaitoDernierCombat from './kaito-dernier-combat/kaito-dernier-combat.js';
-import yoruChaineCramoisie from './yoru-chaine-cramoisie/yoru-chaine-cramoisie.js';
+import vikirLeMaudit from './vikir-le-maudit/vikir-le-maudit.js';
 import renLeVengeur from './ren-le-vengeur/ren-le-vengeur.js';
 import renIlEcarlate from './ren-il-ecarlate/ren-il-ecarlate.js';
 import renAngeNoir from './ren-ange-noir/ren-ange-noir.js';
@@ -56,7 +56,6 @@ import kagamiMiroirBrise from './kagami-miroir-brise/kagami-miroir-brise.js';
 import bakutoRoiDuChaos from './bakuto-roi-du-chaos/bakuto-roi-du-chaos.js';
 import okamiAlpha from './okami-alpha/okami-alpha.js';
 import mugenUltimeMaitre from './mugen-ultime-maitre/mugen-ultime-maitre.js';
-
 export const CHARACTERS = [
   kaitoApprenti, kaitoErmite, kaitoFurie, kaitoLegende, kaitoDernierCombat,
   renLeVengeur, renIlEcarlate, renAngeNoir, hanaPoingDAcier, hanaGuerisseuse,
@@ -69,5 +68,5 @@ export const CHARACTERS = [
   taroGeantGentil, noaEspritLibre, umeFleurDeCerisier, oboroVoileDeNuit, ginjiroLeFaucheur,
   ranmaruExplosionPure, ikkiRoiDesFlammes, wakabaJeunePousse, yamiSeigneurDesTenebres, hikariDeesseLumineuse,
   genVieuxMaitre, soraPiloteDuCiel, kagamiMiroirBrise, bakutoRoiDuChaos, okamiAlpha, mugenUltimeMaitre,
-  yoruChaineCramoisie,   // ajouté en dernier : le boss d'arcade reste l'identifiant 55
+  vikirLeMaudit,   // ajouté en dernier : le boss d'arcade reste l'identifiant 55
 ];
