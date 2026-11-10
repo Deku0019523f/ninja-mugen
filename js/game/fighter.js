@@ -62,6 +62,7 @@ export class Fighter {
   setBuff(kind, frames) {
     this.endBuff(); this.buff = kind; this.buffT = frames;
     if (kind === 'giant') { this.scale = 1.7; this.dmgMul = 1.4; this.spdMul = this.char.spd * 0.85; this.defMul = 1.4; }
+    else if (kind === 'awaken') { this.dmgMul = 1.5; this.spdMul = this.char.spd * 1.3; this.defMul = 1.25; }
     else { this.dmgMul = 1.35; this.spdMul = this.char.spd * 1.25; this.defMul = 1.1; }
     this.w.event({ t: 'buff', f: this });
   }
@@ -93,7 +94,7 @@ export class Fighter {
     // substitution (L2) pour s'échapper d'un combo : étourdi, bloqué ou projeté
     if (this.buf.sub > 0 && this.subCharges > 0 && this.hp > 0 && !this.dying && (this.state === 'hit' || this.state === 'launch' || this.state === 'blockstun')) this.substitute(w, w.nearestEnemy(this));
     if (this.buff) {
-      if (this.buff === 'power' && this.hp > 0) this.hp = Math.min(this.maxHp, this.hp + 0.12);
+      if ((this.buff === 'power' || this.buff === 'awaken') && this.hp > 0) this.hp = Math.min(this.maxHp, this.hp + 0.12);
       if (--this.buffT <= 0) this.endBuff();
     }
     this.chi = this.infiniteChi ? 100 : Math.min(100, this.chi + 0.035);
@@ -236,7 +237,7 @@ export class Fighter {
     const s = this.scale;
     let x0, x1;
     if (m.aoe) { x0 = this.x - m.rx * s; x1 = this.x + m.rx * s; }
-    else { const R = m.super || m.special || m.beam ? 1 : (this.char.reach || 1); const a = this.x + this.face * m.ox * s, b = this.x + this.face * m.rx * s * R; x0 = Math.min(a, b); x1 = Math.max(a, b); }
+    else { const R = m.super || m.special || m.beam ? 1 : (this.char.reach || 1) * (this.buff === 'awaken' ? 1.3 : 1); const a = this.x + this.face * m.ox * s, b = this.x + this.face * m.rx * s * R; x0 = Math.min(a, b); x1 = Math.max(a, b); }
     const y0 = this.y + m.y0 * s, y1 = this.y + m.y1 * s;
     let d = m;
     if (m.every && m.last && k >= Math.floor((m.ac - 1) / m.every) * m.every) d = { ...m, ...m.last };
