@@ -201,7 +201,7 @@ export class Fighter {
       if (m.hop) this.vy = m.hop;
       if (m.adv && this.y <= 0) this.vx += this.face * m.adv;
       if (m.onFire) m.onFire(this, w);
-      if (m.snd) w.event({ t: 'swing', x: this.x, snd: m.snd });
+      if (m.snd) w.event({ t: 'swing', x: this.x, snd: m.snd, f: this, m });
     }
     const k = t - m.su;
     if (k >= 0 && k < m.ac) {
@@ -236,7 +236,7 @@ export class Fighter {
     const s = this.scale;
     let x0, x1;
     if (m.aoe) { x0 = this.x - m.rx * s; x1 = this.x + m.rx * s; }
-    else { const a = this.x + this.face * m.ox * s, b = this.x + this.face * m.rx * s; x0 = Math.min(a, b); x1 = Math.max(a, b); }
+    else { const R = m.super || m.special || m.beam ? 1 : (this.char.reach || 1); const a = this.x + this.face * m.ox * s, b = this.x + this.face * m.rx * s * R; x0 = Math.min(a, b); x1 = Math.max(a, b); }
     const y0 = this.y + m.y0 * s, y1 = this.y + m.y1 * s;
     let d = m;
     if (m.every && m.last && k >= Math.floor((m.ac - 1) / m.every) * m.every) d = { ...m, ...m.last };
@@ -317,7 +317,7 @@ export class Fighter {
     let launch = d.launch;
     if (this.state === 'launch') { this.juggle++; if (this.juggle > 3) launch = { vx: (launch && launch.vx) || 2, vy: -2 }; }
     const big = !!launch || dmg > 55;
-    w.event({ t: 'hit', x: this.x, y: this.y + 40 * this.scale, big, snd: d.snd, dir });
+    w.event({ t: 'hit', x: this.x, y: this.y + 40 * this.scale, big, snd: d.snd, dir, att });
     w.hitstop = Math.max(w.hitstop, big ? 7 : 4);
     if (this.hp <= 0) {
       this.hp = 0; this.dying = true; this.move = null; this.fade = false;

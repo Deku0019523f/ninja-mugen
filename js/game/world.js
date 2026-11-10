@@ -76,7 +76,7 @@ export class World {
       p.vy -= p.grav; p.x += p.vx; p.y += p.vy; p.life--;
       for (const [k, v] of p.cd) p.cd.set(k, v - 1);
       const box = { x0: p.x - p.w / 2, x1: p.x + p.w / 2, y0: p.y - p.h / 2, y1: p.y + p.h / 2 };
-      for (const e of this.enemiesOf(p.owner)) {
+      for (const e of (p.fxOnly ? [] : this.enemiesOf(p.owner))) {
         if ((p.cd.get(e.slot) || 0) > 0) continue;
         if (!overlap(box, e.hurt())) continue;
         const r = e.receive(p.owner, p, p.x - Math.sign(p.vx || 1) * 6, this);
@@ -94,7 +94,7 @@ export class World {
     const ps = this.projs;
     for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) {
       const a = ps[i], b = ps[j];
-      if (a.dead || b.dead || a.team === b.team || a.rain || b.rain || a.type === 'pillar' || b.type === 'pillar' || a.type === 'shock' || b.type === 'shock') continue;
+      if (a.dead || b.dead || a.team === b.team || a.rain || b.rain || a.fxOnly || b.fxOnly || a.type === 'pillar' || b.type === 'pillar' || a.type === 'shock' || b.type === 'shock') continue;
       if (Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2) {
         const lo = a.dmg <= b.dmg ? a : b, hi = lo === a ? b : a;
         lo.dead = true; hi.dmg -= lo.dmg * 0.5; if (hi.dmg < 12 || Math.abs(a.dmg - b.dmg) < 8) hi.dead = true;
@@ -108,7 +108,7 @@ export class World {
   explode(p) {
     if (p.exploded) return; p.exploded = true;
     this.spawnProj(p.owner, { type: 'shock', x: p.x, y: Math.max(40, p.y), w: 120, h: 120, vx: 0, vy: 0, dmg: 55, life: 5, pierce: 99, rehit: 999, launch: { vx: 4, vy: 6 }, stun: 20, gain: 2 });
-    this.event({ t: 'boom', x: p.x, y: Math.max(30, p.y) });
+    this.event({ t: 'boom', x: p.x, y: Math.max(30, p.y), f: p.owner });
   }
 
   separate() {
