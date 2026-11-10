@@ -10,6 +10,7 @@ import { SPECIAL, SPECIAL_UP, SPECIAL_DOWN, fireSpecial } from '../techniques/sp
 import { SHURIKEN, CHAKRA_SHURIKEN, CHAKRA_DASH } from '../techniques/chakra.js';
 import { MOVE2 } from '../techniques/index.js';
 import { SUPERS } from '../supers/index.js';
+import { ultOf } from '../supers/ult/index.js';
 
 // Boutons mémorisés (buffer de 8 frames) : sq = Shuriken (□), cdash = Chakra Dash, cshuriken = Chakra Shuriken,
 // sub = substitution (L2), throw = projection (R2 + ○), high / low / side = ○ avec ↑ / ↓ / ←→ (chaînes directionnelles)
@@ -26,6 +27,6 @@ export function getMove(f, key) {
   if (key === 'sidefin') return MOVES[SIDE_FINISH[f.char.arch] || 'kick'];   // finisseur de la chaîne latérale : selon le personnage
   const a = ARCH[f.char.arch];
   if (key === 'move2') return MOVE2[a.m2];
-  if (key === 'super') return SUPERS[a.sup];
+  if (key === 'super') return ultOf(f.char) || SUPERS[a.sup];
   return MOVES[key];
 }
