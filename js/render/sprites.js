@@ -197,9 +197,34 @@ function drawHead(g, ch, cx, cy, tilt, f, clock = 0) {
   g.restore();
 }
 
+// Combattant dessiné à partir d'une image (planche de l'auteur) : corps en image, bras avant + arme dessinés par-dessus.
+const IMGS = new Map();
+const imgOf = (sp) => { let i = IMGS.get(sp.src); if (!i) { i = new Image(); i.src = sp.src; IMGS.set(sp.src, i); } return i; };
+function drawSpriteFighter(g, ch, A, f, clock) {
+  const sp = ch.sprite, img = imgOf(sp), awake = !!(f && f.buff === 'awaken');
+  const cx = 64 + A.hx * 0.6, hy = FOOT - 24 + A.hy;
+  if (img.complete && img.naturalWidth) {
+    g.save(); g.translate(cx, FOOT); g.rotate((A.lean + A.tilt * 0.5) * D2R * 0.8);
+    if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
+    g.imageSmoothingEnabled = false; g.drawImage(img, -sp.w / 2 + 3, -sp.h + 2 + Math.min(0, A.hy * 0.5), sp.w, sp.h);
+    g.restore();
+  }
+  const lx = Math.sin(A.lean * D2R), ly = Math.cos(A.lean * D2R);
+  const sx = cx + lx * 21 + 3, sy = hy - ly * 21 - 2;
+  const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 10, 10, 5.4, hexShade(ch.top, -0.1));
+  const wch = awake ? { ...ch, acc: '#ff1030' } : ch;
+  if (ch.weapon) drawWeapon(g, ch.weapon, ra[0], ra[1], A.ra[0] + A.ra[1], wch, clock);
+  dot(g, ra[0], ra[1], 2.8, '#f3e0cf');
+}
+
 export function drawFighter(g, ch, pose, opt = {}) {
   const { rot = 0, off = 0, f = null, clock = 0 } = opt;
   g.clearRect(0, 0, SPR, SPR);
+  if (ch.sprite) {
+    g.save();
+    if (rot) { g.translate(64, FOOT - 22); g.rotate(rot * D2R); g.translate(-64, -(FOOT - 22) + off); }
+    drawSpriteFighter(g, ch, pose, f, clock); g.restore(); return;
+  }
   g.save();
   if (rot) { g.translate(64, FOOT - 22); g.rotate(rot * D2R); g.translate(-64, -(FOOT - 22) + off); }
   const A = pose, top = ch.top, topD = hexShade(top, -0.3), pants = hexShade(ch.acc, -0.45), skin = ch.skin;
@@ -253,8 +278,13 @@ export function drawFighter(g, ch, pose, opt = {}) {
 export function drawPortrait(g, ch, size = 64) {
   const c = document.createElement('canvas'); c.width = c.height = SPR;
   const gg = c.getContext('2d');
-  drawFighter(gg, ch, KEY.intro, { clock: 0 });
-  g.imageSmoothingEnabled = false;
-  g.clearRect(0, 0, size, size);
-  g.drawImage(c, 28, 20, 74, 74, 0, 0, size, size);
+  const paint = () => {
+    drawFighter(gg, ch, KEY.intro, { clock: 0 });
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, size, size);
+    if (ch.sprite) g.drawImage(c, 32, 8, 46, 46, 0, 0, size, size);
+    else g.drawImage(c, 28, 20, 74, 74, 0, 0, size, size);
+  };
+  paint();
+  if (ch.sprite) { const i = imgOf(ch.sprite); if (!i.complete) i.addEventListener('load', paint, { once: true }); }
 }
