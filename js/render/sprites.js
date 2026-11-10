@@ -3,6 +3,7 @@
 //  Convention : angle 0 = vers le bas, + = vers l'avant (le personnage regarde à droite)
 // ============================================================
 import { hexShade } from '../data/roster.js';
+import { drawWeapon, drawBackGear, drawTorsoGear, drawArmGear, drawHeadGear } from './gear.js';
 
 export const SPR = 128, FOOT = 118;
 const D2R = Math.PI / 180;
@@ -167,9 +168,10 @@ function drawHair(g, ch, cx, cy, tiltDeg, front) {
   g.restore();
 }
 
-function drawHead(g, ch, cx, cy, tilt, f) {
+function drawHead(g, ch, cx, cy, tilt, f, clock = 0) {
   drawHair(g, ch, cx, cy, tilt, false);
   g.save(); g.translate(cx, cy); g.rotate(tilt * D2R);
+  drawHeadGear(g, ch, 'pre', clock);
   dot(g, 0, 0, 9.6, ch.skin);
   const hurt = f && (f.state === 'hit' || f.state === 'launch' || f.state === 'down' || f.state === 'ko');
   if (!ch.ex.includes('mask') || ch.arch === 'shadow' || true) {
@@ -189,6 +191,7 @@ function drawHead(g, ch, cx, cy, tilt, f) {
   if (ex.includes('eyepatch')) { g.fillStyle = '#121218'; g.fillRect(6.2, -3.6, 4, 4.2); g.strokeStyle = '#121218'; g.lineWidth = 1; g.beginPath(); g.moveTo(-9, -6); g.lineTo(6.2, -3.4); g.stroke(); }
   if (ex.includes('horn')) { poly(g, [[-2, -9], [-5, -20], [3, -10]], '#f4ecd8'); }
   drawHair(g, ch, 0, 0, 0, true);
+  drawHeadGear(g, ch, 'post', clock);
   if (ex.includes('band')) { g.fillStyle = ch.acc; g.fillRect(-10, -6.4, 21, 3.6); g.fillStyle = '#d8d8e8'; g.fillRect(1, -6.2, 6, 3.2); g.fillStyle = '#555'; g.fillRect(2.4, -5.6, 3.2, 2); g.strokeStyle = OUT; g.lineWidth = 0.8; g.strokeRect(-10, -6.4, 21, 3.6); poly(g, [[-10, -5], [-17, -2], [-14, -7]], ch.acc); }
   if (ex.includes('hat')) { poly(g, [[-15, -7], [-6, -15], [6, -15], [15, -7], [6, -9], [-6, -9]], '#e0c070'); }
   g.restore();
@@ -212,10 +215,13 @@ export function drawFighter(g, ch, pose, opt = {}) {
   if (ch.ex.includes('cape')) poly(g, [[sx - 2, sy], [sx - 18 - wav, sy + 16], [sx - 22 - wav * 1.5, sy + 34], [hx - 8, hy + 8], [sx + 3, sy + 8]], hexShade(ch.acc, -0.1));
   if (ch.ex.includes('scarf')) poly(g, [[sx - 2, sy - 2], [sx - 20 - wav * 2, sy + 4], [sx - 24 - wav * 2, sy + 9], [sx - 4, sy + 4]], ch.acc);
   if (ch.ex.includes('sword')) { g.strokeStyle = OUT; g.lineWidth = 4; g.beginPath(); g.moveTo(hx - 6, hy + 6); g.lineTo(sx + 10, sy - 18); g.stroke(); g.strokeStyle = '#dfe6ff'; g.lineWidth = 2; g.stroke(); }
+  drawBackGear(g, ch, { sx, sy, hx, hy, lx, ly, clock });
   drawHair(g, ch, hdx, hdy, A.lean + A.tilt, false);
 
   // bras arrière + jambe arrière
-  const la = limb(g, sx, sy + 2, A.la[0], A.la[0] + A.la[1], 10, 10, 5.4, topD); dot(g, la[0], la[1], 2.8, skin);
+  const la = limb(g, sx, sy + 2, A.la[0], A.la[0] + A.la[1], 10, 10, 5.4, topD);
+  if (ch.weapon2) drawWeapon(g, ch.weapon2, la[0], la[1], A.la[0] + A.la[1], ch, clock, true);
+  dot(g, la[0], la[1], 2.8, skin); drawArmGear(g, ch, { la }, false);
   const ll = limb(g, hx, hy, A.ll[0], A.ll[0] - A.ll[1], 12, 12, 6.4, hexShade(pants, -0.15)); dot(g, ll[0], ll[1], 3.4, '#2a2230');
 
   // torse
@@ -227,16 +233,19 @@ export function drawFighter(g, ch, pose, opt = {}) {
   if (ch.ex.includes('sash')) { g.strokeStyle = OUT; g.lineWidth = 5; g.beginPath(); g.moveTo(sx - 5 * ly, sy - 5 * lx); g.lineTo(hx + 6 * ly, hy + 6 * lx); g.stroke(); g.strokeStyle = ch.acc; g.lineWidth = 3; g.stroke(); }
   if (ch.ex.includes('pauldron')) { dot(g, sx + 1, sy + 3, 6.4, hexShade(ch.acc, -0.05)); g.fillStyle = hexShade(ch.acc, 0.35); g.beginPath(); g.arc(sx - 0.5, sy + 1.5, 2.2, 0, 7); g.fill(); }
 
+  drawTorsoGear(g, ch, { sx, sy, hx, hy, lx, ly, clock });
+
   // jambe avant
   const rl = limb(g, hx, hy, A.rl[0], A.rl[0] - A.rl[1], 12, 12, 6.8, pants); dot(g, rl[0] + 1.5, rl[1], 3.8, '#2a2230');
 
   // tête
-  drawHead(g, ch, hdx, hdy, A.lean + A.tilt, f);
+  drawHead(g, ch, hdx, hdy, A.lean + A.tilt, f, clock);
 
   // bras avant (+ bâton)
   const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 10, 10, 5.8, top);
+  drawArmGear(g, ch, { ra }, true);
+  if (ch.weapon) drawWeapon(g, ch.weapon, ra[0], ra[1], A.ra[0] + A.ra[1], ch, clock);
   dot(g, ra[0], ra[1], 3, skin);
-  if (ch.ex.includes('staff')) { g.strokeStyle = OUT; g.lineWidth = 4; g.beginPath(); g.moveTo(ra[0] - 4, ra[1] + 34); g.lineTo(ra[0] + 4, ra[1] - 34); g.stroke(); g.strokeStyle = '#b8864a'; g.lineWidth = 2; g.stroke(); }
   g.restore();
 }
 
