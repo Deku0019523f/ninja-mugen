@@ -1,2 +1,2 @@
 // Finisseur latéral « Crochet repoussant » (brawler, fury, earth, bone, blade, sand) : repûsse l'adversaire loin ; les autres archétypes finissent par le Coup de pied
-export default { id: 'hook', info: { name: 'Crochet repoussant (finisseur latéral)', input: '← / → + ○ × 3' }, pose: 'punch3', su: 7, ac: 4, re: 17, dmg: 58, ox: 6, rx: 60, y0: 22, y1: 66, launch: { vx: 6.5, vy: 2.2 }, adv: 3, gain: 6, snd: 'kick' };
+export default { id: 'hook', info: { name: 'Crochet repoussant (finisseur latéral)', input: '← / → + ○ × 3' }, pose: 'hook', su: 7, ac: 4, re: 17, dmg: 58, ox: 6, rx: 60, y0: 22, y1: 66, launch: { vx: 6.5, vy: 2.2 }, adv: 3, gain: 6, snd: 'kick' };
