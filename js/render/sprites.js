@@ -204,13 +204,26 @@ function drawSpriteFighter(g, ch, A, f, clock) {
   const sp = ch.sprite, img = imgOf(sp), awake = !!(f && f.buff === 'awaken');
   const cx = 64 + A.hx * 0.6, hy = FOOT - 24 + A.hy;
   if (img.complete && img.naturalWidth) {
-    g.save(); g.translate(cx, FOOT); g.rotate((A.lean + A.tilt * 0.5) * D2R * 0.8);
+    // le sprite est coupé à la hanche : buste (penche, respire) + deux copies des jambes qui pivotent comme les jambes de la pose
+    const W = sp.w, H = sp.h, cut = Math.round(H * 0.6), top = -H + 2, hipY = top + cut, x0 = -W / 2 + 3;
+    const dy = Math.max(0, (A.hy - 3) * 0.8), idle = Math.sin(clock * 0.1) * 0.6;
+    const L = H - cut, sq = Math.max(0.55, 1 - dy / L);
+    g.imageSmoothingEnabled = false;
+    g.save(); g.translate(cx, FOOT);
+    const leg = (a, dark) => {
+      g.save(); g.translate(0, hipY + dy); g.rotate(-a * D2R * 0.9); g.scale(1, sq);
+      if (dark) g.filter = 'brightness(0.6)';
+      g.drawImage(img, 0, cut, W, L, x0, 0, W, L); g.restore();
+    };
+    leg(A.ll[0] + 16, true);
+    leg(A.rl[0] - 22, false);
+    g.save(); g.translate(0, dy + idle); g.translate(0, hipY); g.rotate((A.lean - 6) * D2R * 0.9 + A.tilt * D2R * 0.4); g.translate(0, -hipY);
     if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
-    g.imageSmoothingEnabled = false; g.drawImage(img, -sp.w / 2 + 3, -sp.h + 2 + Math.min(0, A.hy * 0.5), sp.w, sp.h);
+    g.drawImage(img, 0, 0, W, cut, x0, top, W, cut); g.restore();
     g.restore();
   }
   const lx = Math.sin(A.lean * D2R), ly = Math.cos(A.lean * D2R);
-  const sx = cx + lx * 21 + 3, sy = hy - ly * 21 - 2;
+  const sx = cx + lx * 21 + 3, sy = hy - ly * 21 - 2 + Math.max(0, (A.hy - 3) * 0.8) * 0;
   const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 10, 10, 5.4, hexShade(ch.top, -0.1));
   const wch = awake ? { ...ch, acc: '#ff1030' } : ch;
   if (ch.weapon) drawWeapon(g, ch.weapon, ra[0], ra[1], A.ra[0] + A.ra[1], wch, clock);
