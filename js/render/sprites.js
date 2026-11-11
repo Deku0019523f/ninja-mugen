@@ -309,7 +309,7 @@ export function drawPortrait(g, ch, size = 64) {
     g.imageSmoothingEnabled = false;
     g.clearRect(0, 0, size, size);
     if (ch.sprite) g.drawImage(c, 32, 8, 46, 46, 0, 0, size, size);
-    else g.drawImage(c, 28, 20, 74, 74, 0, 0, size, size);
+    else g.drawImage(c, 36, 26, 66, 66, 0, 0, size, size);
   };
   paint();
   if (ch.sprite) { const i = imgOf(ch.sprite); if (!i.complete) i.addEventListener('load', paint, { once: true }); }
