@@ -9,10 +9,11 @@ import { Match } from './game/match.js';
 import { Hud } from './ui/hud.js';
 import { initInput, pollMenu, isTouch } from './input.js';
 import { initAudio, sfx, setMuted, setMusic, setMusicMode } from './audio.js';
-import { G, el } from './screens/ctx.js';
+import { G, el, save } from './screens/ctx.js';
 import { SCREENS } from './screens/index.js';
 import { MODES } from './modes/index.js';
 import { shell } from './ui/shell.js';
+import { prog } from './progress.js';
 
 const $ = (s) => document.querySelector(s);
 const host = $('#view'), ui = $('#ui'), screenEl = $('#screen'), hudEl = $('#hud'), touchEl = $('#touch');
@@ -55,7 +56,8 @@ G.launch = () => {
   const run = G.run;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; screen = 'fight';
   shell.setScreen('fight'); hudEl.style.display = 'block'; backBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if (isTouch()) touchEl.style.display = 'block';
-  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: !run.net && G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2, seed: run.seed, net: run.net ? G.net : null };
+  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: !run.net && G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2, seed: run.seed, net: run.net ? G.net : null, boost: !run.net && run.vs !== 'p2' && run.mode !== 'training' ? run.p1.map((id) => prog.stats(id)) : null };
+  if (!run.net && run.p1 && run.p1.length) { G.S.hero = run.p1[0]; save(); }
   if (match) match.destroy();
   match = new Match(cfg, view, hud, onMatchEnd); hud.built = false;
   setMusicMode('fight'); initAudio(); pauseEl.style.display = 'none';
@@ -64,13 +66,15 @@ G.launch = () => {
 function onMatchEnd(res) {
   const m = match, run = G.run, mode = MODES[run.mode]; match = null; bgWorld = null; hud.built = false; setMusicMode('menu');
   if (run.mode === 'online') { G.net.endMatch(); return go('onlineResult', { win: res.winner === G.net.me, wins: res.wins }); }
+  let gain = null;
+  if (run.vs !== 'p2' && run.mode !== 'training') { gain = prog.reward(res.winner === 0, mode.series && run.fight >= 7); run.gain = run.gain || { c: 0, g: 0 }; run.gain.c += gain.c; run.gain.g += gain.g; }
   if (mode.series) {
     if (res.winner !== 0) return go('result', { done: true, win: false });
     run.fight++; run.score += 1000 + run.fight * 250; if (mode.onWin) mode.onWin(run, res, m);
     if (mode.finished(run)) return go('result', { done: true, win: true });
     return G.nextOpponent();
   }
-  go('result', { done: false, win: res.winner === 0, wins: res.wins });
+  go('result', { done: false, win: res.winner === 0, wins: res.wins, gain });
 }
 
 // ------------------------------------------------------------ pause

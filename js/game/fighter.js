@@ -318,7 +318,8 @@ export class Fighter {
     }
     const armored = this.state === 'atk' && this.move && this.move.super && this.t >= this.move.su;
     const sc = Math.max(0.3, 1 - 0.07 * this.combo);
-    const dmg = d.dmg * sc * att.dmgMul * att.char.pow / this.defMul;
+    const lvm = att.lv ? att.lv.atk * (att.lv.crit > 0 && w.rnd() < att.lv.crit ? 1.6 : 1) : 1;   // niveau du héros : ATK et coup critique
+    const dmg = d.dmg * sc * att.dmgMul * att.char.pow * lvm / this.defMul;
     this.hp -= dmg; this.combo++;
     att.chain = att.chainT > 0 ? att.chain + 1 : 1; att.chainT = 90; att.lastTarget = this;
     att.chi = Math.min(100, att.chi + (d.gain ?? 4)); this.chi = Math.min(100, this.chi + 3);
