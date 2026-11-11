@@ -56,7 +56,7 @@ export class View {
     host.appendChild(this.r.domElement);
     this.scene = new THREE.Scene();
     this.cam = new THREE.OrthographicCamera(-VW / 2, VW / 2, VH / 2, -VH / 2, -50, 50); this.vw = VW;
-    this.camX = 0; this.shake = 0; this.zoom = 1; this.clock = 0;
+    this.camX = 0; this.shake = 0; this.zoom = 1; this.clock = 0; this.punch = 0; this.focus = null; this.focusT = 0; this.amb = 0;
     this.layers = []; this.fs = []; this.pm = new Map(); this.fx = [];
     this.parts = new Particles(this.scene);
     this.smoke = new Particles(this.scene, 320, THREE.NormalBlending); this.smoke.pts.position.z = 5.5;
@@ -91,7 +91,7 @@ export class View {
     add(S.mid, 0, 0, .55, GROUND + 160 - 80 + 12, -8, 2);
     add(S.ground, 0, 0, 0, GROUND - 56, -7, 2);
     // lisière sombre sous le sol
-    this.tint = S.tint; this.rain = !!S.snow; this.embers = !!S.embers;
+    this.tint = S.tint; this.rain = !!S.snow; this.embers = !!S.embers; this.amb = idx;
     this.root.children.forEach((m) => m.material && m.material.color && m.material.color.set(S.tint));
   }
 
@@ -120,6 +120,7 @@ export class View {
     switch (e.t) {
       case 'hit': {
         const [c1, c2] = cf(e.att), big = e.big, x = e.x, y = gy(e.y);
+        if (big) this.punch = Math.max(this.punch, 0.06);
         P.burst(x, y, big ? 22 : 10, '#fff2a0', big ? 7 : 4.5, 22, big ? 13 : 8, 0.22); P.burst(x, y, big ? 12 : 5, c1, 3.5, 22, 10, 0.12);
         for (let i = 0; i < (big ? 8 : 4); i++) { const a = (e.dir > 0 ? 0 : Math.PI) + (Math.random() - .5) * 1.6; P.emit({ x, y, vx: Math.cos(a) * (6 + Math.random() * 6), vy: Math.sin(a) * (6 + Math.random() * 6) * .6, life: 14, size: 5, c: [1, 1, .85], drag: .88, g: .1 }); }
         this.fxSprite(flareTex, big ? 120 : 76, big ? 120 : 76, x, y, c2, big ? 9 : 6, { grow: 3, rot: Math.random() * 3 });
@@ -140,11 +141,11 @@ export class View {
       case 'puff': P.burst(e.x, gy(e.y), 16, e.color, 3, 22, 14, 0); for (let i = 0; i < 4; i++) SM.emit({ x: e.x, y: gy(e.y), vx: (Math.random() - .5) * 2, vy: Math.random(), life: 30, size: 18, grow: .5, c: [.3, .3, .34], drag: .95 }); break;
       case 'cast': { const [c1, c2] = cf(e.f); P.burst(e.x + e.f.face * 26, gy(e.y), 9, c1, 3, 14, 10, 0); this.fxSprite(flareTex, 54, 54, e.x + e.f.face * 28, gy(e.y), c2, 9, { grow: 3 }); break; }
       case 'swing': if (e.f && e.f.char.weapon) this.slash(e.f, e.m); break;
-      case 'ko': this.shake = 9; this.flash = 0.55; break;
+      case 'ko': this.shake = 9; this.flash = 0.55; this.punch = 0.38; this.focus = e.f.x; this.focusT = 90; break;
       case 'buff': { const [c1] = cf(e.f); P.burst(e.f.x, gy(40), 30, c1, 5, 34, 14, -0.05); this.fxSprite(ringTex, 80, 80, e.f.x, gy(40), c1, 24, { grow: 10 }); break; }
-      case 'super': { const [c1, c2] = cf(e.f); this.dark = 34; this.superCol = c1; this.fxSprite(ringTex, 60, 60, e.f.x, gy(40), c2, 30, { grow: 14 }); this.fxSprite(haloTex, 140, 140, e.f.x, gy(44), c1, 34, { grow: 5, op: .8 }); break; }
-      case 'nova': { const [c1, c2] = cf(e.f); const x = e.x, y = gy(e.y); this.fxSprite(ringTex, 100, 100, x, y, c2, 22, { grow: 22 }); this.fxSprite(ringTex, 60, 60, x, y, c1, 28, { grow: 30 }); this.fxSprite(haloTex, 200, 200, x, y, c1, 24, { grow: 14 }); this.fxSprite(flareTex, 170, 170, x, y, c2, 16, { grow: 10 }); P.burst(x, y, 50, c1, 10, 36, 16, 0); P.burst(x, y, 24, c2, 14, 40, 6, 0.2); this.shake = 10; this.flash = .5; break; }
-      case 'awaken': { const [c1, c2] = cf(e.f); this.fxSprite(haloTex, 240, 240, e.f.x, gy(44), c1, 40, { grow: 10, op: .9 }); this.fxSprite(ringTex, 70, 70, e.f.x, gy(40), c2, 34, { grow: 24 }); P.burst(e.f.x, gy(30), 40, c1, 6, 46, 14, -0.04); this.dark = 24; this.superCol = c1; this.shake = 8; break; }
+      case 'super': { this.punch = Math.max(this.punch, 0.2); this.focus = e.f.x; this.focusT = 50; const [c1, c2] = cf(e.f); this.dark = 34; this.superCol = c1; this.fxSprite(ringTex, 60, 60, e.f.x, gy(40), c2, 30, { grow: 14 }); this.fxSprite(haloTex, 140, 140, e.f.x, gy(44), c1, 34, { grow: 5, op: .8 }); break; }
+      case 'nova': { this.punch = Math.max(this.punch, 0.26); this.focus = e.f.x; this.focusT = 40; const [c1, c2] = cf(e.f); const x = e.x, y = gy(e.y); this.fxSprite(ringTex, 100, 100, x, y, c2, 22, { grow: 22 }); this.fxSprite(ringTex, 60, 60, x, y, c1, 28, { grow: 30 }); this.fxSprite(haloTex, 200, 200, x, y, c1, 24, { grow: 14 }); this.fxSprite(flareTex, 170, 170, x, y, c2, 16, { grow: 10 }); P.burst(x, y, 50, c1, 10, 36, 16, 0); P.burst(x, y, 24, c2, 14, 40, 6, 0.2); this.shake = 10; this.flash = .5; break; }
+      case 'awaken': { this.punch = Math.max(this.punch, 0.3); this.focus = e.f.x; this.focusT = 60; const [c1, c2] = cf(e.f); this.fxSprite(haloTex, 240, 240, e.f.x, gy(44), c1, 40, { grow: 10, op: .9 }); this.fxSprite(ringTex, 70, 70, e.f.x, gy(40), c2, 34, { grow: 24 }); P.burst(e.f.x, gy(30), 40, c1, 6, 46, 14, -0.04); this.dark = 24; this.superCol = c1; this.shake = 8; break; }
       case 'team': { const [c1, c2] = cf(e.f); this.fxSprite(ringTex, 90, 90, e.f.x, gy(40), c1, 26, { grow: 22 }); this.fxSprite(flareTex, 150, 150, e.f.x, gy(40), c2, 14, { grow: 8 }); this.dark = 22; this.superCol = c1; break; }
       case 'fxring': this.fxSprite(ringTex, e.s || 60, e.s || 60, e.x, gy(e.y), e.color, e.life || 20, { grow: e.grow || 14, op: .9 }); break;
       case 'fxflash': this.fxSprite(flareTex, e.s || 120, e.s || 120, e.x, gy(e.y), e.color, e.life || 10, { grow: 6 }); this.fxSprite(haloTex, (e.s || 120) * 1.4, (e.s || 120) * 1.4, e.x, gy(e.y), e.color, e.life || 10, { grow: 6, op: .8 }); break;
@@ -153,14 +154,21 @@ export class View {
     }
   }
 
-  // arc de lame : tracé qui accompagne les coups des personnages armés
+  // arc de lame : traé qui accompagne les coups des personnages armés
   slash(f, m) {
+    const R2 = Math.random;
     const [c1, c2] = colsOf(f.char), big = m && (m.super || m.id === 'smash' || m.id === 'punch3' || m.id === 'kick' || m.id === 'sweep' || m.id === 'upper');
     const ang = m && m.id === 'upper' ? 1.1 : m && m.id === 'sweep' ? -0.7 : m && (m.id === 'akick' || m.id === 'apunch') ? -0.4 : (Math.random() - .5) * 0.5;
     const L = (m && m.rx ? Math.min(150, m.rx + 28) : 90) * f.scale * (f.char.reach || 1), x = f.x + f.face * L * 0.5, y = GROUND + f.y + 46 * f.scale;
     const mt = new THREE.Mesh(new THREE.PlaneGeometry(L, big ? 66 : 44), new THREE.MeshBasicMaterial({ map: slashTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: col(c2), opacity: .95 }));
     mt.position.set(x, y, 4.6); mt.scale.x = f.face; mt.rotation.z = ang * f.face; this.root.add(mt);
     this.fx.push({ m: mt, life: big ? 9 : 7, max: big ? 9 : 7, grow: 0, op: .95, rot: 0, slash: true });
+    // seconde couche plus large dans la couleur principale, puis gerbe propre à l'élément du style
+    const m2 = new THREE.Mesh(new THREE.PlaneGeometry(L * 1.25, big ? 96 : 64), new THREE.MeshBasicMaterial({ map: slashTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: col(c1), opacity: .6 }));
+    m2.position.set(x, y, 4.5); m2.scale.x = f.face; m2.rotation.z = ang * f.face; this.root.add(m2);
+    this.fx.push({ m: m2, life: big ? 12 : 9, max: big ? 12 : 9, grow: 0, op: .6, rot: 0, slash: true });
+    const A = f.char.arch, el = ['fire', 'lava', 'sun'].includes(A) ? 'fire' : ['water', 'ice', 'frost'].includes(A) ? 'water' : ['lightning', 'light'].includes(A) ? 'spark' : null;
+    if (el) for (let i = 0; i < (big ? 10 : 5); i++) this.parts.emit({ x: x + f.face * (L * (R2() - .2)), y: y + (R2() - .5) * 40, vx: f.face * (1 + R2() * 3), vy: el === 'fire' ? .8 + R2() * 2 : (R2() - .5) * 3, life: 18 + R2() * 10, size: 5 + R2() * 5, c: el === 'fire' ? [1, .6, .15] : el === 'water' ? [.6, .9, 1] : [1, 1, .6], drag: .93, g: el === 'water' ? .1 : 0 });
     this.parts.burst(x + f.face * L * 0.35, y, 3, c1, 3, 12, 6, 0);
   }
 
@@ -241,9 +249,12 @@ export class View {
     if (alive.length) {
       let mn = 1e9, mx = -1e9; for (const f of alive) { mn = Math.min(mn, f.x); mx = Math.max(mx, f.x); }
       const lim = Math.max(0, world.half + 30 - VW / 2 / this.zoom); this.lim = lim; const tx = Math.max(-lim, Math.min(lim, (mn + mx) / 2));
-      this.camX += (tx - this.camX) * Math.min(1, dt * 7);
+      const fx = this.focusT > 0 && this.focus != null ? Math.max(-lim, Math.min(lim, this.focus)) : tx;
+      this.camX += (fx - this.camX) * Math.min(1, dt * (this.focusT > 0 ? 5 : 7));
       const need = (mx - mn) + 260, tz = Math.max(1, Math.min(1.12, 640 / need));
-      this.zoom += (tz - this.zoom) * Math.min(1, dt * 4);
+      this.zoom += (tz + this.punch - this.zoom) * Math.min(1, dt * 5);
+      if (this.focusT > 0) this.focusT -= dt * 60;
+      this.punch *= Math.pow(0.965, dt * 60);
     }
     const sx = this.shake > 0.2 ? (Math.random() - .5) * this.shake * 2 : 0, sy = this.shake > 0.2 ? (Math.random() - .5) * this.shake * 2 : 0;
     this.shake *= Math.pow(0.86, dt * 60);
@@ -256,13 +267,20 @@ export class View {
       drawFighter(o.g, f.char, pose, { rot, off, f, clock: this.clock });
       o.tex.needsUpdate = true;
       const s = f.scale;
-      o.mesh.scale.set(s * f.face, s, 1);
+      // étirement / écrasement (anticipation, coup, impact reçu)
+      let kx = 1, ky = 1;
+      if (f.state === 'atk' && f.move) { const su = Math.max(1, f.move.su), t = f.t; if (t < su) { kx = 1 - 0.07 * (t / su); ky = 1 + 0.06 * (t / su); } else if (t < su + 4) { kx = 1.12; ky = 0.94; } }
+      else if (f.state === 'hit' && f.t < 5) { kx = 0.9; ky = 1.08; }
+      else if (f.state === 'jump' && f.vy > 4) { kx = 0.95; ky = 1.06; }
+      o.mesh.scale.set(s * f.face * kx, s * ky, 1);
       o.mesh.position.x = f.x; o.mesh.position.y = GROUND + f.y + 54 * s;
       o.mesh.material.opacity = f.fade ? 0.25 : (f.invuln > 0 && f.state === 'getup' ? (Math.floor(this.clock / 3) % 2 ? .5 : 1) : 1);
       o.shadow.position.x = f.x; o.shadow.position.y = GROUND - 3; const ss = Math.max(.4, 1 - f.y / 220) * s; o.shadow.scale.set(ss, ss, 1);
       const buffed = !!f.buff; const [fc1] = colsOf(f.char), a = { c1: fc1 };
-      o.aura.visible = buffed || (f.state === 'atk' && f.move && f.move.super);
-      if (o.aura.visible) { o.aura.position.x = f.x; o.aura.position.y = GROUND + f.y + 44 * s; o.aura.scale.set(s * (1 + Math.sin(this.clock * .3) * .08), s, 1); o.aura.material.color.set(a.c1); o.aura.material.opacity = .85; }
+      // aura : discrète en permanence (couleur du personnage), plus vive en attaque spéciale, éclatante sous Éveil / ultime
+      const big = buffed || (f.state === 'atk' && f.move && f.move.super), cast = f.state === 'atk' && f.move && (f.move.special || f.move.beam), charge = f.state === 'charge';
+      o.aura.visible = f.hp > 0 || !f.dead;
+      if (o.aura.visible) { o.aura.position.x = f.x; o.aura.position.y = GROUND + f.y + 44 * s; const k = big ? 1.25 : cast || charge ? 1.05 : 0.8; o.aura.scale.set(s * k * (1 + Math.sin(this.clock * .3) * .08), s * k, 1); o.aura.material.color.set(a.c1); o.aura.material.opacity = big ? .9 : cast || charge ? .55 : .16; }
       if (f.fx === 'trail' && Math.floor(this.clock) % 2 === 0) { const c = col(a.c1); this.parts.emit({ x: f.x - f.face * 12, y: GROUND + f.y + 30, vx: -f.face * 1.5, vy: 0, life: 14, size: 22, c: [c.r, c.g, c.b], drag: .9 }); }
       if (f.buff === 'power' && Math.floor(this.clock) % 3 === 0) { const c = col(a.c1); this.parts.emit({ x: f.x + (Math.random() - .5) * 20, y: GROUND + f.y + 10, vx: 0, vy: 1.8, life: 24, size: 9, c: [c.r, c.g, c.b], drag: 1 }); }
     }
@@ -272,6 +290,12 @@ export class View {
     // ambiance (neige / braises)
     if (this.rain && Math.random() < .6) this.parts.emit({ x: this.camX + (Math.random() - .5) * 700, y: 260, vx: -0.4 + Math.random() * .4, vy: -1.1 - Math.random(), life: 260, size: 5, c: [1, 1, 1], drag: 1 });
     if (this.embers && Math.random() < .4) this.parts.emit({ x: this.camX + (Math.random() - .5) * 700, y: GROUND - 20, vx: Math.random() - .5, vy: .8 + Math.random(), life: 120, size: 6, c: [1, .55, .15], drag: 1 });
+    // ambiance par décor : pétales (forêt), pollen et herbe (plaines), sable soufflé (désert), lucioles (temple)
+    const R = Math.random, ax = () => this.camX + (R() - .5) * 760;
+    if (this.amb === 0 && R() < .22) this.parts.emit({ x: ax(), y: 250, vx: .5 + R() * .6, vy: -.5 - R() * .5, life: 300, size: 6 + R() * 4, c: R() < .6 ? [1, .72, .8] : [.7, 1, .5], drag: 1 });
+    if (this.amb === 1 && R() < .2) this.parts.emit({ x: ax(), y: GROUND + 10 + R() * 200, vx: 1.2 + R(), vy: .15 * (R() - .5), life: 200, size: 4, c: [1, 1, .8], drag: 1 });
+    if (this.amb === 2 && R() < .5) this.parts.emit({ x: this.camX - 380, y: GROUND + R() * 180, vx: 4 + R() * 3, vy: (R() - .5) * .5, life: 170, size: 5, c: [.95, .78, .5], drag: 1 });
+    if (this.amb === 4 && R() < .15) this.parts.emit({ x: ax(), y: GROUND + 10 + R() * 220, vx: (R() - .5) * .4, vy: (R() - .5) * .4, life: 220, size: 6, c: [.7, .85, 1], drag: 1 });
     this.parts.update(dt); this.smoke.update(dt);
     // super : assombrissement
     this.dim.position.x = this.camX;

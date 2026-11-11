@@ -213,9 +213,22 @@ function drawSpriteFighter(g, ch, A, f, clock) {
   const sp = ch.sprite, img = imgOf(sp), awake = !!(f && f.buff === 'awaken');
   const cx = 64 + A.hx * 0.6, hy = FOOT - 24 + A.hy;
   if (img.complete && img.naturalWidth) {
-    g.save(); g.translate(cx, FOOT); g.rotate((A.lean + A.tilt * 0.5) * D2R * 0.8);
+    // le sprite est coupé à la hanche : buste (penche, respire) + deux copies des jambes qui pivotent comme les jambes de la pose
+    const W = sp.w, H = sp.h, cut = Math.round(H * 0.6), top = -H + 2, hipY = top + cut, x0 = -W / 2 + 3;
+    const dy = Math.max(0, (A.hy - 3) * 0.8), idle = Math.sin(clock * 0.1) * 0.6;
+    const L = H - cut, sq = Math.max(0.55, 1 - dy / L);
+    g.imageSmoothingEnabled = false;
+    g.save(); g.translate(cx, FOOT);
+    const leg = (a, dark) => {
+      g.save(); g.translate(0, hipY + dy); g.rotate(-a * D2R * 0.9); g.scale(1, sq);
+      if (dark) g.filter = 'brightness(0.6)';
+      g.drawImage(img, 0, cut, W, L, x0, 0, W, L); g.restore();
+    };
+    leg(A.ll[0] + 16, true);
+    leg(A.rl[0] - 22, false);
+    g.save(); g.translate(0, dy + idle); g.translate(0, hipY); g.rotate((A.lean - 6) * D2R * 0.9 + A.tilt * D2R * 0.4); g.translate(0, -hipY);
     if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
-    g.imageSmoothingEnabled = false; g.drawImage(img, -sp.w / 2 + 3, -sp.h + 2 + Math.min(0, A.hy * 0.5), sp.w, sp.h);
+    g.drawImage(img, 0, 0, W, cut, x0, top, W, cut); g.restore();
     g.restore();
   }
   const lx = Math.sin(A.lean * D2R), ly = Math.cos(A.lean * D2R);
@@ -237,11 +250,11 @@ export function drawFighter(g, ch, pose, opt = {}) {
   g.save();
   if (rot) { g.translate(64, FOOT - 22); g.rotate(rot * D2R); g.translate(-64, -(FOOT - 22) + off); }
   const A = pose, top = ch.top, topD = hexShade(top, -0.3), pants = hexShade(ch.acc, -0.45), skin = ch.skin;
-  const hx = 62 + A.hx, hy = FOOT - 24 + A.hy;
+  const hx = 62 + A.hx, hy = FOOT - 21 + A.hy;          // chibi : jambes et buste plus courts
   const sh = seg(g, hx, hy, 180 - A.lean * 1, 0);           // placeholder
   const lx = Math.sin(A.lean * D2R), ly = Math.cos(A.lean * D2R);
-  const sx = hx + lx * 21, sy = hy - ly * 21;               // épaule
-  const hdx = sx + Math.sin((A.lean + A.tilt) * D2R) * 12, hdy = sy - Math.cos((A.lean + A.tilt) * D2R) * 12;
+  const sx = hx + lx * 18, sy = hy - ly * 18;               // épaule
+  const hdx = sx + Math.sin((A.lean + A.tilt) * D2R) * 14, hdy = sy - Math.cos((A.lean + A.tilt) * D2R) * 14;
   void sh;
 
   // cape / écharpe (derrière)
@@ -250,13 +263,15 @@ export function drawFighter(g, ch, pose, opt = {}) {
   if (ch.ex.includes('scarf')) poly(g, [[sx - 2, sy - 2], [sx - 20 - wav * 2, sy + 4], [sx - 24 - wav * 2, sy + 9], [sx - 4, sy + 4]], ch.acc);
   if (ch.ex.includes('sword')) { g.strokeStyle = OUT; g.lineWidth = 4; g.beginPath(); g.moveTo(hx - 6, hy + 6); g.lineTo(sx + 10, sy - 18); g.stroke(); g.strokeStyle = '#dfe6ff'; g.lineWidth = 2; g.stroke(); }
   drawBackGear(g, ch, { sx, sy, hx, hy, lx, ly, clock });
+  g.save(); g.translate(hdx, hdy + 3); g.scale(1.32, 1.32); g.translate(-hdx, -hdy);
   drawHair(g, ch, hdx, hdy, A.lean + A.tilt, false);
+  g.restore();
 
   // bras arrière + jambe arrière
-  const la = limb(g, sx, sy + 2, A.la[0], A.la[0] + A.la[1], 10, 10, 5.4, topD);
+  const la = limb(g, sx, sy + 2, A.la[0], A.la[0] + A.la[1], 8.6, 8.6, 5.6, topD);
   if (ch.weapon2) drawWeapon(g, ch.weapon2, la[0], la[1], A.la[0] + A.la[1], ch, clock, true);
   dot(g, la[0], la[1], 2.8, skin); drawArmGear(g, ch, { la }, false);
-  const ll = limb(g, hx, hy, A.ll[0], A.ll[0] - A.ll[1], 12, 12, 6.4, hexShade(pants, -0.15)); dot(g, ll[0], ll[1], 3.4, '#2a2230');
+  const ll = limb(g, hx, hy, A.ll[0], A.ll[0] - A.ll[1], 10.5, 10.5, 6.8, hexShade(pants, -0.15)); dot(g, ll[0], ll[1], 3.4, '#2a2230');
 
   // torse
   g.strokeStyle = OUT; g.lineWidth = 15.4; g.lineCap = 'round'; g.beginPath(); g.moveTo(hx, hy); g.lineTo(sx, sy); g.stroke();
@@ -270,13 +285,15 @@ export function drawFighter(g, ch, pose, opt = {}) {
   drawTorsoGear(g, ch, { sx, sy, hx, hy, lx, ly, clock });
 
   // jambe avant
-  const rl = limb(g, hx, hy, A.rl[0], A.rl[0] - A.rl[1], 12, 12, 6.8, pants); dot(g, rl[0] + 1.5, rl[1], 3.8, '#2a2230');
+  const rl = limb(g, hx, hy, A.rl[0], A.rl[0] - A.rl[1], 10.5, 10.5, 7.2, pants); dot(g, rl[0] + 1.5, rl[1], 3.8, '#2a2230');
 
   // tête
+  g.save(); g.translate(hdx, hdy + 3); g.scale(1.32, 1.32); g.translate(-hdx, -hdy);   // grosse tête
   drawHead(g, ch, hdx, hdy, A.lean + A.tilt, f, clock);
+  g.restore();
 
   // bras avant (+ bâton)
-  const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 10, 10, 5.8, top);
+  const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 8.6, 8.6, 6.1, top);
   drawArmGear(g, ch, { ra }, true);
   if (ch.weapon) drawWeapon(g, ch.weapon, ra[0], ra[1], A.ra[0] + A.ra[1], ch, clock);
   dot(g, ra[0], ra[1], 3, skin);
