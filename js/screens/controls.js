@@ -1,6 +1,6 @@
 // Guide des combos : onglets TACTILE / MANETTE / CLAVIER, deux cartes (attaques · défense), schéma illustré, pictogrammes.
 import { G, el } from './ctx.js';
-import { KEYMAPS } from '../input.js';
+import { KEYMAPS, setKey, resetKeys } from '../input.js';
 import { getPadMode } from '../touch.js';
 import { isTouch } from '../input.js';
 import { ICON, pic, pics } from '../ui/icons.js';
@@ -19,14 +19,16 @@ const ATTAQUES = row('Chaîne normale', 'Direct · Crochet · Lancer', chip('red
   + row('Shuriken', '□ gratuit · △ + □ : 3 shurikens (20 chakra)', chip('grey', 'sq') + chip('gold', 'tri', '+', 'sq'))
   + row('Chakra Dash', '20 chakra · suit un adversaire lancé · puis ○ ○ ○', chip('gold', 'tri', '+', 'x'))
   + row('Ninjutsu spécial', '10 chakra · ↑ / ↓ = tir diagonal / bas', chip('cy', 'tri', '+', 'o'))
-  + row('Technique ultime', '50 chakra', chip('fill', 'tri', 'right', 'tri', 'right', 'o'), 'hot');
+  + row('Technique ultime', '50 chakra', chip('fill', 'tri', 'right', 'tri', 'right', 'o'), 'hot')
+  + row('Éveil', 'Vie sous 35 % : maintenir △ jusqu\'au chakra plein · une fois par manche', chip('gold', 'tri') + txt('gold', 'maintenu'), 'hot');
 const DEFENSE = row('Garde', 'Reculer face à un coup : garde auto', chip('grey', 'r2') + `<span class="or">ou</span>` + chip('grey', 'down'))
   + row('Parade parfaite (contre)', 'Juste avant l\'impact, sans dégâts', txt('gold', 'R2 timing serré'))
   + row('Permutation (bûche)', '3 charges, +1 toutes les 5 s', txt('cy', 'L2 à l\'impact'))
   + row('Projection', 'Passe la garde, au contact', chip('red', 'r2', '+', 'o'))
   + row('Roulade', '', chip('grey', 'down', '+', 'left') + chip('grey', 'down', '+', 'right'))
   + row('Double saut', 'En l\'air', chip('grey', 'x', 'x'))
-  + row('Appel soutien ninja', '3 s d\'invulnérabilité, rappel 12 s', chip('cy', 'l1') + `<span class="or">ou</span>` + chip('cy', 'r1'));
+  + row('Appel soutien ninja', '3 s d\'invulnérabilité, rappel 12 s', chip('cy', 'l1') + `<span class="or">ou</span>` + chip('cy', 'r1'))
+  + row('Ultime d\'équipe', '60 chakra · les deux soutiens encadrent l\'adversaire', chip('cy', 'l1', '+', 'r1'), 'hot');
 const WARN = `<div class="warn">${ICON.warn}<span><b>Brise-garde :</b> chaque coup encaissé en garde remplit la jauge orange ; pleine, la garde casse et vous êtes étourdi.</span></div>`;
 
 // schémas SVG (touches dessinées en trait, étiquettes de zone)
@@ -47,7 +49,7 @@ const padSvg = () => `<svg viewBox="0 0 230 150" class="sch"><path class="sd" d=
 const keyName = (c) => ({ ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓' }[c] || c.replace('Key', ''));
 const keyTable = () => {
   const L = [['Gauche', 'l'], ['Droite', 'r'], ['Saut (haut)', 'u'], ['Garde (bas)', 'd'], ['o', 'o'], ['x', 'x'], ['sq', 'sq'], ['tri', 'tri'], ['r2', 'r2'], ['l2', 'l2'], ['r1', 'sup1'], ['l1', 'sup2']];
-  return `<table class="kt"><tr><th></th><th>JOUEUR 1</th><th>JOUEUR 2</th></tr>${L.map(([l, i]) => `<tr><td>${ICON[l] || /^[lr][12]$/.test(l) ? pic(l) : l}</td>${[0, 1].map((p) => `<td><kbd>${keyName(KEYMAPS[p][i])}</kbd></td>`).join('')}</tr>`).join('')}</table><p class="kn">Touches physiques : sur un clavier AZERTY, W A S D = Z Q S D.</p>`;
+  return `<table class="kt"><tr><th></th><th>JOUEUR 1</th><th>JOUEUR 2</th></tr>${L.map(([l, i]) => `<tr><td>${ICON[l] || /^[lr][12]$/.test(l) ? pic(l) : l}</td>${[0, 1].map((p) => `<td><kbd style="cursor:pointer" data-p="${p}" data-a="${i}" title="Cliquer pour changer la touche">${keyName(KEYMAPS[p][i])}</kbd></td>`).join('')}</tr>`).join('')}</table><p class="kn">Cliquez sur une touche pour la changer. Sur un clavier AZERTY, W A S D = Z Q S D.</p>`;
 };
 
 export default function sControls() {
@@ -66,8 +68,14 @@ export default function sControls() {
     segEls.forEach((b, i) => b.classList.toggle('on', TABS[i][0] === tab));
     cC.innerHTML = tab === 'tactile' ? phoneSvg() + '<p>Un doigt entre deux boutons appuie sur les deux (△ + ○…).</p>' : tab === 'manette' ? padSvg() + '<p>✕ ○ □ △ comme sur PlayStation.</p>'.replace('✕ ○ □ △', 'Boutons ✕ ○ □ △') : keyTable();
     cC.classList.toggle('keys', tab === 'clavier');
+    cC.querySelectorAll('kbd[data-a]').forEach((k) => { k.onclick = () => {
+      k.textContent = '…'; k.classList.add('wait'); sfx.ui();
+      const cap = (e) => { e.preventDefault(); e.stopImmediatePropagation(); removeEventListener('keydown', cap, true); if (e.code !== 'Escape') setKey(+k.dataset.p, k.dataset.a, e.code); draw(); };
+      addEventListener('keydown', cap, true);
+    }; });
     foot.innerHTML = tab === 'tactile' ? `<span>Sticks virtuels : <b>${getPadMode() === 'stick' ? 'analogique' : 'croix'}</b> (Options ou bouton en combat)</span><span>Toucher ✚ / 🕹 pour changer</span>`
-      : tab === 'manette' ? '<span>R1 / L1 soutiens · R2 garde · L2 substitution</span><span>Croix ou stick gauche pour bouger</span>' : '<span>P ou Échap : pause en combat</span><span>Joueur 2 : flèches + J K U I L O P N</span>';
+      : tab === 'manette' ? '<span>R1 / L1 soutiens · R2 garde · L2 substitution</span><span>Croix ou stick gauche pour bouger</span>' : '<span>P ou Échap : pause en combat</span><span><b class="rk" style="cursor:pointer;text-decoration:underline">Réinitialiser les touches</b></span>';
+    const rk = foot.querySelector('.rk'); if (rk) rk.onclick = () => { resetKeys(); sfx.ui(); draw(); };
   };
   const act = (k) => {
     if (k === 'back') { sfx.back(); return G.go('title'); }

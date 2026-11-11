@@ -3,11 +3,28 @@
 //  Les combinaisons (△+○, △△○…) sont résolues par game/chords.js.
 //  o = ○ attaque · x = ✕ saut · sq = □ shuriken · tri = △ chakra · r2 garde · l2 substitution · sup1 = R1 · sup2 = L1
 // ============================================================
-export const KEYMAPS = [
+export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2'];
+export const DEFAULT_KEYMAPS = [
   { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', o: 'KeyF', x: 'KeyG', sq: 'KeyR', tri: 'KeyT', r2: 'KeyH', l2: 'KeyY', sup1: 'KeyE', sup2: 'KeyQ' },
   { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', o: 'KeyJ', x: 'KeyK', sq: 'KeyU', tri: 'KeyI', r2: 'KeyL', l2: 'KeyO', sup1: 'KeyP', sup2: 'KeyN' },
 ];
-export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2'];
+// Touches modifiables (Options > guide des combos > CLAVIER) : enregistrées dans le navigateur
+export const KEYMAPS = DEFAULT_KEYMAPS.map((k) => ({ ...k }));
+const KEYS_LS = 'ninja-mugen-keys';
+const saveKeys = () => { try { localStorage.setItem(KEYS_LS, JSON.stringify(KEYMAPS)); } catch (e) { /* stockage indisponible : réglage valable pour la session */ } };
+try {
+  const saved = JSON.parse(localStorage.getItem(KEYS_LS) || 'null');
+  if (Array.isArray(saved)) saved.forEach((m, i) => { if (m && KEYMAPS[i]) for (const a of ACTIONS) if (typeof m[a] === 'string') KEYMAPS[i][a] = m[a]; });
+} catch (e) { /* réglages absents ou illisibles : touches par défaut */ }
+const RESERVED = new Set(['Escape', 'Enter', 'Tab', 'Backspace']);
+// Assigne une touche à une action d'un joueur ; si elle servait déjà à une autre action, les deux touches sont échangées. Renvoie false si la touche est réservée.
+export function setKey(player, action, code) {
+  const km = KEYMAPS[player]; if (!km || !(action in km) || RESERVED.has(code)) return false;
+  const other = ACTIONS.find((a) => a !== action && km[a] === code);
+  if (other) km[other] = km[action];
+  km[action] = code; saveKeys(); return true;
+}
+export function resetKeys() { DEFAULT_KEYMAPS.forEach((d, i) => Object.assign(KEYMAPS[i], d)); saveKeys(); }
 import { touch, initTouch } from './touch.js';
 const down = new Set();
 const menuQ = [];
