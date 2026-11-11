@@ -8,6 +8,8 @@ export default function sResult(d) {
   if (arc) { title = d.win ? 'FÉLICITATIONS !' : 'DÉFAITE'; sub = d.win ? `Vous avez vaincu l'Ultime Maître !<br>Score : <b>${run.score}</b>` : `Éliminé au combat ${run.fight + 1} / 8<br>Score : <b>${run.score}</b>`; }
   else if (sur) { title = 'FIN DE LA SÉRIE'; sub = `${run.fight} victoire${run.fight > 1 ? 's' : ''}<br>Score : <b>${run.score}</b>`; let best = 0; try { best = +localStorage.getItem('ninja-mugen-best') || 0; if (run.score > best) { localStorage.setItem('ninja-mugen-best', run.score); best = run.score; } } catch (e) { /* ignore */ } sub += `<br>Meilleur : ${best}`; }
   else { title = d.win ? 'VICTOIRE !' : 'DÉFAITE'; sub = `Manches : ${d.wins[0]} — ${d.wins[1]}`; }
+  const gg = d.gain || (d.done && run.gain);
+  if (gg && (gg.c || gg.g)) sub += `<br><span class="gain">+${gg.c} pièces${gg.g ? ` · +${gg.g} gemmes` : ''}</span>`;
   const items = [];
   if (!arc && !sur) items.push({ label: 'Revanche', ok: () => { sfx.ok(); G.launch(); } });
   else items.push({ label: 'Rejouer le mode', ok: () => { sfx.ok(); G.go('select'); } });

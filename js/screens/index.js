@@ -8,6 +8,8 @@ import options from './options.js';
 import controls from './controls.js';
 import result from './result.js';
 import online from './online.js';
+import heroes from './heroes.js';
+import daily from './daily.js';
 import onlineResult from './onlineResult.js';
 
-export const SCREENS = { title, setup, select, stage, vs, options, controls, result, online, onlineResult };
+export const SCREENS = { title, setup, select, stage, vs, options, controls, result, online, onlineResult, heroes, daily };
