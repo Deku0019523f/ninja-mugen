@@ -3,7 +3,7 @@
 //  chaînes ○ (normale, haute, basse, latérale), projection, Shuriken, Chakra Shuriken, Chakra Dash (au sol, en l'air, en annulation),
 //  Ninjutsu ↑/↓, Technique ultime, charge du chakra, garde, parade, roulade, substitution, double saut, soutiens.
 // ============================================================
-import { supReady } from './support.js';
+import { supReady, TEAM_COST } from './support.js';
 
 const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sub: 0, throw: 0, sup1: 0, sup2: 0 });
 const REACT = [46, 34, 24, 15, 8];
@@ -41,6 +41,9 @@ export class AI {
       const pc = stunned ? 0.05 : 0.003 + 0.0015 * L;
       for (let i = 0; i < 2; i++) if (supReady(f, i) && R() < pc) { inp[i === 0 ? 'sup1' : 'sup2'] = 1; break; }
     }
+
+    // ultime d'équipe : les deux soutiens prêts et assez de chakra
+    if (f.sup && f.chi >= TEAM_COST && supReady(f, 0) && supReady(f, 1) && dist < 420 && R() < 0.003 * (1 + L)) { inp.sup1 = 1; inp.sup2 = 1; }
 
     // substitution (L2) : esquive un coup sur le point de toucher, ou s'échappe d'un combo
     if (f.subCharges > 0) {
@@ -114,6 +117,7 @@ export class AI {
     if ((e.state === 'block' || e.state === 'blockstun') && dist < 56 && R() < (0.3 + L * 0.08) * P.throw) return set('press', react + 2, { key: 'throw' });
     if (R() > aggr) return set(R() < 0.5 ? 'retreat' : 'wait', react);
     if (P.keepAway && dist < 140 && R() < 0.35) return set('retreat', react);   // zoner : garde ses distances
+    if (f.awakenReady && dist > 110 && R() < 0.5) return set('charge', 90);   // Éveil : charge jusqu'au chakra plein
     if (dist > 220 && f.chi < 60 && R() < 0.1) return set('charge', 40 + Math.floor(R() * 40));   // recharge le chakra quand l'adversaire est loin
 
     if (dist > 300) {

@@ -8,6 +8,7 @@ const WALK = 2.6, BACK = 0.8, JUMPV = 11.8, GRAV = 0.5;
 const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitesse, frames d'invulnérabilité
 const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui sur ↓ / R2
 const THROW_R = 52;     // projection : distance maximale (R2 + ○)
+const AWAKEN_HP = 0.35, AWAKEN_FRAMES = 600;   // Éveil : seuil de vie, durée (10 s)
 const CHARGE_RATE = 0.5;   // chakra gagné par frame en chargeant (△ maintenu) : 0 → 100 en ~3,5 s
 const SUB_MAX = 3, SUB_REGEN = 300;     // substitution : réserve de charges, +1 charge toutes les 5 s
 const GUARD_MAX = 100, GUARD_DECAY = 0.35, GUARD_PER_DMG = 0.55;   // jauge de garde : plafond, récupération par frame hors garde, usure par point de dégâts
@@ -31,17 +32,19 @@ export class Fighter {
     this.invuln = 0; this.combo = 0; this.juggle = 0; this.chain = 0; this.chainT = 0;
     this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
     this.fade = false; this.fx = null; this.dying = false; this.dead = false;
-    this.infiniteChi = false; this.rounds = 0;
+    this.infiniteChi = false; this.rounds = 0; this.awakened = false;
     this.parryT = 0; this.dPrev = false; this.dEdge = false; this.backT = 99;
     this.subCharges = SUB_MAX; this.subT = 0; this.guard = 0; this.airJumps = 0; this.uPrev = false; this.uEdge = false;
   }
 
   get alive() { return this.hp > 0; }
+  // Éveil : une fois par manche, chakra plein (△ maintenu) et vie sous 35 % → changement de forme (dégâts, vitesse, défense, allonge, soin)
+  get awakenReady() { return !this.awakened && !this.support && !this.buff && this.hp > 0 && this.hp <= this.maxHp * AWAKEN_HP; }
   get beamOn() { const m = this.move; return this.state === 'atk' && m && m.beam && this.t >= m.su && this.t < m.su + m.ac; }
 
   prepare(x, face, keepHp = false) {
     if (!keepHp) this.hp = this.maxHp;
-    this.endBuff(); this.x = x; this.y = 0; this.vx = this.vy = 0; this.face = face;
+    this.endBuff(); this.awakened = false; this.x = x; this.y = 0; this.vx = this.vy = 0; this.face = face;
     this.state = 'idle'; this.t = 0; this.move = null; this.invuln = 0; this.combo = 0; this.chain = 0; this.chainT = 0;
     this.dying = false; this.dead = false; this.fade = false; this.lock = null; this.juggle = 0;
     this.parryT = 0; this.dPrev = false; this.dEdge = false; this.backT = 99;
@@ -170,6 +173,10 @@ export class Fighter {
     if (inp.u) { this.airJumps = 0; this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
     if (inp.charge) {                                  // △ maintenu : charge le chakra (immobile, vulnérable)
       this.vx *= 0.6; this.go('charge'); this.chi = Math.min(100, this.chi + CHARGE_RATE);
+      if (this.chi >= 100 && this.awakenReady) {     // Éveil
+        this.awakened = true; this.chi = 0; this.invuln = Math.max(this.invuln, 24); this.setBuff('awaken', AWAKEN_FRAMES);
+        w.event({ t: 'nova', x: this.x, y: 40, f: this }); w.event({ t: 'awaken', f: this }); w.hitstop = Math.max(w.hitstop, 20); return;
+      }
       if (this.t % 8 === 1) w.event({ t: 'puff', x: this.x, y: 14, color: '#6cf' });
       return;
     }
