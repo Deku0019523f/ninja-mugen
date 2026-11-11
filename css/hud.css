@@ -72,3 +72,4 @@
 /* bannières peintes : lettres orange cernées de noir, trait lumineux derrière */
 .hud-msg{font-size:74px;letter-spacing:2px;color:#ffe14a;-webkit-text-stroke:3px #1a0500;paint-order:stroke fill;text-shadow:0 5px 0 #c4310a,0 0 22px #ff7a00}
 .hud-msg::before{content:'';position:absolute;left:0;right:0;top:50%;height:6px;background:linear-gradient(90deg,transparent,#ffb02e,#fff,#ffb02e,transparent);filter:blur(2px);z-index:-1}
+.hud-msg.lose{color:#ff5a4a;text-shadow:0 5px 0 #5a0a0a,0 0 22px #c00}
