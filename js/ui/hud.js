@@ -64,7 +64,7 @@ export class Hud {
 
   banner(txt, frames) {
     const m = /^MANCHE/.test(txt) ? 'READY ?' : { 'COMBAT !': 'FIGHT !', 'K.O. !': 'K.O. !', 'TEMPS ÉCOULÉ': 'TIME UP' }[txt];
-    if (m) txt = m; else if (/ GAGNE !$/.test(txt)) txt = 'YOU WIN !'; this.bannerT = frames; this.bannerTxt = txt; if (this.msg) { this.msg.textContent = txt; this.msg.classList.remove('pop'); void this.msg.offsetWidth; if (txt) this.msg.classList.add('pop'); this.msg.style.opacity = txt ? 1 : 0; } }
+    if (m) txt = m; else if (/ GAGNE !$/.test(txt)) txt = 'YOU WIN !'; if (this.msg) this.msg.classList.toggle('lose', txt === 'YOU LOSE'); this.bannerT = frames; this.bannerTxt = txt; if (this.msg) { this.msg.textContent = txt; this.msg.classList.remove('pop'); void this.msg.offsetWidth; if (txt) this.msg.classList.add('pop'); this.msg.style.opacity = txt ? 1 : 0; } }
 
   event(e) {
     if (e.t === 'super') {

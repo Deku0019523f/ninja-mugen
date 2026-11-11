@@ -131,11 +131,11 @@ export class Match {
   }
   afterKo() {
     const w = this.world;
-    if (this.winTeam < 0) { this.roundEndMsg = 'ÉGALITÉ'; this.drawCount++; if (this.drawCount > 2) { this.winTeam = 0; this.wins[0]++; } return; }
+    if (this.winTeam < 0) { this.roundEndMsg = 'DRAW'; this.drawCount++; if (this.drawCount > 2) { this.winTeam = 0; this.wins[0]++; } return; }
     this.wins[this.winTeam]++;
     w.team(this.winTeam).forEach((f) => { if (f.hp > 0) { f.winPose = true; f.state = 'idle'; } });
-    const names = w.team(this.winTeam).map((f) => f.char.name).filter((n, i, a) => a.indexOf(n) === i).join(' & ');
-    this.roundEndMsg = `${names.toUpperCase()} GAGNE !`;
+    const duo = this.cfg.vs === 'p2' || this.cfg.vs === 'net' || this.cfg.mode === 'training';
+    this.roundEndMsg = duo ? (this.winTeam === 0 ? 'P1 WIN !' : 'P2 WIN !') : (this.winTeam === 0 ? 'YOU WIN !' : 'YOU LOSE');
     (this.winTeam === 0 ? sfx.win : sfx.lose)();
   }
   nextRound() {
