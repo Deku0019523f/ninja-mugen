@@ -53,7 +53,7 @@ export class Hud {
     this.cutEl = el('div', 'hud-cut'); this.root.appendChild(this.cutEl);
     this.flashEl = el('div', 'hud-flash'); this.root.appendChild(this.flashEl);
     this.hint = el('div', 'hud-hint', 'P : pause'); this.root.appendChild(this.hint);
-    this.combos = el('div', 'hud-combos', '<b>COMMANDES</b><br>○ répété = combo · ↑+○ lanceur · ↓+○ balayage · ←/→+○ pied<br>□ shuriken · △ maintenu = charger le chakra<br>△+○ ninjutsu · △ △ ○ ultime · △+✕ Chakra Dash · △+□ Chakra Shuriken<br>R2 garde (tap = parade) · R2+○ projection · L2 substitution · ✕ ✕ double saut<br>R1 / L1 soutiens'); this.root.appendChild(this.combos);
+    this.combos = el('div', 'hud-combos', '<b>COMMANDES</b><br>○ répété = combo · ↑+○ lanceur · ↓+○ balayage · ←/→+○ pied<br>□ shuriken · △ maintenu = charger le chakra<br>△+○ ninjutsu · △ △ ○ ultime · △+✕ Chakra Dash · △+□ Chakra Shuriken<br>R2 garde (tap = parade) · R2+○ projection · L2 substitution · ✕ ✕ double saut<br>R1 / L1 soutiens · R1+L1 ultime d\'équipe · vie &lt; 35 % : △ maintenu = Éveil'); this.root.appendChild(this.combos);
     this.dmg = el('div', 'hud-dmg'); this.root.appendChild(this.dmg);
     this.built = true; this.bm = match;
   }
