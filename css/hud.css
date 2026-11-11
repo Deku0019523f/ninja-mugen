@@ -2,19 +2,18 @@
 .hud-top{position:absolute;left:0;right:0;top:8px;height:74px}
 .hud-team{position:absolute;top:0;width:calc(50% - 78px);max-width:420px;height:66px;display:flex;gap:6px;align-items:flex-start}
 .hud-team.t0{left:26px}.hud-team.t1{right:26px;flex-direction:row-reverse}
-.hud-portrait{width:44px;height:44px;background:#111;border:2px solid #000;border-radius:6px;image-rendering:pixelated;box-shadow:0 0 0 1px #556}
+.hud-portrait{width:46px;height:46px;background:#111;border:3px solid #f3b230;border-radius:50%;image-rendering:pixelated;box-shadow:0 0 0 2px #000,0 0 8px #000a}
 .hud-bars{flex:1;position:relative}
-.bar{position:relative;background:#0a0a12;border:2px solid #000;overflow:hidden;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
-.t1 .bar{clip-path:polygon(10px 0,100% 0,100% 100%,0 100%)}
-.bar.hp{height:19px;box-shadow:0 0 0 2px #2a3040}
+.bar{position:relative;background:#0a0a12;border:2px solid #000;overflow:hidden;border-radius:7px}
+.bar.hp{height:13px;box-shadow:0 0 0 1px #2a3040;border-radius:7px;clip-path:none}
 .bar .fill,.bar .ghost{position:absolute;top:0;bottom:0;left:0}
 .t1 .bar .fill,.t1 .bar .ghost{left:auto;right:0}
-.bar.hp .fill{background:linear-gradient(#e8ff58,#40d040 55%,#1f8a2a)}
-.t1 .bar.hp .fill{background:linear-gradient(#9ef7ff,#34c8e8 55%,#1f7aa8)}
+.bar.hp .fill{background:linear-gradient(#ffd27a,#ff9a1f 55%,#e0620a)}
+.t1 .bar.hp .fill{background:linear-gradient(#ffd27a,#ff9a1f 55%,#e0620a)}
 .bar.hp .ghost{background:#ff6a2a}
 .hud-team.low .bar.hp .fill{background:linear-gradient(#ffb0a0,#ff4040 55%,#a01818);animation:blink .4s steps(2) infinite}
 @keyframes blink{50%{filter:brightness(1.6)}}
-.bar.chi{height:10px;margin-top:3px;width:70%}
+.bar.chi{height:8px;margin-top:3px;width:70%}
 .t1 .bar.chi{margin-left:30%}
 .bar.chi .fill{background:linear-gradient(#8ff,#19b5e8);transition:width .1s}
 .bar.chi .lab{position:absolute;left:5px;top:-2px;font-size:8px;color:#fff;opacity:.35;letter-spacing:1px;font-weight:bold}
@@ -45,3 +44,31 @@
 .hud-dmg{position:absolute;left:0;right:0;top:84px;text-align:center;font-size:13px;display:none;text-shadow:1px 1px 0 #000;color:#ffe08a}
 .hud-combos{position:absolute;left:28px;top:112px;font-size:10px;line-height:14px;color:#ffe9b0;background:#0008;padding:6px 8px;border-left:3px solid var(--org);display:none;text-shadow:1px 1px 0 #000}
 .hud-combos b{color:var(--cy)}
+
+/* compteur de combo : orange, penché, du côté de l'attaquant */
+.combo{top:150px;color:#ff9a1f;text-shadow:2px 2px 0 #5a1a00,0 0 8px #000;font-size:15px}
+.combo small{font-size:15px;margin-right:4px;text-transform:lowercase;opacity:.9}
+.combo b{font-size:44px;font-family:inherit}
+/* chiffres de dégâts */
+.hud-floats{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.dn{position:absolute;transform:translate(-50%,0);font-size:20px;font-weight:900;font-style:italic;color:#ff3a2a;text-shadow:2px 2px 0 #000,0 0 6px #000;animation:dnup .9s ease-out forwards;white-space:nowrap}
+.dn.mine{color:#ff6a3a}
+.dn.crit{font-size:34px;color:#ffd23a;text-shadow:2px 2px 0 #b01010,0 0 10px #f50}
+@keyframes dnup{0%{transform:translate(-50%,10px) scale(1.7);opacity:0}15%{opacity:1;transform:translate(-50%,0) scale(1)}100%{transform:translate(-50%,-48px) scale(.9);opacity:0}}
+/* compétences : disques de chargement (le disque sombre se vide à mesure que la jauge se remplit) */
+.hud-skills{display:flex;gap:5px;margin-top:4px}
+.t1 .hud-skills{justify-content:flex-end}
+.sk{position:relative;width:24px;height:24px;border-radius:50%;background:#1b2540;border:2px solid #000;box-shadow:0 0 0 1px #56627f;overflow:hidden;font-size:10px;font-weight:900;color:#9fb0d8;text-align:center;line-height:20px}
+.sk i{position:absolute;inset:0;background:conic-gradient(#0008 var(--p,360deg),transparent 0)}
+.sk b{position:relative}
+.sk.rdy{background:#e8a21f;color:#fff;box-shadow:0 0 0 1px #ffe08a,0 0 8px #ffb02e}
+/* soutiens R1 / L1 : boutons ronds avec disque de recharge et compte à rebours */
+.hud-sup{position:relative;width:32px;height:32px;border:2px solid #555;border-radius:50%;background:#0d122ccc;overflow:hidden}
+.hud-sup.ready{border-color:#ffe066;box-shadow:0 0 8px #ffe066}.hud-sup.on{border-color:#6cf;box-shadow:0 0 8px #6cf}
+.hud-sup .sp{display:block;margin:2px auto 0}
+.hud-sup i{position:absolute;inset:0;background:conic-gradient(#000b var(--p,0deg),transparent 0)}
+.hud-sup em{position:absolute;inset:0;font:900 14px/28px sans-serif;font-style:normal;text-align:center;color:#fff;text-shadow:0 0 3px #000,1px 1px 0 #000}
+.hud-sup .k{position:absolute;right:2px;top:-1px;font:700 8px sans-serif;color:#fff;text-shadow:0 0 2px #000}
+/* bannières peintes : lettres orange cernées de noir, trait lumineux derrière */
+.hud-msg{font-size:74px;letter-spacing:2px;color:#ffe14a;-webkit-text-stroke:3px #1a0500;paint-order:stroke fill;text-shadow:0 5px 0 #c4310a,0 0 22px #ff7a00}
+.hud-msg::before{content:'';position:absolute;left:0;right:0;top:50%;height:6px;background:linear-gradient(90deg,transparent,#ffb02e,#fff,#ffb02e,transparent);filter:blur(2px);z-index:-1}
