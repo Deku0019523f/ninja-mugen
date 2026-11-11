@@ -38,6 +38,15 @@ const KEY = {
   apunch: { wind: P(0, 0, 0, 0, [30, 80], [-20, 90], [-20, 30], [28, 40]), hit: P(2, 0, 14, 0, [30, 80], [92, 6], [-30, 40], [34, 36]) },
   akick: { wind: P(0, 0, -6, 0, [30, 80], [60, 70], [-16, 50], [50, 90]), hit: P(0, 0, -20, 0, [-40, 70], [60, 60], [-30, 30], [92, 6]) },
   smash: { wind: P(-6, 6, -18, -3, [-30, 90], [-40, 100], [-26, 24], [24, 24]), hit: P(8, 4, 26, 4, [100, 4], [104, 2], [-36, 16], [34, 10]) },
+  // poses propres aux coups des chaînes (6.4b) : direct accroupi, tibia, croc-en-jambe, paumes, crochet large, saut montée, poing aérien 2
+  cjab: { wind: P(-2, 16, -4, 0, [30, 80], [-20, 80], [-34, 60], [30, 70]), hit: P(4, 16, 14, 0, [30, 80], [94, 10], [-40, 60], [34, 64]) },
+  shin: { wind: P(-3, 12, -10, 0, [40, 85], [60, 75], [-26, 44], [30, 76]), hit: P(3, 16, 18, 0, [30, 80], [70, 50], [-50, 70], [96, 8]) },
+  trip: { wind: P(-4, 18, -14, 0, [20, 70], [50, 60], [-40, 60], [24, 76]), hit: P(6, 26, 30, 0, [-20, 60], [90, 30], [-80, 90], [100, 0]) },
+  palm: { wind: P(-3, 4, -10, 0, [30, 90], [-10, 120], [-22, 22], [24, 26]), hit: P(5, 3, 16, 2, [30, 90], [96, 70], [-28, 20], [30, 16]) },
+  palm2: { wind: P(-3, 4, -12, 0, [-10, 120], [40, 90], [-22, 22], [24, 26]), hit: P(6, 3, 18, -2, [96, 70], [40, 90], [-30, 20], [32, 16]) },
+  hook: { wind: P(-8, 4, -22, -4, [30, 100], [-60, 110], [-28, 24], [26, 26]), hit: P(10, 2, 28, 6, [30, 100], [74, 0], [-40, 14], [34, 8]) },
+  rise: { wind: P(0, 12, -6, 0, [-20, 90], [-30, 90], [-24, 50], [26, 56]), hit: P(2, -4, 18, 0, [-80, 20], [170, 20], [-20, 90], [30, 110]) },
+  apunch2: { wind: P(0, 0, 0, 0, [-20, 90], [30, 80], [-24, 36], [28, 44]), hit: P(2, 0, 14, 0, [92, 6], [30, 80], [-34, 40], [30, 30]) },
   cast: { wind: P(-4, 4, -8, 0, [-30, 60], [-20, 80], [-20, 25], [24, 22]), hit: P(4, 3, 8, 0, [75, 20], [92, 10], [-26, 20], [30, 24]) },
   dash: { wind: P(-6, 8, -20, 0, [-30, 70], [-10, 80], [-28, 30], [30, 40]), hit: P(6, 8, 36, 0, [-60, 40], [96, 4], [-70, 6], [20, 60]) },
   strike: { wind: P(-4, 6, -16, 0, [20, 90], [-30, 90], [-24, 30], [30, 30]), hit: P(6, 4, 22, 0, [30, 90], [96, 6], [-40, 14], [36, 18]) },
@@ -204,26 +213,13 @@ function drawSpriteFighter(g, ch, A, f, clock) {
   const sp = ch.sprite, img = imgOf(sp), awake = !!(f && f.buff === 'awaken');
   const cx = 64 + A.hx * 0.6, hy = FOOT - 24 + A.hy;
   if (img.complete && img.naturalWidth) {
-    // le sprite est coupé à la hanche : buste (penche, respire) + deux copies des jambes qui pivotent comme les jambes de la pose
-    const W = sp.w, H = sp.h, cut = Math.round(H * 0.6), top = -H + 2, hipY = top + cut, x0 = -W / 2 + 3;
-    const dy = Math.max(0, (A.hy - 3) * 0.8), idle = Math.sin(clock * 0.1) * 0.6;
-    const L = H - cut, sq = Math.max(0.55, 1 - dy / L);
-    g.imageSmoothingEnabled = false;
-    g.save(); g.translate(cx, FOOT);
-    const leg = (a, dark) => {
-      g.save(); g.translate(0, hipY + dy); g.rotate(-a * D2R * 0.9); g.scale(1, sq);
-      if (dark) g.filter = 'brightness(0.6)';
-      g.drawImage(img, 0, cut, W, L, x0, 0, W, L); g.restore();
-    };
-    leg(A.ll[0] + 16, true);
-    leg(A.rl[0] - 22, false);
-    g.save(); g.translate(0, dy + idle); g.translate(0, hipY); g.rotate((A.lean - 6) * D2R * 0.9 + A.tilt * D2R * 0.4); g.translate(0, -hipY);
+    g.save(); g.translate(cx, FOOT); g.rotate((A.lean + A.tilt * 0.5) * D2R * 0.8);
     if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
-    g.drawImage(img, 0, 0, W, cut, x0, top, W, cut); g.restore();
+    g.imageSmoothingEnabled = false; g.drawImage(img, -sp.w / 2 + 3, -sp.h + 2 + Math.min(0, A.hy * 0.5), sp.w, sp.h);
     g.restore();
   }
   const lx = Math.sin(A.lean * D2R), ly = Math.cos(A.lean * D2R);
-  const sx = cx + lx * 21 + 3, sy = hy - ly * 21 - 2 + Math.max(0, (A.hy - 3) * 0.8) * 0;
+  const sx = cx + lx * 21 + 3, sy = hy - ly * 21 - 2;
   const ra = limb(g, sx, sy + 2, A.ra[0], A.ra[0] + A.ra[1], 10, 10, 5.4, hexShade(ch.top, -0.1));
   const wch = awake ? { ...ch, acc: '#ff1030' } : ch;
   if (ch.weapon) drawWeapon(g, ch.weapon, ra[0], ra[1], A.ra[0] + A.ra[1], wch, clock);
