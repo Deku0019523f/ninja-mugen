@@ -100,8 +100,9 @@ export class View {
   setFighters(world) {
     for (const o of this.fs) { this.root.remove(o.mesh, o.shadow, o.aura); o.tex.dispose(); }
     this.fs = world.fighters.map((f) => {
-      const [c, g] = c2(SPR, SPR); const t = tex(c);
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(SPR, SPR), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+      const cs = f.char.sheet ? SPR * 2 : SPR;      // planches : canevas élargi pour ne pas couper armes et sauts
+      const [c, g] = c2(cs, cs); const t = tex(c);
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(cs, cs), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
       const shadow = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
       const aura = new THREE.Mesh(new THREE.PlaneGeometry(150, 150), new THREE.MeshBasicMaterial({ map: auraTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0 }));
       mesh.position.z = 1 + f.slot * 0.01; shadow.position.z = 0.5; aura.position.z = 0.9;
