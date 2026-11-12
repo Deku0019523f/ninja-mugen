@@ -1,14 +1,14 @@
-// « Shell » : barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCHES + son), voile derrière les menus,
+// « Shell » : barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORÓS · TOUCHES + son), voile derrière les menus,
 // transition « coup de sabre », bulle d'info. Les écrans se dessinent dans #screen, juste sous la barre.
 import { G, el, save } from '../screens/ctx.js';
 import { MODES } from '../modes/index.js';
 import { ICON, SHURIKEN } from './icons.js';
 import { sfx, setMuted, setMusic, initAudio } from '../audio.js';
 
-const TABS = [['accueil', 'ACCUEIL', 'title'], ['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORS', 'stage'], ['touches', 'TOUCHES', 'controls']];
+const TABS = [['accueil', 'ACCUEIL', 'title'], ['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORÓS', 'stage'], ['touches', 'TOUCHES', 'controls']];
 // écran → [onglet actif, style du voile]. Les écrans absents (vs, résultat, combat) n'ont pas de barre.
-const SCREEN = { title: ['accueil', 'on'], select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: ['touches', 'on blur'], options: [null, 'on blur'] };
-const VEIL_ONLY = { result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
+const SCREEN = { select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: ['touches', 'on blur'], options: [null, 'on blur'] };
+const VEIL_ONLY = { title: 'on', modes: 'on', heroes: 'on heavy', daily: 'on blur', result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
 
 let ui, bar, veil, slashEl, toastEl, tabEls = {}, snd, hideT = 0, slashT = 0;
 
