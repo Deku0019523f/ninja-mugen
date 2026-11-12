@@ -6,8 +6,10 @@ import desert from './desert.js';
 import snow from './snow.js';
 import night from './night.js';
 import volcano from './volcano.js';
+import { IMAGE_STAGES, preloadStages } from './images.js';
 
-const LIST = [forest, plains, desert, snow, night, volcano];
+const LIST = [forest, plains, desert, snow, night, volcano, ...IMAGE_STAGES];
+preloadStages();
 export const STAGES = LIST.map(({ id, name }) => ({ id, name }));
 
 export function buildStage(idx) {
