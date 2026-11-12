@@ -100,7 +100,7 @@ export class View {
   setFighters(world) {
     for (const o of this.fs) { this.root.remove(o.mesh, o.shadow, o.aura); o.tex.dispose(); }
     this.fs = world.fighters.map((f) => {
-      const cs = f.char.sheet ? SPR * 2 : SPR;      // planches : canevas élargi pour ne pas couper armes et sauts
+      const cs = f.char.sheet ? SPR * 3 : SPR;      // planches : canevas élargi pour ne pas couper armes et sauts
       const [c, g] = c2(cs, cs); const t = tex(c);
       const mesh = new THREE.Mesh(new THREE.PlaneGeometry(cs, cs), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
       const shadow = new THREE.Mesh(new THREE.PlaneGeometry(60, 15), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
