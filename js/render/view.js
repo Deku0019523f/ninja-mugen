@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { ARCH } from '../data/roster.js';
 import { SPR, drawFighter, poseFor } from './sprites.js';
 import { buildStage } from '../stages/index.js';
+import { fxFrames, projSprite, preloadFx } from './fxsheet.js';
 import { projFrames, pillarTex, haloTex, ringTex, flareTex, slashTex, beamTexture, beamCore, FRAMES_N } from './fx.js';
 
 // couleurs d'effets d'un personnage (sa fiche peut surcharger celles de son style)
@@ -60,6 +61,7 @@ export class View {
     this.layers = []; this.fs = []; this.pm = new Map(); this.fx = [];
     this.parts = new Particles(this.scene);
     this.smoke = new Particles(this.scene, 320, THREE.NormalBlending); this.smoke.pts.position.z = 5.5;
+    preloadFx();
     this.root = new THREE.Group(); this.scene.add(this.root);
     this.flash = 0; this.dark = 0;
     this.dim = new THREE.Mesh(new THREE.PlaneGeometry(1200 * 3, VH * 2), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
@@ -154,7 +156,7 @@ export class View {
     }
   }
 
-  // arc de lame : traé qui accompagne les coups des personnages armés
+  // arc de lame : tracé qui accompagne les coups des personnages armés
   slash(f, m) {
     const R2 = Math.random;
     const [c1, c2] = colsOf(f.char), big = m && (m.super || m.id === 'smash' || m.id === 'punch3' || m.id === 'kick' || m.id === 'sweep' || m.id === 'upper');
@@ -162,7 +164,8 @@ export class View {
     const L = (m && m.rx ? Math.min(150, m.rx + 28) : 90) * f.scale * (f.char.reach || 1), x = f.x + f.face * L * 0.5, y = GROUND + f.y + 46 * f.scale;
     const mt = new THREE.Mesh(new THREE.PlaneGeometry(L, big ? 66 : 44), new THREE.MeshBasicMaterial({ map: slashTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: col(c2), opacity: .95 }));
     mt.position.set(x, y, 4.6); mt.scale.x = f.face; mt.rotation.z = ang * f.face; this.root.add(mt);
-    this.fx.push({ m: mt, life: big ? 9 : 7, max: big ? 9 : 7, grow: 0, op: .95, rot: 0, slash: true });
+    const sf = fxFrames(Math.abs(ang) < 0.4 ? 'magic_streak' : 'magic_slash'); if (sf) mt.material.map = sf[0];
+    this.fx.push({ m: mt, life: big ? 9 : 7, max: big ? 9 : 7, grow: 0, op: .95, rot: 0, slash: true, frames: sf });
     // seconde couche plus large dans la couleur principale, puis gerbe propre à l'élément du style
     const m2 = new THREE.Mesh(new THREE.PlaneGeometry(L * 1.25, big ? 96 : 64), new THREE.MeshBasicMaterial({ map: slashTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: col(c1), opacity: .6 }));
     m2.position.set(x, y, 4.5); m2.scale.x = f.face; m2.rotation.z = ang * f.face; this.root.add(m2);
@@ -182,25 +185,27 @@ export class View {
       let o = this.pm.get(p.id);
       if (!o) {
         const solid = p.type === 'pillar' || ['earth', 'sand', 'bone', 'puppet', 'ice', 'art'].includes(style);
-        const frames = p.type === 'pillar' ? [pillarTex(ch.arch, c1, c2)] : p.type === 'shock' ? null : projFrames(style, c1, c2);
-        const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: frames ? frames[0] : flareTex, transparent: true, depthWrite: false, blending: solid || p.type === 'pillar' ? THREE.NormalBlending : THREE.AdditiveBlending, color: p.type === 'shock' ? col(c2) : 0xffffff }));
+        const sp = projSprite(p, ch, style);
+        const frames = sp ? sp.frames : p.type === 'pillar' ? [pillarTex(ch.arch, c1, c2)] : p.type === 'shock' ? null : projFrames(style, c1, c2);
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: frames ? frames[0] : flareTex, transparent: true, depthWrite: false, blending: solid || sp || p.type === 'pillar' ? THREE.NormalBlending : THREE.AdditiveBlending, color: p.type === 'shock' ? col(c2) : 0xffffff }));
         m.position.z = 2; this.root.add(m);
         const h = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: haloTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: col(c1), opacity: .55 }));
         h.position.z = 1.9; if (p.type === 'pillar' || p.type === 'shock' || style === 'poison' || style === 'zone') h.visible = false; this.root.add(h);
-        o = { m, h, frames, style, dir: Math.sign(p.vx) || p.owner.face }; this.pm.set(p.id, o);
+        o = { m, h, frames, sp, style, dir: Math.sign(p.vx) || p.owner.face }; this.pm.set(p.id, o);
       }
-      const sc = p.big ? 1.6 : 1, dir = Math.sign(p.vx || o.dir) || 1;
+      const sc = p.big ? 1.6 : 1, dir = Math.sign(p.vx || o.dir) || 1, dirOK = DIR.has(o.style) || !!o.sp;
       if (o.frames && o.frames.length > 1) o.m.material.map = o.frames[Math.floor(p.age / 2) % o.frames.length];
       const pulse = 1 + Math.sin(p.age * 0.5) * 0.05;
       let w = p.w * 1.5 * sc, h = p.h * 1.5 * sc;
+      if (o.sp) { const B = Math.max(p.w, p.h) * 2.2 * sc; if (o.sp.aspect >= 1) { w = B; h = B / o.sp.aspect; } else { h = B; w = B * o.sp.aspect; } }
       if (p.type === 'shock') { w = p.w * (1 + p.age * 0.1); h = p.h * (1 + p.age * 0.1); o.m.material.opacity = Math.max(0, 1 - p.age / 6); }
-      const vert = DIR.has(o.style) && Math.abs(p.vx) <= 0.3 && Math.abs(p.vy) > 2;
-      o.m.scale.set(w * pulse * (DIR.has(o.style) && !vert ? dir : 1), h * pulse, 1);
+      const vert = dirOK && Math.abs(p.vx) <= 0.3 && Math.abs(p.vy) > 2;
+      o.m.scale.set(w * pulse * (dirOK && !vert ? dir : 1), h * pulse, 1);
       o.m.position.set(p.x, GROUND + p.y, 2);
       o.m.rotation.z = 0;
       if (o.style === 'earth' && p.type !== 'pillar') o.m.rotation.z = -p.age * 0.2 * o.dir;
       else if (vert) o.m.rotation.z = p.vy < 0 ? -Math.PI / 2 : Math.PI / 2;
-      else if (DIR.has(o.style) && Math.abs(p.vy) > 0.4 && Math.abs(p.vx) > 0.3) o.m.rotation.z = Math.atan2(p.vy, Math.abs(p.vx)) * dir;
+      else if (dirOK && Math.abs(p.vy) > 0.4 && Math.abs(p.vx) > 0.3) o.m.rotation.z = Math.atan2(p.vy, Math.abs(p.vx)) * dir;
       if (p.type === 'pillar') { const k = Math.min(1, p.age / 6); o.m.scale.set(p.w * 1.5, p.h * k, 1); o.m.position.y = GROUND + (p.h * k) / 2; }
       o.h.position.set(p.x, GROUND + p.y, 1.9); const hs = Math.max(p.w, p.h) * 2.6 * sc * (1 + Math.sin(p.age * 0.4) * 0.08); o.h.scale.set(hs, hs, 1);
       if (this.parts && p.age % 2 === 0 && p.type !== 'pillar' && p.type !== 'shock') {
@@ -285,7 +290,8 @@ export class View {
       if (f.buff === 'power' && Math.floor(this.clock) % 3 === 0) { const c = col(a.c1); this.parts.emit({ x: f.x + (Math.random() - .5) * 20, y: GROUND + f.y + 10, vx: 0, vy: 1.8, life: 24, size: 9, c: [c.r, c.g, c.b], drag: 1 }); }
     }
     this.syncProj(world); this.syncBeams(world);
-    for (const e of this.fx) { e.life -= dt * 60; const k = 1 - e.life / e.max; if (e.slash) { e.m.material.opacity = Math.max(0, e.op * (1 - k * k)); e.m.scale.y = 1 - k * .5; } else { e.m.scale.x = e.m.scale.y = 1 + k * e.grow * .12; e.m.material.opacity = Math.max(0, e.op * (1 - k)); } }
+    for (const e of this.fx) { e.life -= dt * 60; const k = 1 - e.life / e.max; if (e.frames) e.m.material.map = e.frames[Math.min(e.frames.length - 1, Math.floor(k * e.frames.length))];
+      if (e.slash) { e.m.material.opacity = Math.max(0, e.op * (1 - k * k)); e.m.scale.y = 1 - k * .5; } else { e.m.scale.x = e.m.scale.y = 1 + k * e.grow * .12; e.m.material.opacity = Math.max(0, e.op * (1 - k)); } }
     this.fx = this.fx.filter((e) => { if (e.life <= 0) { this.root.remove(e.m); e.m.material.dispose(); return false; } return true; });
     // ambiance (neige / braises)
     if (this.rain && Math.random() < .6) this.parts.emit({ x: this.camX + (Math.random() - .5) * 700, y: 260, vx: -0.4 + Math.random() * .4, vy: -1.1 - Math.random(), life: 260, size: 5, c: [1, 1, 1], drag: 1 });
