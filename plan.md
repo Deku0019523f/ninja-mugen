@@ -29,6 +29,6 @@ Ordre de réalisation : du plus simple au plus difficile (B → A → C → D). 
 - [x] 16. Récompense quotidienne sur 7 jours
 
 ## D. Missions (le plus difficile)
-- [ ] 17. Mode Histoire : carte à nœuds (combats, boss), 3 difficultés
-- [ ] 18. Objectifs bonus par niveau (gagner en moins de 3 min, finir sans perdre d'allé) : étoiles et récompenses
-- [ ] 19. Mode Tournoi (arbre d'élimination)
+- [x] 17. Mode Histoire : carte à nœuds (combats, boss), 3 difficultés
+- [x] 18. Objectifs bonus par niveau (gagner en moins de 3 min, finir sans perdre d'allé) : étoiles et récompenses
+- [x] 19. Mode Tournoi (arbre d'élimination à 16)

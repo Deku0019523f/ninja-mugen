@@ -8,7 +8,7 @@ import { sfx, setMuted, setMusic, initAudio } from '../audio.js';
 const TABS = [['accueil', 'ACCUEIL', 'title'], ['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORS', 'stage'], ['touches', 'TOUCHES', 'controls']];
 // écran → [onglet actif, style du voile]. Les écrans absents (accueil, vs, résultat, combat…) n'ont pas de barre.
 const SCREEN = { select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: ['touches', 'on blur'], options: [null, 'on blur'] };
-const VEIL_ONLY = { title: 'on', modes: 'on', heroes: 'on heavy', daily: 'on blur', result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
+const VEIL_ONLY = { title: 'on', modes: 'on', story: 'on heavy', bracket: 'on heavy', heroes: 'on heavy', daily: 'on blur', result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
 
 let ui, bar, veil, slashEl, toastEl, tabEls = {}, snd, hideT = 0, slashT = 0;
 

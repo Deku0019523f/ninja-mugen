@@ -6,8 +6,10 @@ import { sfx } from '../audio.js';
 
 const play = (mode) => () => { G.mode = mode; G.go('select'); };
 export const MODE_LIST = [
+  { id: 'story', label: 'HISTOIRE', icon: 'bolt', desc: '10 combats avec 2 boss, sur 3 difficultés. Remplissez les objectifs bonus pour gagner des étoiles.', rew: ['+40 pièces par étoile', '+2 gemmes pour 3 étoiles', '+60 pièces par victoire'], go: () => { G.mode = 'story'; G.go('story'); } },
   { id: 'single', label: 'DUEL', icon: 'swords', desc: 'Un match libre contre l\'ordinateur ou contre un ami sur le même écran. Réglez le format, la difficulté et le décor.', rew: ['+60 pièces par victoire', '+1 gemme par victoire'], go: play('single') },
   { id: 'arcade', label: 'ARCADE', icon: 'star', desc: '8 combats d\'affilée contre l\'ordinateur, jusqu\'à l\'Ultime Maître. La difficulté monte à chaque combat.', rew: ['+60 pièces par victoire', '+150 pièces et +3 gemmes au combat final'], go: play('arcade') },
+  { id: 'tournament', label: 'TOURNOI', icon: 'shield', desc: 'Seize combattants, un arbre à élimination directe : huitièmes, quarts, demi-finales, finale. Une défaite et c\'est fini.', rew: ['+60 pièces par victoire', '+150 pièces et +3 gemmes pour la coupe'], go: play('tournament') },
   { id: 'survival', label: 'SURVIE', icon: 'shield', desc: 'Enchaînez les adversaires sans fin. Votre vie ne se régénère que peu entre deux combats : jusqu\'où irez-vous ?', rew: ['+60 pièces par victoire', '+1 gemme par victoire'], go: play('survival') },
   { id: 'training', label: 'ENTRAÎNEMENT', icon: 'fist', desc: 'Un mannequin et du chakra infini pour apprendre les combos, les ninjutsus et les ultimes.', rew: ['Aucune récompense'], go: play('training') },
   { id: 'online', label: 'MULTIJOUEUR', icon: 'net', desc: 'Affrontez un ami en Wi-Fi, en Bluetooth ou sur internet avec un code de salle à 5 caractères.', rew: ['Aucune récompense'], go: () => { G.mode = 'online'; G.go('online'); } },

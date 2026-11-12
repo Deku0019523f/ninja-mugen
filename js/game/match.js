@@ -29,7 +29,7 @@ export class Match {
     if (cfg.mode === 'training') { this.world.fighters[0].infiniteChi = true; }
     if (cfg.carry) cfg.carry.forEach((hp, i) => { if (this.world.fighters[i] && hp != null) this.world.fighters[i].hp = Math.max(1, hp); });
     view.setStage(cfg.stage); view.setFighters(this.world); view.camX = 0;
-    this.keepHp = !!cfg.carry; this.drawCount = 0;
+    this.keepHp = !!cfg.carry; this.drawCount = 0; this.ff = 0; this.maxChain = 0;   // statistiques pour les objectifs bonus
     this.startRound();
   }
 
@@ -95,6 +95,7 @@ export class Match {
       if (t === 88) { this.hud.banner('COMBAT !', 50); sfx.fight(); w.fighters.forEach((f) => (f.introPose = false)); }
       if (t >= 105) { this.phase = 'fight'; this.pt = 0; }
     } else if (this.phase === 'fight') {
+      this.ff++; for (const f of w.team(0)) if (f.chainT > 0 && f.chain > this.maxChain) this.maxChain = f.chain;
       if (this.timeLeft > 0 && --this.timeLeft === 0) return this.timeUp();
       for (const tm of [0, 1]) if (w.teamDown(tm) && this.cfg.mode !== 'training') return this.ko(tm === 0 ? 1 : 0);
       if (this.cfg.mode === 'training') {
@@ -144,7 +145,8 @@ export class Match {
     if (this.wins[0] >= need || this.wins[1] >= need) {
       this.finished = true;
       const carry = this.world.team(0).map((f) => Math.max(1, f.hp));
-      this.onEnd({ winner: this.wins[0] >= need ? 0 : 1, wins: [...this.wins], carry });
+      const hpMax = this.world.team(0).reduce((a, f) => a + f.maxHp, 0) || 1;
+      this.onEnd({ winner: this.wins[0] >= need ? 0 : 1, wins: [...this.wins], carry, stats: { sec: this.ff / 60, lost: this.wins[1], hp: carry.reduce((a, b) => a + b, 0) / hpMax, chain: this.maxChain } });
     } else this.startRound();
   }
 
