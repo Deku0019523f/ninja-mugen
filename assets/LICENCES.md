@@ -1,12 +1,13 @@
 # Licences des assets
 
-Les planches de personnages et d'effets viennent de Craftpix.net (packs gratuits) :
+Personnages (planches `assets/sprites/<id>.png`) :
 
-- Free Shinobi Sprites Pixel Art (453698) : Shinobi, Samurai, Fighter
-- Free Samurai Pixel Art Sprite Sheets (123681) : Samurai, Samurai Archer, Samurai Commander
-- Free Wizard Sprite Sheets Pixel Art (529677) : Fire Wizard, Lightning Mage, Wanderer Magician
-- Free Pixel Magic Sprite Effects Pack (440623) : effets `magic_*`
-- Fire / Water Spell Effects (Fire Ball, Fire Spell, Fire Arrow, Water Ball, Water Spell, Water Arrow) : `fire_*`, `water_*`
+- Martial Hero, Evil Wizard, Evil Wizard 2, Medieval King Pack 2 : CC0 (licence fournie avec chaque pack).
+- Fire Warrior (avec et sans épée de feu), Spearwoman (lance de foudre), NightBorne, Leaf Ranger (Elementals) : packs gratuits fournis par l'auteur du jeu ; conditions à vérifier sur la page de chaque pack avant toute publication ou redistribution.
 
-Conditions : https://craftpix.net/file-licenses/ — à vérifier avant toute publication ou redistribution des fichiers eux-mêmes.
-Les atlas `assets/sprites/<id>.png` regroupent les animations d'un personnage (une ligne par animation, voir `js/render/sheetdata.js`) ; les bandes `assets/fx/*.png` sont les effets recadrés.
+Effets :
+
+- Craftpix.net : Free Pixel Magic Sprite Effects Pack (440623) pour `magic_*` ; Fire / Water Spell Effects pour `fire_*`, `water_*` ; Wizard Sprite Sheets (529677) pour `pj_wanderer` ; Samurai Archer (123681) pour `pj_archer`. Conditions : https://craftpix.net/file-licenses/
+- Boule de feu (Fire Warrior) et boule de foudre (Spearwoman) : `pj_fire`, `pj_lightning`.
+
+Les atlas regroupent les animations d'un personnage (une ligne par animation, voir `js/render/sheetdata.js`) ; les bandes `assets/fx/*.png` sont les effets recadrés. Ne pas redistribuer les fichiers seuls sans vérifier les licences ci-dessus.

@@ -1,5 +1,5 @@
 // ============================================================
-//  PLANCHES DE SPRITES ANIMÉES (pixel art Craftpix) : un atlas PNG par personnage (assets/sprites/<id>.png),
+//  PLANCHES DE SPRITES ANIMÉES (pixel art) : un atlas PNG par personnage (assets/sprites/<id>.png),
 //  une ligne par animation (idle, walk, jump, a1, a2, a3, hurt, dead, guard, spec, sup).
 //  Si l'image n'est pas encore chargée (ou absente), drawFighter retombe sur le dessin vectoriel.
 // ============================================================
@@ -47,20 +47,19 @@ function pick(S, f, clock) {
 // dessine le combattant (état de f) dans le canevas g ; rot / off : rotation et décalage de poseFor (chute, roulade)
 export function drawSheetFighter(g, ch, f, rot, off, clock) {
   const S = SHEETS[ch.sheet], img = imgOf(ch.sheet), awake = !!(f && f.buff === 'awaken');
-  const k = clamp(100 / S.bh, 0.85, 1.5);
+  const k = clamp(100 / S.bh, 0.4, 3.2);
   const { r, i } = f ? pick(S, f, clock) : { r: 'idle', i: Math.floor(clock / 7) % S.rows.idle.n };
   const row = S.rows[r] || S.rows.idle, idx = clamp(i, 0, row.n - 1), st = f && f.state;
   const keepRot = st === 'launch' || st === 'roll';
-  const W = g.canvas.width, pad = (W - 128) / 2;      // canevas élargi (256) : marge pour les armes et les sauts
+  const W = g.canvas.width, pad = (W - 128) / 2;      // canevas élargi : marge pour les armes et les sauts
   g.clearRect(0, 0, W, W);
   g.save(); g.translate(pad, pad);
   if (keepRot && rot) { g.translate(64, FOOT_Y - 24); g.rotate(rot * Math.PI / 180); g.translate(-64, -(FOOT_Y - 24)); }
   g.imageSmoothingEnabled = false;
   if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
-  const dw = row.fw * k, dh = row.fh * k, feet = row.fh === 128 ? S.feet : row.fh;
-  g.drawImage(img, idx * row.fw, row.y, row.fw, row.fh, 64 - (row.fw === 128 ? S.cx : row.fw / 2) * k, FOOT_Y - feet * k + (keepRot ? 0 : off || 0), dw, dh);
+  g.drawImage(img, idx * row.fw, row.y, row.fw, row.fh, 64 - S.cx * k, FOOT_Y - S.feet * k + (keepRot ? 0 : off || 0), row.fw * k, row.fh * k);
   g.restore();
 }
 
 // recadrage du portrait (tête et buste du personnage au repos)
-export function sheetPortraitBox(ch) { const S = SHEETS[ch.sheet], k = clamp(100 / S.bh, 0.85, 1.5), top = FOOT_Y - S.feet * k + (S.feet - S.bh) * k; return { x: 64 - 24, y: Math.max(0, top - 4), w: 48, h: 48 }; }
+export function sheetPortraitBox(ch) { const S = SHEETS[ch.sheet], k = clamp(100 / S.bh, 0.4, 3.2), top = FOOT_Y - S.bh * k; return { x: 64 - 24, y: Math.max(0, top - 4), w: 48, h: 48 }; }
