@@ -2,6 +2,7 @@
 //  SPRITES : combattants dessinés en direct sur canvas 128x128 (squelette 2D)
 //  Convention : angle 0 = vers le bas, + = vers l'avant (le personnage regarde à droite)
 // ============================================================
+import { sheetReady, drawSheetFighter, onSheetLoad, sheetPortraitBox } from './sheet.js';
 import { hexShade } from '../data/roster.js';
 import { drawWeapon, drawBackGear, drawTorsoGear, drawArmGear, drawHeadGear } from './gear.js';
 
@@ -242,6 +243,7 @@ function drawSpriteFighter(g, ch, A, f, clock) {
 export function drawFighter(g, ch, pose, opt = {}) {
   const { rot = 0, off = 0, f = null, clock = 0 } = opt;
   g.clearRect(0, 0, SPR, SPR);
+  if (ch.sheet && sheetReady(ch)) { drawSheetFighter(g, ch, f, rot, off, clock); return; }
   if (ch.sprite) {
     g.save();
     if (rot) { g.translate(64, FOOT - 22); g.rotate(rot * D2R); g.translate(-64, -(FOOT - 22) + off); }
@@ -308,9 +310,10 @@ export function drawPortrait(g, ch, size = 64) {
     drawFighter(gg, ch, KEY.intro, { clock: 0 });
     g.imageSmoothingEnabled = false;
     g.clearRect(0, 0, size, size);
-    if (ch.sprite) g.drawImage(c, 32, 8, 46, 46, 0, 0, size, size);
+    if (ch.sheet && sheetReady(ch)) { const b = sheetPortraitBox(ch); g.drawImage(c, b.x, b.y, b.w, b.h, 0, 0, size, size); }
+    else if (ch.sprite) g.drawImage(c, 32, 8, 46, 46, 0, 0, size, size);
     else g.drawImage(c, 36, 26, 66, 66, 0, 0, size, size);
   };
-  paint();
+  paint(); onSheetLoad(ch, paint);
   if (ch.sprite) { const i = imgOf(ch.sprite); if (!i.complete) i.addEventListener('load', paint, { once: true }); }
 }
