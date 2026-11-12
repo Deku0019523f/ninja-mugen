@@ -16,7 +16,8 @@ export const prog = {
   tiers: (id) => TIERS.filter((t) => prog.level(id) >= t).length,
   rank: (id) => { const l = prog.level(id); return l >= 40 ? 'S' : l >= 20 ? 'A' : 'D'; },
   // multiplicateurs appliqués au combattant : ATK, PV, taux de critique (les paliers ajoutent +4 % d'ATK chacun)
-  stats(id) { const l = prog.level(id), t = prog.tiers(id); return { atk: (1 + 0.025 * (l - 1)) * (1 + 0.04 * t), hp: 1 + 0.03 * (l - 1), crit: 0.05 + 0.004 * (l - 1) }; },
+  stats(id, lv) { const l = lv || prog.level(id), t = TIERS.filter((x) => l >= x).length; return { atk: (1 + 0.025 * (l - 1)) * (1 + 0.04 * t), hp: 1 + 0.03 * (l - 1), crit: 0.05 + 0.004 * (l - 1) }; },
+  power() { let p = 0; for (const k in P.lvl) p += P.lvl[k] * 10 + TIERS.filter((x) => P.lvl[k] >= x).length * 50; return 500 + p; },
   cost: (id) => 80 + prog.level(id) * 40,
   upgrade(id) { const c = prog.cost(id); if (prog.level(id) >= MAXLV || P.coins < c) return false; P.coins -= c; P.lvl[id] = prog.level(id) + 1; store(); return true; },
   add(c = 0, g = 0) { P.coins += c; P.gems += g; store(); },

@@ -10,6 +10,7 @@ import result from './result.js';
 import online from './online.js';
 import heroes from './heroes.js';
 import daily from './daily.js';
+import modes from './modes.js';
 import onlineResult from './onlineResult.js';
 
-export const SCREENS = { title, setup, select, stage, vs, options, controls, result, online, onlineResult, heroes, daily };
+export const SCREENS = { title, setup, select, stage, vs, options, controls, result, online, onlineResult, heroes, daily, modes };

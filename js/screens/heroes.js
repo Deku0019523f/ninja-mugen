@@ -1,46 +1,55 @@
-// Fiches de héros : rang D/A/S, niveau 1-50, ATK / PV / critique, paliers de compétence (10/20/30/40/50). Tout est sauvegardé sur l'appareil.
-import { G, el } from './ctx.js';
+// Héros : le héros choisi en grand, bande de cartes en bas (rang D/A/S), parchemin à droite (niveau, stats, paliers, amélioration).
+import { G, el, save } from './ctx.js';
 import { ROSTER } from '../data/roster.js';
-import { drawPortrait } from '../render/sprites.js';
-import { pageHead } from '../ui/shell.js';
+import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
+import { backBtn, pills, LOCK } from '../ui/kit.js';
 import { prog, MAXLV, TIERS } from '../progress.js';
 import { sfx } from '../audio.js';
 
-const TIER_TXT = ['Ninjutsu +', 'Technique +', 'Ultime +', 'Éveil +', 'Maîtrise +'];
+const TIER_TXT = ['Ninjutsu', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
 
 export default function sHeroes() {
-  const veil = document.getElementById('veil'); if (veil) veil.className = 'on heavy';   // pas de barre d'onglets ici : on pose le voile nous-mêmes
-  const wrap = el('div', 'heroes'), coin = el('div', 'cur-chip');
-  wrap.appendChild(pageHead({ title: 'HÉROS', onBack: () => G.go('title'), right: coin }));
-  const body = el('div', 'hr-body'), grid = el('div', 'hr-grid'), fiche = el('aside', 'plate cy hr-fiche');
-  body.append(grid, fiche); wrap.appendChild(body); G.screenEl.appendChild(wrap);
+  const root = el('div', 'hr'), top = el('div', 'kit-top'), cur = pills(() => G.go('daily'));
+  top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'HÉROS'), cur); root.appendChild(top);
+  const stage = el('div', 'hr-stage', '<canvas width="256" height="256"></canvas><div class="hr-plate"></div>'), panel = el('aside', 'parch hr-panel'), strip = el('div', 'hr-strip');
+  root.append(stage, panel, strip); G.screenEl.appendChild(root);
   let sel = Math.min(ROSTER.length - 1, G.S.hero || 0);
-  const cells = ROSTER.map((ch, i) => {
-    const c = el('div', 'hr-c'), cv = el('canvas'); cv.width = cv.height = 56; drawPortrait(cv.getContext('2d'), ch, 56);
-    const lv = el('i'); c.append(cv, lv); c.onclick = () => { sel = i; sfx.ui(); draw(); }; grid.appendChild(c); return { c, lv };
+  const cards = ROSTER.map((ch, i) => {
+    const c = el('div', 'hc'), cv = el('canvas'); cv.width = cv.height = 64; drawPortrait(cv.getContext('2d'), ch, 64);
+    const bd = el('i', 'bd'), lv = el('em'), one = el('u', 'one', '1');
+    c.append(cv, bd, lv, one); c.onclick = () => { sel = i; sfx.ui(); draw(); }; strip.appendChild(c); return { c, bd, lv, one };
   });
+  const g = stage.querySelector('canvas').getContext('2d');
+  let cur_ch = ROSTER[sel];
+  G.ticker = () => { const t = performance.now() / 16, { pose } = poseFor({ state: 'idle', t: 0, vx: 0, vy: 0, move: null }, t); g.setTransform(2, 0, 0, 2, 0, 0); drawFighter(g, cur_ch, pose, { clock: t }); };
+
   function draw() {
-    coin.innerHTML = `<b>●</b> ${prog.coins} <b class="g">◆</b> ${prog.gems}`;
-    cells.forEach((x, i) => { const id = i; x.c.classList.toggle('sel', i === sel); x.lv.textContent = `${prog.rank(id)} ${prog.level(id)}`; x.c.dataset.rank = prog.rank(id); });
-    const ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
-    fiche.innerHTML = `<div class="hf-top"><canvas width="96" height="96"></canvas><div><h3>${ch.name.toUpperCase()}</h3><small>${ch.title || ''}</small><div class="rank r${prog.rank(sel)}">RANG ${prog.rank(sel)}</div></div></div>
-      <div class="hf-lv">NIVEAU <b>${l}</b> / ${MAXLV}</div>
-      <div class="hf-st"><span>ATK <b>${Math.round(st.atk * 100)}%</b></span><span>PV <b>${Math.round(st.hp * 100)}%</b></span><span>CRIT <b>${Math.round(st.crit * 100)}%</b></span></div>
-      <div class="hf-tiers">${TIERS.map((t, i) => `<div class="${l >= t ? 'on' : ''}"><b>${t}</b><i>${TIER_TXT[i]}4%</i></div>`).join('')}</div>
-      <button class="btn up ${can ? '' : 'dis'}">${max ? 'NIVEAU MAX' : `AMÉLIORER · ${cost} ●`}</button>
-      <div class="hf-note">Les niveaux comptent contre l'ordinateur (pas en 2 joueurs ni en ligne).</div>`;
-    drawPortrait(fiche.querySelector('canvas').getContext('2d'), ch, 96);
-    fiche.querySelector('.up').onclick = up;
+    cur.refresh(); cur_ch = ROSTER[sel];
+    const chosen = (G.S.hero || 0) === sel;
+    cards.forEach((x, i) => { x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); x.bd.textContent = prog.rank(i); x.lv.textContent = `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
+    const ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), nx = prog.stats(sel, Math.min(MAXLV, l + 1)), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
+    stage.querySelector('.hr-plate').innerHTML = `<i class="rk r${prog.rank(sel)}">${prog.rank(sel)}</i><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
+    const d = (a, b, f) => (max ? '' : `<u>+${f(b - a)}</u>`);
+    panel.innerHTML = `<div class="pn-lv"><i class="drop"></i><b>Niveau ${l}/${MAXLV}</b></div>
+      <div class="pn-st">
+        <div><i class="ico atk"></i><span>ATK</span><b>${Math.round(st.atk * 100)}%${d(st.atk, nx.atk, (v) => Math.max(1, Math.round(v * 100)) + '%')}</b></div>
+        <div><i class="ico hp"></i><span>PV</span><b>${Math.round(st.hp * 100)}%${d(st.hp, nx.hp, (v) => Math.round(v * 100) + '%')}</b></div>
+        <div><i class="ico cd"></i><span>DÉGÂTS CRIT</span><b>160%</b></div>
+        <div><i class="ico cr"></i><span>TAUX CRIT</span><b>${(st.crit * 100).toFixed(1)}%${d(st.crit, nx.crit, (v) => (v * 100).toFixed(1) + '%')}</b></div>
+      </div>
+      <div class="pn-t"><b>PALIERS</b><small>chacun : +4 % d'ATK</small></div>
+      <div class="pn-un">${TIERS.map((t, i) => `<div class="${l >= t ? 'on' : ''}" title="${TIER_TXT[i]}"><span>Lv${t}</span><em>${l >= t ? '✔' : LOCK}</em></div>`).join('')}</div>
+      <div class="pn-bt"><button class="b-sel${chosen ? ' on' : ''}">${chosen ? 'Sélectionné' : 'CHOISIR'}</button><button class="b-up${can ? '' : ' dis'}">${max ? 'NIVEAU MAX' : `<b>${cost}</b><i class="ic gold"></i>`}</button></div>`;
+    panel.querySelector('.b-sel').onclick = choose; panel.querySelector('.b-up').onclick = up;
   }
-  function up() { if (prog.upgrade(sel)) { sfx.ok(); draw(); } else sfx.back(); }
-  const cols = () => Math.max(1, Math.floor(grid.clientWidth / 64));
+  function choose() { if ((G.S.hero || 0) !== sel) { G.S.hero = sel; save(); sfx.ok(); draw(); } }
+  function up() { if (prog.upgrade(sel)) { sfx.win(); draw(); } else sfx.back(); }
   G.handler = (k) => {
-    const n = ROSTER.length, c = cols();
+    const n = ROSTER.length;
     if (k === 'back') { sfx.back(); return G.go('title'); }
-    if (k === 'ok') return up();
-    if (k === 'left') sel = (sel + n - 1) % n; else if (k === 'right') sel = (sel + 1) % n;
-    else if (k === 'up') sel = (sel - c + n) % n; else if (k === 'down') sel = (sel + c) % n; else return;
-    sfx.ui(); draw(); cells[sel].c.scrollIntoView({ block: 'nearest' });
+    if (k === 'ok') return (G.S.hero || 0) !== sel ? choose() : up();
+    if (k === 'left') sel = (sel + n - 1) % n; else if (k === 'right') sel = (sel + 1) % n; else return;
+    sfx.ui(); draw(); cards[sel].c.scrollIntoView({ block: 'nearest', inline: 'center' });
   };
-  draw();
+  draw(); setTimeout(() => cards[sel].c.scrollIntoView({ block: 'nearest', inline: 'center' }), 30);
 }
