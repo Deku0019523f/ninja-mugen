@@ -51,7 +51,9 @@ export function drawSheetFighter(g, ch, f, rot, off, clock) {
   const { r, i } = f ? pick(S, f, clock) : { r: 'idle', i: Math.floor(clock / 7) % S.rows.idle.n };
   const row = S.rows[r] || S.rows.idle, idx = clamp(i, 0, row.n - 1), st = f && f.state;
   const keepRot = st === 'launch' || st === 'roll';
-  g.save();
+  const W = g.canvas.width, pad = (W - 128) / 2;      // canevas élargi (256) : marge pour les armes et les sauts
+  g.clearRect(0, 0, W, W);
+  g.save(); g.translate(pad, pad);
   if (keepRot && rot) { g.translate(64, FOOT_Y - 24); g.rotate(rot * Math.PI / 180); g.translate(-64, -(FOOT_Y - 24)); }
   g.imageSmoothingEnabled = false;
   if (awake) { g.shadowColor = '#ff1030'; g.shadowBlur = 8 + Math.sin(clock * 0.3) * 3; }
