@@ -3,7 +3,12 @@
 Personnages (planches `assets/sprites/<id>.png`) :
 
 - Martial Hero, Evil Wizard, Evil Wizard 2, Medieval King Pack 2 : CC0 (licence fournie avec chaque pack).
-- Fire Warrior (avec et sans épée de feu), Spearwoman (lance de foudre), NightBorne, Leaf Ranger (Elementals) : packs gratuits fournis par l'auteur du jeu ; conditions à vérifier sur la page de chaque pack avant toute publication ou redistribution.
+- Fire Warrior (avec et sans épée de feu), Spearwoman (lance de foudre), NightBorne, Leaf Ranger, Fire Knight, Wind Hashashin, Crystal Mauler (Elementals), Arcane Archer : packs gratuits fournis par l'auteur du jeu ; conditions à vérifier sur la page de chaque pack avant toute publication ou redistribution.
+
+Décors (`assets/stages/`) :
+
+- `city1` à `city4` : pack Craftpix 891123 (rues). Conditions : https://craftpix.net/file-licenses/
+- `ocean1`, `ocean5`, `ocean6`, `ocean7` : pack « ocean and clouds backgrounds » fourni par l'auteur du jeu ; conditions à vérifier.
 
 Effets :
 
