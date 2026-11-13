@@ -1,16 +1,16 @@
-// « Shell » : barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCHES + son), voile derrière les menus,
+// « Shell » : barre de navigation du parcours de sélection (ROSTER · RÈGLES · DÉCORS), voile derrière les menus,
 // transition « coup de sabre », bulle d'info. Les écrans se dessinent dans #screen, juste sous la barre.
-import { G, el, save } from '../screens/ctx.js';
+import { G, el } from '../screens/ctx.js';
 import { MODES } from '../modes/index.js';
 import { ICON, SHURIKEN } from './icons.js';
-import { sfx, setMuted, setMusic, initAudio } from '../audio.js';
+import { sfx } from '../audio.js';
 
-const TABS = [['accueil', 'ACCUEIL', 'title'], ['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORS', 'stage'], ['touches', 'TOUCHES', 'controls']];
+const TABS = [['roster', 'ROSTER', 'select'], ['regles', 'RÈGLES', 'setup'], ['decors', 'DÉCORS', 'stage']];
 // écran → [onglet actif, style du voile]. Les écrans absents (accueil, vs, résultat, combat…) n'ont pas de barre.
-const SCREEN = { select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: ['touches', 'on blur'], options: [null, 'on blur'] };
+const SCREEN = { select: ['roster', 'on heavy'], setup: ['regles', 'on blur'], stage: ['decors', 'on heavy'], controls: [null, 'on blur'] };
 const VEIL_ONLY = { title: 'on', modes: 'on', story: 'on heavy', bracket: 'on heavy', heroes: 'on heavy', daily: 'on blur', result: 'on blur', online: 'on blur', onlineResult: 'on blur' };
 
-let ui, bar, veil, slashEl, toastEl, tabEls = {}, snd, hideT = 0, slashT = 0;
+let ui, bar, veil, slashEl, toastEl, tabEls = {}, hideT = 0, slashT = 0;
 
 // Un onglet est grisé quand l'écran n'a pas de sens sans l'état précédent (décor = après le choix des combattants).
 function tabState(id) {
@@ -25,15 +25,13 @@ function toast(msg) {
   toastEl.textContent = msg; toastEl.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => toastEl.classList.remove('on'), 2200);
 }
 
-function sndIcon() { snd.innerHTML = (G.S.sound || G.S.music) ? ICON.sound : ICON.mute; snd.classList.toggle('off', !(G.S.sound || G.S.music)); }
-
 export const shell = {
   mount(uiEl) {
     ui = uiEl;
     document.documentElement.style.setProperty('--shuriken', `url("${SHURIKEN}")`);
     veil = el('div'); veil.id = 'veil'; document.body.insertBefore(veil, ui);
     bar = el('div'); bar.id = 'shell';
-    bar.innerHTML = `<div class="sh-brand"><span class="sh-logo">${ICON.bolt}</span><span class="sh-name">NINJA MUGEN</span></div><nav class="sh-tabs"></nav><button class="sh-snd" aria-label="Son"></button>`;
+    bar.innerHTML = `<div class="sh-brand"><span class="sh-logo">${ICON.bolt}</span><span class="sh-name">NINJA MUGEN</span></div><nav class="sh-tabs"></nav>`;
     const nav = bar.querySelector('.sh-tabs');
     for (const [id, label, screen] of TABS) {
       const t = el('button', 'sh-tab', label); t.dataset.tab = id;
@@ -43,9 +41,6 @@ export const shell = {
       };
       nav.appendChild(t); tabEls[id] = t;
     }
-    snd = bar.querySelector('.sh-snd');
-    snd.onclick = () => { const on = !(G.S.sound || G.S.music); G.S.sound = G.S.music = on; save(); setMuted(!G.S.sound); setMusic(G.S.music); initAudio(); sndIcon(); if (on) sfx.ok(); };
-    sndIcon();
     slashEl = el('div'); slashEl.id = 'slash'; slashEl.innerHTML = '<i></i><b></b>';
     toastEl = el('div', 'toast');
     ui.append(bar, slashEl, toastEl);
@@ -59,7 +54,6 @@ export const shell = {
     const v = def ? def[1] : VEIL_ONLY[name];
     veil.className = v || '';
     for (const [id] of TABS) { const t = tabEls[id]; t.classList.toggle('on', !!def && def[0] === id); t.classList.toggle('dis', !tabState(id).ok); }
-    sndIcon();
   },
 
   fit(vw) { ui.classList.toggle('compact', vw < 820); },

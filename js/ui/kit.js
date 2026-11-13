@@ -5,11 +5,10 @@ import { prog } from '../progress.js';
 export const LOCK = '<svg viewBox="0 0 24 24" width="100%" height="100%"><rect x="5" y="10" width="14" height="11" rx="2" fill="#f3e3b0" stroke="#2a1a08" stroke-width="2"/><path d="M8 10V7a4 4 0 018 0v3" fill="none" stroke="#2a1a08" stroke-width="2.4"/></svg>';
 export const GIFT = '<svg viewBox="0 0 48 48" width="100%" height="100%"><rect x="6" y="20" width="36" height="22" rx="3" fill="#e0402f" stroke="#2a1a08" stroke-width="2.5"/><rect x="4" y="14" width="40" height="9" rx="2" fill="#ff6a4a" stroke="#2a1a08" stroke-width="2.5"/><rect x="21" y="14" width="6" height="28" fill="#ffd44a" stroke="#2a1a08" stroke-width="1.5"/><path d="M24 14c-6-9-14-4-9 0M24 14c6-9 14-4 9 0" fill="none" stroke="#2a1a08" stroke-width="2.5"/></svg>';
 
-// pastille de monnaie : icône + valeur + bouton « + »
-export function pills(onPlus) {
+// pastille de monnaie : icône + valeur (simple affichage ; le cadeau quotidien a son propre bouton)
+export function pills() {
   const w = el('div', 'pills');
-  w.innerHTML = `<div class="pill"><i class="ic gem"></i><b data-k="g">${prog.gems}</b><button class="plus">+</button></div><div class="pill"><i class="ic gold"></i><b data-k="c">${prog.coins}</b><button class="plus">+</button></div>`;
-  w.querySelectorAll('.plus').forEach((b) => { b.onclick = onPlus || null; });
+  w.innerHTML = `<div class="pill"><i class="ic gem"></i><b data-k="g">${prog.gems}</b></div><div class="pill"><i class="ic gold"></i><b data-k="c">${prog.coins}</b></div>`;
   w.refresh = () => { w.querySelector('[data-k=g]').textContent = prog.gems; w.querySelector('[data-k=c]').textContent = prog.coins; };
   return w;
 }

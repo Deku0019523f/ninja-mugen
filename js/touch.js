@@ -25,14 +25,14 @@ function dirs(dx, dy, R) {
 
 export function initTouch() {
   const $ = (s) => document.querySelector(s);
-  const zone = $('#padzone'), stick = $('#stick'), knob = stick.querySelector('.knob'), dpad = $('#dpad'), sw = $('#padswitch'), acts = $('#acts');
+  const zone = $('#padzone'), stick = $('#stick'), knob = stick.querySelector('.knob'), dpad = $('#dpad'), acts = $('#acts');
   const cells = [...dpad.querySelectorAll('[data-d]')];
   let pid = null, cx = 0, cy = 0, R = 1;
   const rect = (e) => e.getBoundingClientRect();
 
   apply = () => {
     stick.style.display = mode === 'stick' ? 'block' : 'none'; dpad.style.display = mode === 'dpad' ? 'grid' : 'none';
-    sw.textContent = mode === 'stick' ? '✚' : '🕹'; release();
+    release();
   };
   const release = () => {
     pid = null; dirs(0, 0, 1); knob.style.transform = ''; stick.classList.remove('act'); dpad.classList.remove('act');
@@ -56,8 +56,6 @@ export function initTouch() {
   });
   zone.addEventListener('pointermove', (e) => { if (e.pointerId === pid) move(e); });
   ['pointerup', 'pointercancel'].forEach((n) => zone.addEventListener(n, (e) => { if (e.pointerId === pid) release(); }));
-  sw.addEventListener('click', () => setPadMode(mode === 'stick' ? 'dpad' : 'stick'));
-  sw.addEventListener('pointerdown', (e) => e.stopPropagation());
 
   // boutons d'action : tous les boutons proches d'un doigt sont pressés
   const btns = [...acts.querySelectorAll('[data-a]')], ptr = new Map();

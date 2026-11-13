@@ -9,7 +9,7 @@ import { sfx } from '../audio.js';
 const TIER_TXT = ['Ninjutsu', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
 
 export default function sHeroes() {
-  const root = el('div', 'hr'), top = el('div', 'kit-top'), cur = pills(() => G.go('daily'));
+  const root = el('div', 'hr'), top = el('div', 'kit-top'), cur = pills();
   top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'HÉROS'), cur); root.appendChild(top);
   const stage = el('div', 'hr-stage', '<canvas width="256" height="256"></canvas><div class="hr-plate"></div>'), panel = el('aside', 'parch hr-panel'), strip = el('div', 'hr-strip');
   root.append(stage, panel, strip); G.screenEl.appendChild(root);
@@ -28,7 +28,7 @@ export default function sHeroes() {
     const chosen = (G.S.hero || 0) === sel;
     cards.forEach((x, i) => { x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); x.bd.textContent = prog.rank(i); x.lv.textContent = `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
     const ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), nx = prog.stats(sel, Math.min(MAXLV, l + 1)), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
-    stage.querySelector('.hr-plate').innerHTML = `<i class="rk r${prog.rank(sel)}">${prog.rank(sel)}</i><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
+    stage.querySelector('.hr-plate').innerHTML = `<i class="rkb r${prog.rank(sel)}">${prog.rank(sel)}</i><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
     const d = (a, b, f) => (max ? '' : `<u>+${f(b - a)}</u>`);
     panel.innerHTML = `<div class="pn-lv"><i class="drop"></i><b>Niveau ${l}/${MAXLV}</b></div>
       <div class="pn-st">

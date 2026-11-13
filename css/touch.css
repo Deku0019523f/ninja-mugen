@@ -1,7 +1,7 @@
 /* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite, L1 R1 au-dessus du losange, L2 R2 au-dessus du stick (paysage) */
 :root{--bs:clamp(54px,17.5vh,96px)}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
-.is-touch #padzone,.is-touch #padswitch,.is-touch #acts,.is-touch #sups{pointer-events:auto}
+.is-touch #padzone,.is-touch #acts,.is-touch #sups{pointer-events:auto}
 
 /* zone de gauche : stick flottant ou croix */
 #padzone{position:absolute;left:0;bottom:0;width:42%;height:78%;touch-action:none}
@@ -17,7 +17,6 @@
 #dpad i[data-d=ul],#dpad i[data-d=ur],#dpad i[data-d=dl],#dpad i[data-d=dr]{border-radius:50%;font-size:calc(var(--bs)*.36);background:#141a3a66;margin:12%}
 #dpad i.mid{background:#ffffff12;border:2px solid #ffffff33;border-radius:50%;margin:8%}
 #dpad i.on{background:#ff7a1add;border-color:#fff}
-#padswitch{position:absolute;left:calc(var(--bs)*.2);bottom:calc(var(--bs)*2.95);width:calc(var(--bs)*.62);height:calc(var(--bs)*.62);border-radius:50%;border:2px solid #fff6;background:#141a3acc;color:#fff;font-size:calc(var(--bs)*.3);line-height:1;touch-action:manipulation}
 
 /* boutons d'action en losange (PlayStation) : △ haut, □ gauche, ○ droite, ✕ bas */
 #acts{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*.4);width:calc(var(--bs)*3);height:calc(var(--bs)*3);touch-action:none}

@@ -8,8 +8,8 @@ import { sfx } from '../audio.js';
 
 const SZ = [36, 40, 44, 48];   // taille des cases par tour (16 → 2)
 export default function sBracket() {
-  const run = G.run, me = run.p1[0], r = run.fight, br = run.br, root = el('div', 'br'), top = el('div', 'kit-top');
-  top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'TOURNOI'), pills(() => G.go('daily')));
+  const run = G.run, me = run.p1[0], r = run.fight, br = run.br, root = el('div', 'bkt'), top = el('div', 'kit-top');
+  top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'TOURNOI'), pills());
   const grid = el('div', 'br-grid'); root.append(top, el('div', 'br-rib', `<b>ROUND : ${tour.label[r]}</b>`), grid);
   G.screenEl.appendChild(root);
   const W = grid.clientWidth || 940, H = grid.clientHeight || 330, cols = 9, cx = (c) => (W / cols) * (c + 0.5);
