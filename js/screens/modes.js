@@ -25,7 +25,7 @@ export default function sModes() {
   function draw() {
     rows.forEach((r, i) => r.classList.toggle('sel', i === sel));
     const m = MODE_LIST[sel];
-    card.innerHTML = `<i class="beam"></i><i class="flag l"></i><i class="flag r"></i><div class="rib"><b>${m.label}</b></div><div class="md-in"><p>${m.desc}</p></div><div class="rewbar"><h4>RÉCOMPENSES</h4><div class="tiles">${m.rew.length ? m.rew.map(([k, n, t]) => `<div class="tl"><span><i class="ic ${k}"></i><em>×${n}</em></span><small>${t}</small></div>`).join('') : '<div class="none">Aucune récompense</div>'}</div></div><button class="next">SUIVANT</button>`;
+    card.innerHTML = `<i class="beam"></i><i class="flag l"></i><i class="flag r"></i><div class="rib"><b>${m.label}</b></div><div class="md-in"><p>${m.desc}</p></div><div class="rewbar"><h4>RÉCOMPENSES</h4><div class="tiles">${m.rew.length ? m.rew.map(([k, n, t]) => `<div class="rtl"><span><i class="ic ${k}"></i><em>×${n}</em></span><small>${t}</small></div>`).join('') : '<div class="none">Aucune récompense</div>'}</div></div><button class="next">SUIVANT</button>`;
     card.querySelector('.next').onclick = go;
   }
   const go = () => { sfx.ok(); MODE_LIST[sel].go(); };

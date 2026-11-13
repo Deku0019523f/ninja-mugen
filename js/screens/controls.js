@@ -73,7 +73,7 @@ export default function sControls() {
       const cap = (e) => { e.preventDefault(); e.stopImmediatePropagation(); removeEventListener('keydown', cap, true); if (e.code !== 'Escape') setKey(+k.dataset.p, k.dataset.a, e.code); draw(); };
       addEventListener('keydown', cap, true);
     }; });
-    foot.innerHTML = tab === 'tactile' ? `<span>Sticks virtuels : <b>${getPadMode() === 'stick' ? 'analogique' : 'croix'}</b> (Options ou bouton en combat)</span><span>Toucher ✚ / 🕹 pour changer</span>`
+    foot.innerHTML = tab === 'tactile' ? `<span>Sticks virtuels : <b>${getPadMode() === 'stick' ? 'analogique' : 'croix'}</b> (à changer dans RÉGLAGES, sur l'accueil)</span>`
       : tab === 'manette' ? '<span>R1 / L1 soutiens · R2 garde · L2 substitution</span><span>Croix ou stick gauche pour bouger</span>' : '<span>P ou Échap : pause en combat</span><span><b class="rk" style="cursor:pointer;text-decoration:underline">Réinitialiser les touches</b></span>';
     const rk = foot.querySelector('.rk'); if (rk) rk.onclick = () => { resetKeys(); sfx.ui(); draw(); };
   };
