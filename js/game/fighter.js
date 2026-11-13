@@ -18,7 +18,7 @@ const BREAK_STUN = 55;  // étourdissement après une garde brisée (frames)
 const TAP = 7;
 // Annulations par bouton (chaînes de combos) et équivalent aérien d'un coup quand on enchaîne en l'air
 const CANCEL_KEYS = ['punch', 'kick', 'high', 'low', 'side'];
-const AIRMAP = { punch1: 'apunch', punch2: 'apunch', punch3: 'akick', kick: 'akick', upper: 'apunch', palm: 'apunch', palm2: 'apunch', cjab: 'apunch', shin: 'akick', trip: 'akick', sidefin: 'akick', rise: 'apunch', hook: 'akick', sweep: 'akick' };
+const AIRMAP = { punch1: 'apunch', punch2: 'apunch', punch3: 'akick', kick: 'akick', upper: 'apunch', palm: 'apunch', palm2: 'apunch', cjab: 'apunch', shin: 'akick', trip: 'akick', sidefin: 'akick', hook: 'akick', sweep: 'akick' };
 
 export class Fighter {
   constructor(char, team) {
