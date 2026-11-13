@@ -1,0 +1,107 @@
+/* ===== Thèmes : fonds par menu (dessinés en CSS / SVG), badges, boutons, onglets, quêtes ===== */
+
+/* --- fonds : le voile (#veil) change de décor selon l'écran --- */
+#veil.bg-dojo{background:radial-gradient(420px 280px at 10% 6%,#ffb04a77,transparent 70%),radial-gradient(420px 280px at 90% 6%,#ffb04a66,transparent 70%),repeating-linear-gradient(90deg,#0005 0 2px,transparent 2px 72px),repeating-linear-gradient(0deg,#0003 0 2px,transparent 2px 120px),linear-gradient(#6a3c1a,#3a1e0c 62%,#1e0f06);box-shadow:inset 0 0 180px #000c}
+#veil.bg-hero{background:radial-gradient(circle at 30px 0,#f2b83e 33px,#8a5a1866 35px,transparent 36px) 0 0/60px 52px repeat-x,repeating-linear-gradient(60deg,#ffffff14 0 1px,transparent 1px 30px),repeating-linear-gradient(120deg,#ffffff14 0 1px,transparent 1px 30px),repeating-linear-gradient(0deg,#ffffff0e 0 1px,transparent 1px 52px),linear-gradient(#143f90,#0b2a66 70%,#071a44)}
+#veil.bg-story{background:radial-gradient(260px 260px at 78% 14%,#9fc4ff55,transparent 70%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='230'%3E%3Cpath fill='%23061625' d='M75 0L112 78H38zM75 40L128 140H22zM75 90L146 224H4z'/%3E%3C/svg%3E") 30px 100%/150px 230px repeat-x,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='140'%3E%3Cpath fill='%230d2d49' d='M45 0L70 50H20zM45 25L78 85H12zM45 55L88 130H2z'/%3E%3C/svg%3E") 0 66%/90px 140px repeat-x,linear-gradient(180deg,transparent 52%,#27567a66 64%,transparent 76%),linear-gradient(#0a1a3c,#143a5c 58%,#081a2a)}
+#veil.bg-arena{background:radial-gradient(circle at 80% 8%,#ffd24a33 0,transparent 18%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='460' height='260'%3E%3Cg%3E%3Cpath fill='%23e8b030' d='M20 250l46-60 30 66z'/%3E%3Cpath fill='%23b8780f' d='M120 255l20-50 40 44z'/%3E%3Cpath fill='%23ffd24a' d='M210 258l36-38 22 48z'/%3E%3Cpath fill='%23c8861a' d='M300 250l26-64 38 62z'/%3E%3Cpath fill='%23f0c040' d='M390 256l40-44 24 50z'/%3E%3Cpath fill='%23ffe9a8' d='M250 120l9-12 8 14z'/%3E%3Cpath fill='%23e8b030' d='M70 90l7-10 7 12z'/%3E%3Cpath fill='%23ffd24a' d='M400 70l8-10 7 12z'/%3E%3C/g%3E%3C/svg%3E") 0 100%/460px 260px repeat-x,radial-gradient(ellipse at 50% 42%,#7a1c2a 0,#3c1028 48%,#170716 100%)}
+
+/* --- badges --- */
+.nb{position:absolute;right:-8px;top:-8px;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a7a,#d8201a 60%,#8a0e0a);border:2px solid #fff;color:#fff;font:900 14px/18px var(--f-ui);font-style:normal;text-align:center;box-shadow:0 2px 3px #0009;z-index:3;pointer-events:none}
+.dia{position:relative}.dia.dot::after{content:'!';position:absolute;right:14px;top:6px;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff8a7a,#d8201a 60%,#8a0e0a);border:2px solid #fff;color:#fff;font:900 14px/16px var(--f-ui);text-align:center;box-shadow:0 2px 3px #0009}
+.tile span{display:flex;align-items:center;justify-content:center;font-size:40px;color:#ffe9a8}
+.tile.dot::after{background:radial-gradient(circle at 35% 30%,#ff8a7a,#d8201a 60%,#8a0e0a)}
+/* rang : médaillon rond à ailes (D argent, A rouge, S or) */
+.rkb,.hc .bd{position:relative;clip-path:none;border-radius:50%;border:3px solid #dfe6f2;background:radial-gradient(circle at 35% 30%,#fff,#b4bccd 55%,#6a7488);color:#2a3042;-webkit-text-stroke:0;font-weight:900;text-shadow:0 1px 0 #fff8;box-shadow:0 2px 3px #0009}
+.rkb::before,.rkb::after,.hc .bd::before,.hc .bd::after{content:'';position:absolute;top:18%;width:34%;height:60%;background:linear-gradient(#e8edf6,#8a94a8);z-index:-1}
+.rkb::before,.hc .bd::before{left:-26%;clip-path:polygon(100% 20%,0 0,25% 45%,0 100%,100% 80%)}
+.rkb::after,.hc .bd::after{right:-26%;clip-path:polygon(0 20%,100% 0,75% 45%,100% 100%,0 80%)}
+.hc .bd{line-height:24px}
+.rkb.rA,.hc[data-rank=A] .bd{background:radial-gradient(circle at 35% 30%,#ff8a8a,#d02a2a 55%,#8a1010);border-color:#ffd9a0;color:#fff;-webkit-text-stroke:2px #5a0a0a;paint-order:stroke fill;text-shadow:none}
+.rkb.rS,.hc[data-rank=S] .bd{background:radial-gradient(circle at 35% 30%,#fff3a0,#f3b61f 55%,#b8760a);border-color:#fff0b0;color:#fff;-webkit-text-stroke:2px #6a3a04;paint-order:stroke fill;text-shadow:none}
+.rkb.rA::before,.rkb.rA::after,.hc[data-rank=A] .bd::before,.hc[data-rank=A] .bd::after{background:linear-gradient(#ffd9a0,#c88a3a)}
+.rkb.rS::before,.rkb.rS::after,.hc[data-rank=S] .bd::before,.hc[data-rank=S] .bd::after{background:linear-gradient(#fff0b0,#d89a1a)}
+/* mode Histoire : étoiles en arc au-dessus du nœud, ruban BOSS et ailes dorées */
+.st-n{isolation:isolate}
+.st-n span{bottom:auto;top:-24px;align-items:flex-start}.st-n span>*:nth-child(2){margin-top:-8px}
+.st-n.boss::before{content:'';position:absolute;left:-26px;right:-26px;top:8px;height:50px;z-index:-1;background:linear-gradient(#ffe88a,#d8900f);clip-path:polygon(0 8%,30% 34%,30% 66%,0 92%,12% 50%,100% 8%,70% 34%,70% 66%,100% 92%,88% 50%)}
+.st-n.boss::after{content:'BOSS';position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);min-width:84px;height:22px;line-height:22px;text-align:center;background:linear-gradient(#e8402f,#a01818);clip-path:polygon(0 0,100% 0,92% 50%,100% 100%,0 100%,8% 50%);color:#ffd24a;font:900 14px/22px var(--f-ui);letter-spacing:1px;-webkit-text-stroke:3px #4a0a0a;paint-order:stroke fill}
+.st-n.boss.lock::after{filter:grayscale(.8)}
+
+/* --- boutons --- */
+.more,.next,.dq-go,.go{position:relative;overflow:hidden}
+.more::before,.next::before,.dq-go::before{content:'';position:absolute;left:0;top:0;border:9px solid transparent;border-top-color:#fffa;border-left-color:#fffa}
+.pn-bt button{position:relative}
+.b-up:not(.dis)::after{content:'';position:absolute;right:6px;top:-4px;width:18px;height:20px;background:#38d028;clip-path:polygon(50% 0,100% 48%,68% 48%,68% 100%,32% 100%,32% 48%,0 48%)}
+.sw i{background:#f4e8c0}
+.mx{width:34px;height:34px;top:5px;right:8px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 35% 30%,#ff8a7a,#d8201a 60%,#8a0e0a);-webkit-text-stroke:0;font-size:18px;line-height:26px;padding:0;box-shadow:0 2px 3px #0009}
+.go{min-width:112px;height:44px;border:3px solid #0a3a4a;border-radius:5px;background:linear-gradient(#7ee8ff,#25aee0);color:#fff;font:900 22px var(--f-ui);-webkit-text-stroke:3px #0a3a4a;paint-order:stroke fill;letter-spacing:1px;cursor:pointer;box-shadow:0 3px 0 #06303e}
+.go.ok{background:linear-gradient(#ffe03a,#f0a912);border-color:#8a5a22;-webkit-text-stroke:3px #5a3408;box-shadow:0 3px 0 #6a4410;font-size:18px;animation:gopulse 1s ease-in-out infinite alternate}
+.go.done{background:#c8bca0;border-color:#9a8a68;-webkit-text-stroke:0;color:#4a8a2a;box-shadow:none;cursor:default}
+@keyframes gopulse{to{filter:brightness(1.15)}}
+
+/* --- onglets des fenêtres --- */
+.mhead.tabs{justify-content:flex-start;gap:8px;padding:0 54px 0 12px;align-items:flex-end;height:50px;overflow:visible;border-radius:6px 6px 0 0}
+.mtab{position:relative;height:38px;padding:0 16px;border:3px solid #8a5a22;border-bottom:0;border-radius:8px 8px 0 0;background:linear-gradient(#c9a060,#8a5a22);color:#fff;font:800 17px var(--f-ui);-webkit-text-stroke:2.5px #3a1c08;paint-order:stroke fill;letter-spacing:.5px;cursor:pointer}
+.mtab.on{background:linear-gradient(#fff6c8,#ffe27a);color:#3a2410;-webkit-text-stroke:0;height:42px}
+.mtab .nb{right:-8px;top:-10px}
+.mhead.tabs .mx{top:8px}
+
+/* --- quêtes et succès --- */
+.qbody{padding:10px 14px 14px}
+.ms{margin:0 0 8px;padding:6px 12px 8px;border-radius:6px;background:linear-gradient(#5a2a9a,#2a0f5a);color:#fff}
+.ms-h{display:flex;align-items:baseline;justify-content:space-between}.ms-h b{font:900 18px var(--f-ui);letter-spacing:1px;-webkit-text-stroke:2.5px #1a0a3a;paint-order:stroke fill}.ms-h small{font:700 12px var(--f-ui);color:#e8d8ff}.ms-h u{text-decoration:none;color:#ffd24a}
+.ms-t{position:relative;height:56px;margin:6px 20px 0 8px}
+.ms-bar{position:absolute;left:0;right:0;top:34px;height:8px;border-radius:4px;background:#1a0a30;border:1px solid #0008}.ms-bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(#8aff5a,#2fb818);border-radius:4px}
+.ms-c{position:absolute;left:0;top:10px;font:800 13px var(--f-ui);color:#cfe;display:none}
+.ms-m{position:absolute;top:0;width:44px;height:50px;margin-left:-22px;padding:0;border:0;background:none;cursor:default;color:#fff;font:800 12px var(--f-ui)}
+.ms-m span{display:flex;flex-direction:column;align-items:center;justify-content:center;width:38px;height:42px;margin:0 auto;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(#58d8f0,#1a78b0);-webkit-text-stroke:2px #0a2a4a;paint-order:stroke fill}.ms-m .ic{width:16px;height:16px}
+.ms-m.now{cursor:pointer;animation:gopulse .7s ease-in-out infinite alternate}.ms-m.now span{background:linear-gradient(#ffe970,#f0a912)}
+.ms-m.got span{filter:grayscale(.7) brightness(.8)}.ms-m u{position:absolute;right:-2px;top:-4px;color:#4cf04a;font:900 22px var(--f-ui);text-decoration:none;-webkit-text-stroke:1px #0a3a0a}
+.qs-list{display:flex;flex-direction:column;gap:6px;max-height:208px;overflow:auto;padding-right:2px}.qs-list.tall{max-height:300px}
+.qs{display:flex;align-items:center;gap:12px;padding:6px 10px;border:2px solid #c9aa6a;border-radius:4px;background:linear-gradient(90deg,#fff8e4,#f3e2b4)}
+.qs-r{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:56px;border:3px solid #7a4ac0;border-radius:3px;background:linear-gradient(#a068f0,#5a2ca8);color:#fff;font:900 16px var(--f-ui);-webkit-text-stroke:2.5px #1a0f05;paint-order:stroke fill}.qs-r .ic{width:26px;height:26px}
+.qs-m{flex:1;min-width:0}.qs-m h4{margin:0 0 4px;font:800 16px var(--f-ui);color:#3a2410}.qs-m h4 small{margin-left:8px;font:700 11px var(--f-ui);color:#8a5a22}
+.qs-b{position:relative;height:20px;border-radius:3px;background:#e4d3a0}.qs-b i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:linear-gradient(#ffe070,#f0a912)}.qs-b span{position:relative;display:block;text-align:center;font:800 13px/20px var(--f-ui);color:#3a2410}
+/* récompense en ligne */
+.ol-rst{margin:0 0 8px;text-align:center;font:800 16px var(--f-ui);color:#c01818}.ol-rst u{text-decoration:none}
+.ol-row{display:flex;align-items:center;justify-content:center;gap:2px}
+.ol-c{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;width:92px;padding:16px 4px 10px;border:3px solid #6a6e76;border-radius:4px;background:linear-gradient(#9aa0aa,#6a707a)}
+.ol-c em{position:absolute;left:-8px;top:-12px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffb060,#e07a10);border:2px solid #fff;color:#fff;font:900 15px/22px var(--f-ui);font-style:normal;text-align:center}
+.ol-c.now{background:linear-gradient(#58d8f0,#1a8ac0);border-color:#fff3a0;box-shadow:0 0 12px #38b0e8}.ol-c.got{filter:grayscale(.8);opacity:.7}.ol-c.got u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 44px var(--f-ui);color:#4cf04a;text-decoration:none;-webkit-text-stroke:2px #0a3a0a}
+.ol-c .go{min-width:0;width:84px;height:30px;font-size:12px;-webkit-text-stroke:2px #5a3408}.ol-t{height:24px;padding:0 8px;border-radius:12px;background:#000a;color:#fff;font:800 14px/24px var(--f-ui)}
+.ol-a{color:#c9aa6a;font:900 26px var(--f-ui);font-style:normal;flex:none}
+
+/* ===== Boutons façon planche : jaune plat à contour brun, cyan, vert « améliorer », croix, interrupteur, losanges ===== */
+.more,.next,.dq-go,.go.ok{height:46px;border:3px solid #3a2008;border-bottom-width:5px;border-radius:4px;background:linear-gradient(#ffd83a,#f5b400);box-shadow:inset 0 2px 0 #fff6b8,0 2px 0 #0006;color:#fff;font:900 22px var(--f-ui);-webkit-text-stroke:4px #4a2a08;paint-order:stroke fill;letter-spacing:1px;text-shadow:none}
+.more::before,.next::before,.dq-go::before{border-width:11px;border-top-color:#fff9;border-left-color:#fff9}
+.dq-go.dis{background:#c8bca0;border-color:#6a5a40;color:#f4ecd8;-webkit-text-stroke:3px #5a4a30;box-shadow:none}
+.go{border:3px solid #0a3a4a;border-bottom-width:5px;border-radius:4px;background:linear-gradient(#6ee4ff,#1ea8e0);box-shadow:inset 0 2px 0 #c8f4ff,0 2px 0 #0006}
+.go.ok{font-size:18px;animation:gopulse 1s ease-in-out infinite alternate}
+.go.done{border-color:#8a7a58;box-shadow:none}
+/* bouton « Sélectionné » : pilule cyan ; « améliorer » : vert avec prix rouge et flèche */
+.b-sel{border:3px solid #1a78a8;border-radius:22px;background:linear-gradient(#9aeaff,#40b8f0);box-shadow:inset 0 2px 0 #d8f8ff;-webkit-text-stroke:2.5px #1a6a98}
+.b-sel.on{background:linear-gradient(#a8e4f8,#58b8e0);opacity:.95}
+.b-up{border:3px solid #1a5a10;border-bottom-width:5px;border-radius:4px;background:linear-gradient(#a0f048,#4cb81a);box-shadow:inset 0 2px 0 #d8ffa0;-webkit-text-stroke:0}
+.b-up b{color:#e8301a;font:900 24px var(--f-ui);-webkit-text-stroke:3px #3a0a08;paint-order:stroke fill}
+.b-up.dis{background:linear-gradient(#b8c0b0,#7a8272);border-color:#3a4034}.b-up.dis b{color:#f0e4d0}
+.b-up:not(.dis)::after{right:8px;top:-12px;width:22px;height:26px;background:#3ed82a;filter:none}
+/* retour : carré cyan, double flèche sombre */
+.kit-back{width:46px;height:42px;border:3px solid #123a4a;border-bottom-width:5px;border-radius:3px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 24'%3E%3Cpath fill='%23101820' d='M15 2L2 12l13 10zM29 2L16 12l13 10z' stroke='%23101820' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") center/26px no-repeat,linear-gradient(#6ee4ff,#27b4e4);box-shadow:inset 0 2px 0 #c8f4ff}
+.kit-back>*{opacity:0}
+/* fermer : rond rouge à croix blanche épaisse */
+.mx{border:3px solid #fff;box-shadow:0 0 0 2px #3a0a08,0 3px 3px #0009;font-size:0;background:radial-gradient(circle at 35% 30%,#ff8a7a,#d8201a 60%,#8a0e0a)}
+.mx::before,.mx::after{content:'';position:absolute;left:50%;top:50%;width:20px;height:6px;margin:-3px 0 0 -10px;border-radius:3px;background:#fff;box-shadow:0 0 0 1px #5a0a08}
+.mx::before{transform:rotate(45deg)}.mx::after{transform:rotate(-45deg)}
+/* interrupteur : pilule verte à contour sombre, bouton crème */
+.sw{border:3px solid #1a3a10;background:#8a8a80}.sw.on{background:linear-gradient(#6cf040,#22b818)}.sw i{border:2px solid #4a3a18;background:#f6ecc4}
+/* liste déroulante grise (commande tactile) */
+.padsel{border:3px solid #4a4a52;border-radius:4px;background:linear-gradient(#c8c8cc,#9a9aa2);color:#fff;-webkit-text-stroke:2.5px #3a3a42;min-width:136px;position:relative;text-align:left;padding:0 30px 0 10px}
+.padsel::after{content:'';position:absolute;right:10px;top:50%;margin-top:-4px;border:7px solid transparent;border-top:9px solid #3a3a58;border-bottom:0}
+/* accueil : icône sur tache d'encre pour QUÊTES / CADEAU, losanges sombres à liseré or */
+.tile{width:92px}.tile span{width:64px;height:60px;border:0;background:none;padding:0;font-size:52px;filter:drop-shadow(0 2px 0 #0008);color:#ffe9a8}
+.tile em{width:96px;padding:5px 0 3px;margin-top:-6px;background:radial-gradient(ellipse at 50% 55%,#000 0,#000d 55%,transparent 72%);clip-path:polygon(0 30%,6% 8%,18% 22%,30% 0,44% 18%,58% 2%,72% 20%,84% 4%,94% 24%,100% 40%,92% 62%,100% 82%,84% 96%,70% 84%,56% 100%,42% 86%,28% 98%,16% 84%,4% 94%,8% 66%)}
+.tile.dot::after{right:10px;top:-6px}
+.dm{border:4px solid #e0a830;background:radial-gradient(#6a4020,#24120a);box-shadow:0 0 0 2px #1a0f05,0 4px 8px #000a,inset 0 0 0 2px #7a4a18}
+.dm i{color:#ffe9a8}.dia:hover .dm{background:radial-gradient(#8a5a28,#34180c)}
+.hm-start span{border:7px solid #e8b030;background:radial-gradient(#4a2410,#140804)}
