@@ -23,7 +23,7 @@
 .names{font-size:15px;font-weight:700;letter-spacing:1px;margin-top:3px;text-shadow:1px 1px 0 #000,0 0 4px #000;color:#cfe4ff;line-height:13px}
 .names span{display:block}
 .t1 .names{text-align:right}
-.subs{display:flex;gap:3px;margin-top:2px}.sub{flex:1;height:3px;background:#222}.sub .fill{height:100%;background:#7f7;display:block}.sub.dead{opacity:.3}
+.subs{display:flex;gap:3px;margin-top:2px}.subs .sub{flex:1;height:3px;background:#222}.subs .sub .fill{height:100%;background:#7f7;display:block}.subs .sub.dead{opacity:.3}
 .wins{width:22px;height:24px;background:#000;border:2px solid #ffcf3a;border-radius:6px;font-size:14px;text-align:center;line-height:20px;color:#ffcf3a;font-weight:bold;flex:none;margin-top:14px}
 .hud-timer{position:absolute;left:50%;top:0;transform:translateX(-50%);width:88px;height:40px;background:#07080f;border:2px solid #000;border-radius:20px/18px;box-shadow:0 0 0 2px #2a3040;text-align:center;font-size:27px;line-height:36px;color:#ffb12a;font-weight:bold}
 .combo{position:absolute;top:104px;font-size:21px;font-style:italic;font-weight:900;color:#ffe03a;text-shadow:2px 2px 0 #b22,0 0 8px #000;opacity:0;letter-spacing:1px;transition:opacity .2s}

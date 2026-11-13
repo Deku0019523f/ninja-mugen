@@ -13,7 +13,8 @@ export default function sTitle() {
   root.innerHTML = `<div class="hm-logo">NINJA MUGEN</div>
     <div class="hm-prof"><canvas class="pf-av" width="56" height="56"></canvas><div><b>${(G.S.name || 'Ninja').replace(/</g, '')}</b><span>${ICON.sword} ${prog.power()}</span></div></div>
     <div class="hm-cur"></div>
-    <div class="hm-left"><button class="tile${dl.can ? ' dot' : ''}" data-to="daily"><span>${GIFT}</span><em>CADEAU</em></button></div>
+    <div class="hm-left"><button class="tile${dl.can ? ' dot' : ''}" data-to="daily"><span>${GIFT}</span><em>CADEAU</em></button><button class="tile" data-to="set"><span class="gear">${ICON.sliders}</span><em>RÉGLAGES</em></button></div>
+    <div class="plat p2"><i>2</i></div><div class="plat p3"><i>3</i></div>
     <div class="hm-hero"><div class="plat"><i>1</i></div><canvas width="256" height="256"></canvas></div>
     <div class="hm-bar"></div>
     <button class="hm-start"><span>${ICON.swords}</span><em>COMBAT</em></button>`;
@@ -21,6 +22,7 @@ export default function sTitle() {
   drawPortrait(root.querySelector('.pf-av').getContext('2d'), hc, 56);
   root.querySelector('.hm-cur').appendChild(pills(() => { sfx.ok(); G.go('daily'); }));
   root.querySelector('.tile').onclick = () => { sfx.ok(); G.go('daily'); };
+  root.querySelector('[data-to=set]').onclick = () => { sfx.ok(); settings(); };
 
   // héros animé (repos) — rendu à 2× pour rester net
   const cv = root.querySelector('.hm-hero canvas'), g = cv.getContext('2d');
@@ -31,9 +33,11 @@ export default function sTitle() {
   root.querySelector('.hm-hero').onclick = () => { sfx.ok(); G.go('heroes'); };
 
   // barre d'icônes en bas à gauche
-  const bar = root.querySelector('.hm-bar');
-  const BTN = [['star', 'HÉROS', () => G.go('heroes')], ['net', 'MULTI', () => { G.mode = 'online'; G.go('online'); }], ['pad', 'COMMANDES', () => G.go('controls')], ['sliders', 'RÉGLAGES', () => settings()]];
-  BTN.forEach(([ic, lb, fn]) => { const b = el('button', 'dia', `<span class="dm"><i>${ICON[ic]}</i></span><em>${lb}</em>`); b.onclick = () => { sfx.ok(); fn(); }; bar.appendChild(b); });
+  const bar = root.querySelector('.hm-bar'), bar2 = el('div', 'hm-bar r'); root.insertBefore(bar2, root.querySelector('.hm-start'));
+  const L = [['star', 'HÉROS', () => G.go('heroes')], ['bolt', 'HISTOIRE', () => { G.mode = 'story'; G.go('story'); }]];
+  const Rt = [['shield', 'TOURNOI', () => { G.mode = 'tournament'; G.go('select'); }], ['net', 'MULTI', () => { G.mode = 'online'; G.go('online'); }]];
+  const mk = (box) => ([ic, lb, fn]) => { const b = el('button', 'dia', `<span class="dm"><i>${ICON[ic]}</i></span><em>${lb}</em>`); b.onclick = () => { sfx.ok(); fn(); }; box.appendChild(b); };
+  L.forEach(mk(bar)); Rt.forEach(mk(bar2));
   const start = () => { sfx.ok(); G.go('modes'); };
   root.querySelector('.hm-start').onclick = start;
 

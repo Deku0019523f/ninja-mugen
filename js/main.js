@@ -14,6 +14,8 @@ import { SCREENS } from './screens/index.js';
 import { MODES } from './modes/index.js';
 import { shell } from './ui/shell.js';
 import { prog } from './progress.js';
+import { story } from './story.js';
+import { showLoading } from './ui/loading.js';
 
 const $ = (s) => document.querySelector(s);
 const host = $('#view'), ui = $('#ui'), screenEl = $('#screen'), hudEl = $('#hud'), touchEl = $('#touch');
@@ -48,8 +50,8 @@ function go(name, data) {
 }
 G.go = go;
 
-// ------------------------------------------------------------ Arcade / Survie : enchaînement d'adversaires
-G.nextOpponent = () => { MODES[G.run.mode].next(G.run); go('vs'); };
+// ------------------------------------------------------------ Arcade / Survie / Tournoi : enchaînement d'adversaires
+G.nextOpponent = () => { const m = MODES[G.run.mode]; m.next(G.run); go(m.bracket ? 'bracket' : 'vs'); };
 
 // ------------------------------------------------------------ lancement d'un match
 G.launch = () => {
@@ -67,13 +69,14 @@ function onMatchEnd(res) {
   const m = match, run = G.run, mode = MODES[run.mode]; match = null; bgWorld = null; hud.built = false; setMusicMode('menu');
   if (run.mode === 'online') { G.net.endMatch(); return go('onlineResult', { win: res.winner === G.net.me, wins: res.wins }); }
   let gain = null;
-  if (run.vs !== 'p2' && run.mode !== 'training') { gain = prog.reward(res.winner === 0, mode.series && run.fight >= 7); run.gain = run.gain || { c: 0, g: 0 }; run.gain.c += gain.c; run.gain.g += gain.g; }
+  if (run.vs !== 'p2' && run.mode !== 'training') { gain = prog.reward(res.winner === 0, !!run.big || (mode.series && run.fight >= (run.mode === 'tournament' ? 3 : 7))); run.gain = run.gain || { c: 0, g: 0 }; run.gain.c += gain.c; run.gain.g += gain.g; }
   if (mode.series) {
     if (res.winner !== 0) return go('result', { done: true, win: false });
     run.fight++; run.score += 1000 + run.fight * 250; if (mode.onWin) mode.onWin(run, res, m);
     if (mode.finished(run)) return go('result', { done: true, win: true });
     return G.nextOpponent();
   }
+  if (run.mode === 'story') { const sr = story.finish(run.sd, run.si, res); if (sr.c || sr.g) { prog.add(sr.c, sr.g); gain = { c: (gain ? gain.c : 0) + sr.c, g: (gain ? gain.g : 0) + sr.g }; } return go('result', { done: false, win: sr.win, wins: res.wins, gain, story: sr }); }
   go('result', { done: false, win: res.winner === 0, wins: res.wins, gain });
 }
 
@@ -116,6 +119,6 @@ function idleBg(dt) {
 initInput();
 // plein écran + paysage au premier toucher (doit être un « geste » : on utilise click)
 addEventListener('click', () => { initAudio(); if (isTouch() && !document.fullscreenElement) { try { const r = document.documentElement.requestFullscreen?.(); r && r.then(() => window.screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {}); } catch (e) { /* ignore */ } } }, { once: true });
-go('title');
+go('title'); showLoading(ui);
 requestAnimationFrame(loop);
 window.__ninja = { view, go: (...a) => go(...a), get match() { return match; }, setMode: (m) => { G.mode = m; }, ROSTER, G };
