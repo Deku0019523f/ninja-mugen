@@ -36,5 +36,22 @@ function run(env, frames, script) { const { w } = env; const ev = []; for (let f
   run(env, 12, (f, inp) => { if (f === 2) inp[0].super = 1; });
   ok(env.a.chi < 120 - 40, `super payé (${env.a.chi.toFixed(1)})`);
 }
+// 5) Dash sur l'ennemi : coûte 30, rejoint l'adversaire même très loin ; refusé sans énergie
+{
+  const env = setup(); env.a.prepare(-400, 1); env.b.prepare(400, -1); env.a.chi = 100;
+  const d0 = Math.abs(env.b.x - env.a.x);
+  run(env, 60, (f, inp) => { if (f === 2) inp[0].rush = 1; });
+  ok(env.a.chi < 100 - 18 && env.a.chi > 100 - 40, `dash payé ~30 (${env.a.chi.toFixed(1)})`);
+  ok(Math.abs(env.b.x - env.a.x) < d0 - 400 || env.b.hp < env.b.maxHp, 'le dash rejoint l\'ennemi lointain');
+  const e2 = setup(); e2.a.chi = 20; run(e2, 20, (f, inp) => { if (f === 2) inp[0].rush = 1; });
+  ok(e2.a.chi >= 20 && e2.a.state !== 'atk', 'dash refusé à 20 d\'énergie');
+}
+// 6) Super 2 : 100 d'énergie, verrouillé sous le niveau 10 (héros suivi), plus fort que le Super 1
+{
+  const lost = (lvl, key) => { const e = setup(); e.a.chi = 150; if (lvl) e.a.lv = { lvl }; run(e, 14, (f, inp) => { if (f === 2) inp[0][key] = 1; }); return 150 - e.a.chi; };
+  ok(lost(9, 'super2') < 5, 'Super 2 verrouillé au niveau 9');
+  const c = lost(10, 'super2'); ok(c > 95 && c < 110, `Super 2 coûte 100 au niveau 10 (${c.toFixed(1)})`);
+  ok(lost(0, 'super2') > 95, 'Super 2 disponible sans niveau suivi (PvP)');
+}
 console.log(fails ? `${fails} échec(s)` : 'Énergie : tous les tests passent');
 process.exit(fails ? 1 : 0);
