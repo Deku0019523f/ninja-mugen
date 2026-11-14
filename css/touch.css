@@ -1,7 +1,7 @@
-/* Commandes tactiles façon manette : stick analogique OU croix à gauche, △ □ ○ ✕ à droite, L1 R1 au-dessus du losange, L2 R2 au-dessus du stick (paysage) */
+/* Commandes tactiles façon manette : stick analogique OU croix à gauche + bouton CHARGE ; à droite ATTAQUE, BOUCLIER, DASH, LANCER, SUPER 1, SUPER 2 (paysage) */
 :root{--bs:clamp(54px,17.5vh,96px)}
 #touch{display:none;position:fixed;inset:0;pointer-events:none;z-index:9;touch-action:none}
-.is-touch #padzone,.is-touch #acts,.is-touch #sups{pointer-events:auto}
+.is-touch #padzone{pointer-events:auto}
 
 /* zone de gauche : stick flottant ou croix */
 #padzone{position:absolute;left:0;bottom:0;width:42%;height:78%;touch-action:none}
@@ -18,21 +18,25 @@
 #dpad i.mid{background:#ffffff12;border:2px solid #ffffff33;border-radius:50%;margin:8%}
 #dpad i.on{background:#ff7a1add;border-color:#fff}
 
-/* boutons d'action en losange (PlayStation) : △ haut, □ gauche, ○ droite, ✕ bas */
-#acts{position:absolute;right:calc(var(--bs)*.45);bottom:calc(var(--bs)*.4);width:calc(var(--bs)*3);height:calc(var(--bs)*3);touch-action:none}
-#acts .ab{position:absolute;width:var(--bs);height:var(--bs);border-radius:50%;border:3px solid;background:#141a3a99;font-size:calc(var(--bs)*.5);font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:inherit}
-#acts .ab.on{background:#ff7a1add;color:#fff!important;border-color:#fff!important;transform:scale(.94)}
-#acts .bt{left:50%;top:0;margin-left:calc(var(--bs)*-.5);color:#5fe0a0;border-color:#5fe0a0cc}
-#acts .bb{left:50%;bottom:0;margin-left:calc(var(--bs)*-.5);color:#6aa8ff;border-color:#6aa8ffcc}
-#acts .bl{left:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff8ac8;border-color:#ff8ac8cc}
-#acts .br{right:0;top:50%;margin-top:calc(var(--bs)*-.5);color:#ff6a6a;border-color:#ff6a6acc}
-
-/* L1 R1 (soutiens) au-dessus du losange à droite ; L2 R2 (substitution, garde) de l'autre côté, au-dessus du stick à gauche */
-#sups{display:contents}
-#sups .sb{position:absolute;bottom:calc(var(--bs)*3.5);width:calc(var(--bs)*.95);height:calc(var(--bs)*.6);border-radius:calc(var(--bs)*.2);border:3px solid #ffe066cc;background:#141a3acc;color:#ffe066;font-size:calc(var(--bs)*.3);font-weight:900;display:flex;align-items:center;justify-content:center;font-family:inherit;user-select:none;touch-action:none}
-#sups .sb[data-s=sup1]{right:calc(var(--bs)*.45)}
-#sups .sb[data-s=sup2]{right:calc(var(--bs)*1.7)}
-#sups .sb[data-s=l2],#sups .sb[data-s=r2]{border-color:#9ad0ffcc;color:#9ad0ff}
-#sups .sb[data-s=l2]{left:calc(var(--bs)*1.1)}
-#sups .sb[data-s=r2]{left:calc(var(--bs)*2.35)}
-#sups .sb.on{background:#ff7a1add;color:#fff;border-color:#fff;transform:scale(.94)}
+/* Zone gauche : bouton CHARGE au-dessus du stick. Zone droite : ATTAQUE (gros), BOUCLIER, DASH, LANCER, SUPER 1, SUPER 2 */
+.is-touch #btns,.is-touch .tb{pointer-events:auto}
+#btns{position:absolute;inset:0;pointer-events:none}
+.tb{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;border-radius:50%;border:3px solid;background:#141a3acc;color:#fff;font-family:inherit;font-weight:900;line-height:1;user-select:none;-webkit-user-select:none;touch-action:none;width:var(--bs);height:var(--bs)}
+.tb i{font-style:normal;font-size:calc(var(--bs)*.36)}
+.tb span{font-size:calc(var(--bs)*.125);letter-spacing:.02em}
+.tb u{text-decoration:none;position:absolute;top:-6%;right:-4%;min-width:calc(var(--bs)*.34);height:calc(var(--bs)*.3);border-radius:999px;background:#0d122c;border:2px solid currentColor;font-size:calc(var(--bs)*.2);display:flex;align-items:center;justify-content:center;padding:0 3px}
+.tb em{display:none;position:absolute;inset:0;border-radius:50%;background:#000a;font-style:normal;font-size:calc(var(--bs)*.5);align-items:center;justify-content:center}
+.tb.on{background:#ff7a1add;color:#fff!important;border-color:#fff!important;transform:scale(.94)}
+.tb.dis{opacity:.4;filter:grayscale(.8)}
+.tb.lock em{display:flex}
+.tb-chg{left:calc(var(--bs)*1.3);bottom:calc(var(--bs)*3.05);width:calc(var(--bs)*1.15);height:calc(var(--bs)*.8);border-radius:calc(var(--bs)*.3);color:#7be0ff;border-color:#7be0ffcc}
+.tb-atk{right:calc(var(--bs)*.4);bottom:calc(var(--bs)*.35);width:calc(var(--bs)*1.55);height:calc(var(--bs)*1.55);color:#ff6a6a;border-color:#ff6a6acc}
+.tb-atk i{font-size:calc(var(--bs)*.6)}
+.tb-shd{right:calc(var(--bs)*2.1);bottom:calc(var(--bs)*.25);color:#6aa8ff;border-color:#6aa8ffcc}
+.tb-rush{right:calc(var(--bs)*2.15);bottom:calc(var(--bs)*1.45);color:#5fe0a0;border-color:#5fe0a0cc}
+.tb-cast{right:calc(var(--bs)*.65);bottom:calc(var(--bs)*2.1);color:#ff8ac8;border-color:#ff8ac8cc}
+.tb-s1,.tb-s2{width:calc(var(--bs)*1.05);height:calc(var(--bs)*.8);border-radius:calc(var(--bs)*.28);color:#ffe066;border-color:#ffe066cc;bottom:calc(var(--bs)*3.35)}
+.tb-s1{right:calc(var(--bs)*.4)}
+.tb-s2{right:calc(var(--bs)*1.65)}
+.tb-s2 em{border-radius:calc(var(--bs)*.28)}
+.tb-s1 i,.tb-s2 i{font-size:calc(var(--bs)*.28)}

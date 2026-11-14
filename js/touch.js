@@ -1,10 +1,10 @@
 // ============================================================
 //  COMMANDES TACTILES façon manette (paysage)
 //  Gauche : stick analogique flottant OU croix 8 directions (au choix, mémorisé)
-//  Droite : △ (tri) □ (sq) ○ (o) ✕ (x) en losange ; un doigt entre deux boutons appuie sur les deux (△+○ = Ninjutsu…)
-//  Au-dessus du losange : L1 R1 (soutiens) et L2 R2 (substitution, garde)
+//  Au-dessus du stick : CHARGE d'énergie. Droite : ATTAQUE (○), BOUCLIER (R2), DASH sur l'ennemi, LANCER (arme / sort), SUPER 1, SUPER 2
+//  Chaque bouton affiche son coût d'énergie ; il se grise s'il est trop cher (Super 2 : cadenas avant le niveau 10)
 // ============================================================
-export const touch = { l: 0, r: 0, u: 0, d: 0, o: 0, x: 0, sq: 0, tri: 0, r2: 0, l2: 0, sup1: 0, sup2: 0 };
+export const touch = { l: 0, r: 0, u: 0, d: 0, o: 0, x: 0, sq: 0, tri: 0, r2: 0, l2: 0, sup1: 0, sup2: 0, chg: 0, rush: 0, cast: 0, s1: 0, s2: 0 };
 const KEY = 'ninja-mugen-pad';
 let mode = 'stick';
 try { mode = localStorage.getItem(KEY) === 'dpad' ? 'dpad' : 'stick'; } catch (e) { /* ignore */ }
@@ -25,7 +25,7 @@ function dirs(dx, dy, R) {
 
 export function initTouch() {
   const $ = (s) => document.querySelector(s);
-  const zone = $('#padzone'), stick = $('#stick'), knob = stick.querySelector('.knob'), dpad = $('#dpad'), acts = $('#acts');
+  const zone = $('#padzone'), stick = $('#stick'), knob = stick.querySelector('.knob'), dpad = $('#dpad');
   const cells = [...dpad.querySelectorAll('[data-d]')];
   let pid = null, cx = 0, cy = 0, R = 1;
   const rect = (e) => e.getBoundingClientRect();
@@ -57,25 +57,23 @@ export function initTouch() {
   zone.addEventListener('pointermove', (e) => { if (e.pointerId === pid) move(e); });
   ['pointerup', 'pointercancel'].forEach((n) => zone.addEventListener(n, (e) => { if (e.pointerId === pid) release(); }));
 
-  // boutons d'action : tous les boutons proches d'un doigt sont pressés
-  const btns = [...acts.querySelectorAll('[data-a]')], ptr = new Map();
-  const refresh = () => {
-    const bs = rect(btns[0]).width, hit = new Set();
-    for (const p of ptr.values()) for (const b of btns) { const r = rect(b); if (Math.hypot(p.x - (r.left + r.width / 2), p.y - (r.top + r.height / 2)) < bs * 0.78) hit.add(b.dataset.a); }
-    for (const b of btns) { const a = b.dataset.a, v = hit.has(a) ? 1 : 0; touch[a] = v; b.classList.toggle('on', !!v); }
-  };
-  acts.addEventListener('pointerdown', (e) => { e.preventDefault(); acts.setPointerCapture(e.pointerId); ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); });
-  acts.addEventListener('pointermove', (e) => { if (ptr.has(e.pointerId)) { ptr.set(e.pointerId, { x: e.clientX, y: e.clientY }); refresh(); } });
-  ['pointerup', 'pointercancel'].forEach((n) => acts.addEventListener(n, (e) => { ptr.delete(e.pointerId); refresh(); }));
-
-  // L1 / R1 / L2 / R2 : boutons indépendants (soutiens, substitution, garde)
-  const sups = $('#sups');
-  if (sups) {
-    for (const b of sups.querySelectorAll('[data-s]')) {
-      const a = b.dataset.s, set = (v) => { touch[a] = v; b.classList.toggle('on', !!v); };
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(1); });
-      ['pointerup', 'pointercancel'].forEach((n) => b.addEventListener(n, () => set(0)));
-    }
+  // boutons dédiés : chacun est indépendant (plusieurs doigts = plusieurs boutons, ex. BOUCLIER + ATTAQUE = projection)
+  for (const b of document.querySelectorAll('#touch .tb')) {
+    const a = b.dataset.k, set = (v) => { touch[a] = v; b.classList.toggle('on', !!v); };
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(1); });
+    ['pointerup', 'pointercancel'].forEach((n) => b.addEventListener(n, () => set(0)));
   }
   apply();
+}
+
+// Grise les boutons trop chers pour l'énergie du joueur ; cadenas sur le Super 2 tant que le héros n'est pas niveau 10
+let btnEls = null;
+export function touchState(hum) {
+  if (!hum) return;
+  btnEls = btnEls || [...document.querySelectorAll('#touch .tb[data-cost]')];
+  const s2 = hum.canSuper2 ? hum.canSuper2() : true;
+  for (const b of btnEls) {
+    const lock = b.dataset.k === 's2' && !s2;
+    b.classList.toggle('lock', lock); b.classList.toggle('dis', lock || hum.chi < +b.dataset.cost);
+  }
 }
