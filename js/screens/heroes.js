@@ -11,7 +11,7 @@ const TIER_TXT = ['Ninjutsu', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
 export default function sHeroes() {
   const root = el('div', 'hr'), top = el('div', 'kit-top'), cur = pills();
   top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'HÉROS'), cur); root.appendChild(top);
-  const stage = el('div', 'hr-stage', '<canvas width="256" height="256"></canvas><div class="hr-plate"></div>'), panel = el('aside', 'parch hr-panel'), strip = el('div', 'hr-strip');
+  const stage = el('div', 'hr-stage', '<canvas width="256" height="256"></canvas><div class="hr-plate"></div>'), panel = el('aside', 'parch hr-panel'), strip = el('div', 'hr-strip'); strip.style.cssText = 'height:124px;padding-top:22px';   // place pour les badges de rang (sinon coupés)
   root.append(stage, panel, strip); G.screenEl.appendChild(root);
   let sel = Math.min(ROSTER.length - 1, G.S.hero || 0);
   const cards = ROSTER.map((ch, i) => {

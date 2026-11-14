@@ -51,7 +51,8 @@ export function drawSheetFighter(g, ch, f, rot, off, clock) {
   const { r, i } = f ? pick(S, f, clock) : { r: 'idle', i: Math.floor(clock / 7) % S.rows.idle.n };
   const row = S.rows[r] || S.rows.idle, idx = clamp(i, 0, row.n - 1), st = f && f.state;
   const keepRot = st === 'launch' || st === 'roll';
-  const W = g.canvas.width, pad = (W - 128) / 2;      // canevas élargi : marge pour les armes et les sauts
+  const sc = (g.getTransform ? g.getTransform().a : 1) || 1;      // les écrans d'accueil dessinent à l'échelle 2 dans un canevas 256
+  const W = g.canvas.width / sc, pad = (W - 128) / 2;      // canevas élargi : marge pour les armes et les sauts
   g.clearRect(0, 0, W, W);
   g.save(); g.translate(pad, pad);
   if (keepRot && rot) { g.translate(64, FOOT_Y - 24); g.rotate(rot * Math.PI / 180); g.translate(-64, -(FOOT_Y - 24)); }
@@ -61,5 +62,29 @@ export function drawSheetFighter(g, ch, f, rot, off, clock) {
   g.restore();
 }
 
-// recadrage du portrait (tête et buste du personnage au repos)
-export function sheetPortraitBox(ch) { const S = SHEETS[ch.sheet], k = clamp(100 / S.bh, 0.4, 3.2), top = FOOT_Y - S.bh * k; return { x: 64 - 24, y: Math.max(0, top - 4), w: 48, h: 48 }; }
+// recadrage du portrait : on dessine le personnage au repos puis on mesure les pixels opaques pour viser le haut du corps
+const BOXES = new Map();
+export function sheetPortraitBox(ch) {
+  const S = SHEETS[ch.sheet], k = clamp(100 / S.bh, 0.4, 3.2), top = FOOT_Y - S.bh * k;
+  const dflt = { x: 64 - 24, y: Math.max(0, top - 4), w: 48, h: 48 };
+  if (BOXES.has(ch.sheet)) return BOXES.get(ch.sheet);
+  if (!sheetReady(ch) || typeof document === 'undefined') return dflt;
+  let b = dflt;
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+    drawSheetFighter(g, ch, null, 0, 0, 0);
+    const d = g.getImageData(0, 0, 128, 128).data, row = (y) => { for (let x = 0; x < 128; x++) if (d[(y * 128 + x) * 4 + 3] > 40) return true; return false; };
+    let y0 = -1, y1 = 0;
+    for (let y = 0; y < 128; y++) if (row(y)) { y0 = y; break; }
+    for (let y = 127; y >= 0; y--) if (row(y)) { y1 = y; break; }
+    if (y0 >= 0 && y1 > y0) {
+      const side = Math.max(34, Math.min(70, Math.round((y1 - y0) * 0.62)));
+      let sx = 0, n = 0;
+      for (let y = y0; y < y0 + side && y < 128; y++) for (let x = 0; x < 128; x++) if (d[(y * 128 + x) * 4 + 3] > 40) { sx += x; n++; }
+      const cx = n ? sx / n : 64;
+      b = { x: Math.max(0, Math.min(128 - side, Math.round(cx - side / 2))), y: Math.max(0, y0 - 2), w: side, h: side };
+    }
+  } catch (e) { /* lecture des pixels refusée : recadrage fixe */ }
+  BOXES.set(ch.sheet, b);
+  return b;
+}
