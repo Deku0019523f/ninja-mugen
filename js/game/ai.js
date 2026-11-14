@@ -5,7 +5,7 @@
 // ============================================================
 import { supReady, TEAM_COST } from './support.js';
 
-const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sub: 0, throw: 0, sup1: 0, sup2: 0 });
+const NEUTRAL = () => ({ l: 0, r: 0, u: 0, d: 0, punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, sub: 0, throw: 0, sup1: 0, sup2: 0, super2: 0, rush: 0 });
 const REACT = [46, 34, 24, 15, 8];
 const BLOCK = [0.04, 0.18, 0.38, 0.6, 0.82];
 const CHAIN = [0.35, 0.55, 0.7, 0.85, 0.95];
@@ -60,7 +60,7 @@ export class AI {
         const r = R();
         if (f.y <= 0 && f.chi >= 50 && r < 0.03 * this.lv) inp.super = 1;
         else if (f.chi >= 20 && r < 0.025 * this.lv) inp.cdash = 1;       // Chakra Dash : prolonge ou poursuit
-        else if (f.chi >= 10 && r < 0.03 * this.lv) inp.special = 1;
+        else if (f.chi >= 25 && r < 0.03 * this.lv) inp.special = 1;
         else if (m.cancels && R() < CHAIN[L]) {
           if (m.id && f.y <= 0 && R() < 0.12 * this.lv / 2) { inp.punch = 1; inp.kick = 1; }
           else { const ks = Object.keys(m.cancels); inp[ks[(R() * ks.length) | 0]] = 1; }
@@ -111,18 +111,20 @@ export class AI {
     if (threat && R() < ROLL_CH[L]) return set('roll', 10, { dirv: R() < 0.5 ? dir : -dir });   // roulade : passe sous le coup ou s'en éloigne
     if (threat && R() < blk) return set('block', 16 + Math.floor(R() * 12));
     if (e.y > 25 && dist < 110 && R() < 0.2 + L * 0.1) return set('press', 14, { key: 'high' });   // anti-aérien : chaîne haute (uppercut)
-    if (e.y > 40 && dist > 70 && dist < 320 && f.chi >= 10 && R() < 0.15 + L * 0.08) return set('press', 16, { key: 'special', up: true });   // Ninjutsu ↑ anti-aérien
+    if (e.y > 40 && dist > 70 && dist < 320 && f.chi >= 25 && R() < 0.15 + L * 0.08) return set('press', 16, { key: 'special', up: true });   // Ninjutsu ↑ anti-aérien
+    if (f.chi >= 100 + 40 * (f.ck - 1) && f.canSuper2() && R() < 0.05 + L * 0.04 && dist < 420) return set('press', 40, { key: 'super2' });   // Super 2 : gardé pour quand la barre est bien pleine
     if (f.chi >= 50 && R() < 0.1 + L * 0.06 && dist < 420) return set('press', 40, { key: 'super' });
+    if (f.chi >= 30 && dist > 260 && R() < 0.03 + L * 0.015) return set('press', react + 4, { key: 'rush' });   // Dash sur l'ennemi quand il est loin
     // adversaire qui garde au contact : la projection passe la garde
     if ((e.state === 'block' || e.state === 'blockstun') && dist < 56 && R() < (0.3 + L * 0.08) * P.throw) return set('press', react + 2, { key: 'throw' });
     if (R() > aggr) return set(R() < 0.5 ? 'retreat' : 'wait', react);
     if (P.keepAway && dist < 140 && R() < 0.35) return set('retreat', react);   // zoner : garde ses distances
     if (f.awakenReady && dist > 110 && R() < 0.5) return set('charge', 90);   // Éveil : charge jusqu'au chakra plein
-    if (dist > 220 && f.chi < 60 && R() < 0.1) return set('charge', 40 + Math.floor(R() * 40));   // recharge le chakra quand l'adversaire est loin
+    if (dist > 220 && f.chi < 60 * f.ck && R() < 0.1) return set('charge', 40 + Math.floor(R() * 40));   // recharge le chakra quand l'adversaire est loin
 
     if (dist > 300) {
       const r = R();
-      if (r < 0.3 * P.sp && f.chi >= 10) return set('press', react + 10, { key: 'special', down: R() < 0.25 });
+      if (r < 0.3 * P.sp && f.chi >= 25) return set('press', react + 10, { key: 'special', down: R() < 0.25 });
       if (r < 0.4) return set('jump', react + 20, { dirv: dir });
       return set('approach', react + 10);
     }
@@ -132,7 +134,7 @@ export class AI {
       if (q < 0.16 && f.chi >= 20) return set('press', react + 6, { key: 'cdash' });                           // Chakra Dash pour fermer la distance
       if (q < 0.21 && f.chi >= 20) return set('press', react + 6, { key: 'cshuriken' });                       // Chakra Shuriken
       const r = R();
-      if (r < 0.22 * P.sp && f.chi >= 10) return set('press', react + 8, { key: 'special', down: R() < 0.3 });
+      if (r < 0.22 * P.sp && f.chi >= 25) return set('press', react + 8, { key: 'special', down: R() < 0.3 });
       if (r < 0.42 && f.chi >= 15) return set('press', react + 12, { key: 'move2' });
       if (r < 0.5) return set('jump', react + 20, { dirv: dir });
       return set('approach', react);

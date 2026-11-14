@@ -1,5 +1,5 @@
 // ============================================================
-//  LOCKSTEP : verrouillage par entrées. Chaque appareil simule le MÊME combat ; seules les touches (12 bits par frame)
+//  LOCKSTEP : verrouillage par entrées. Chaque appareil simule le MÊME combat ; seules les touches (17 bits par frame)
 //  sont échangées. Module pur (ni DOM ni réseau) : testé par test/net.mjs.
 //
 //  - L'entrée locale lue à la frame f est appliquée à la frame f + delay (le « délai d'entrée » laisse le temps au paquet d'arriver).
@@ -8,7 +8,7 @@
 //    on renvoie exactement les frames que le pair n'a pas reçues, puis la partie reprend là où elle s'était arrêtée.
 //  - Toutes les 60 frames, un hash de l'état du monde est comparé pour détecter une désynchronisation.
 // ============================================================
-export const KEYS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2'];
+export const KEYS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2', 'chg', 'rush', 'cast', 's1', 's2'];
 export const pack = (raw) => { let b = 0; for (let i = 0; i < KEYS.length; i++) if (raw[KEYS[i]]) b |= 1 << i; return b; };
 export const unpack = (b) => { const o = {}; for (let i = 0; i < KEYS.length; i++) o[KEYS[i]] = (b >> i) & 1; return o; };
 
