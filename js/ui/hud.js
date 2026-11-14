@@ -2,6 +2,7 @@
 //  HUD (DOM) : barres de vie angulaires, chakra, jauge de garde, charges de substitution, chrono ∞, combos, bannières,
 //  cut-in super, soutiens R1 / L1
 // ============================================================
+import { touchState } from '../touch.js';
 import { ARCH, ROSTER } from '../data/roster.js';
 import { SUPERS } from '../game/moves.js';
 import { SUP_CD, supReady } from '../game/support.js';
@@ -26,7 +27,7 @@ export class Hud {
       const gd = el('div', 'hud-guard'); gd.style.cssText = 'height:4px;margin-top:2px;background:#0d122c99;border:1px solid #ffffff22;overflow:hidden';
       const gdf = el('i'); gdf.style.cssText = 'display:block;height:100%;width:0;background:#ffb02e'; gd.appendChild(gdf);
       const chips = el('div', 'hud-skills');
-      const chipEls = [['NINJUTSU', 10, 'x'], ['TECHNIQUE', 15, 'y'], ['ULTIME', 50, 'z']].map(([n, c]) => { const d = el('div', 'sk', `<i></i><b>${n[0]}</b>`); d.title = n; chips.appendChild(d); return { d, c }; });
+      const chipEls = [['NINJUTSU', 25, 'x'], ['TECHNIQUE', 15, 'y'], ['ULTIME', 50, 'z']].map(([n, c]) => { const d = el('div', 'sk', `<i></i><b>${n[0]}</b>`); d.title = n; chips.appendChild(d); return { d, c }; });
       const pips = el('div', 'hud-pips'); pips.style.cssText = 'display:flex;gap:3px;margin-top:3px';
       const pipEls = [0, 1, 2].map(() => { const p = el('i'); p.style.cssText = 'width:12px;height:6px;border-radius:2px;background:#a87b4a;border:1px solid #ffffff44'; pips.appendChild(p); return p; });
       const names = el('div', 'names', fs.map((f) => `<span>${f.char.name.toUpperCase()}</span>`).join(''));
@@ -103,6 +104,7 @@ export class Hud {
       T.box.classList.toggle('low', p < 0.25 && p > 0);
       const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => ['h', 'net'].includes(match.ctrl[f.slot].k)) || lead;
       const chi = hum.chi; T.chi.style.width = (chi / hum.maxChi * 100) + '%'; T.chiBar.classList.toggle('ready', chi >= 50); T.chiBar.style.outline = hum.denyT > 0 && (hum.denyT >> 2) % 2 ? '2px solid #f33' : '';   // énergie insuffisante : contour rouge clignotant
+      { const c = match.ctrl[hum.slot]; if (c.k === 'h' && c.p === 0) touchState(hum); }   // boutons tactiles : grisisés si trop chers
       T.gdf.style.width = Math.min(100, hum.guard) + '%'; T.gdf.style.background = hum.guard > 70 ? '#ff4a3a' : '#ffb02e';
       T.pipEls.forEach((pp, i) => { pp.style.opacity = i < hum.subCharges ? 1 : 0.2; });
       T.wins.textContent = match.wins[t];

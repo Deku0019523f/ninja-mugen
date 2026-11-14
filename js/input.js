@@ -3,10 +3,10 @@
 //  Les combinaisons (△+○, △△○…) sont résolues par game/chords.js.
 //  o = ○ attaque · x = ✕ saut · sq = □ shuriken · tri = △ chakra · r2 garde · l2 substitution · sup1 = R1 · sup2 = L1
 // ============================================================
-export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2'];
+export const ACTIONS = ['l', 'r', 'u', 'd', 'o', 'x', 'sq', 'tri', 'r2', 'l2', 'sup1', 'sup2', 'rush', 's1', 's2'];
 export const DEFAULT_KEYMAPS = [
-  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', o: 'KeyF', x: 'KeyG', sq: 'KeyR', tri: 'KeyT', r2: 'KeyH', l2: 'KeyY', sup1: 'KeyE', sup2: 'KeyQ' },
-  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', o: 'KeyJ', x: 'KeyK', sq: 'KeyU', tri: 'KeyI', r2: 'KeyL', l2: 'KeyO', sup1: 'KeyP', sup2: 'KeyN' },
+  { l: 'KeyA', r: 'KeyD', u: 'KeyW', d: 'KeyS', o: 'KeyF', x: 'KeyG', sq: 'KeyR', tri: 'KeyT', r2: 'KeyH', l2: 'KeyY', sup1: 'KeyE', sup2: 'KeyQ', rush: 'KeyV', s1: 'KeyB', s2: 'KeyC' },
+  { l: 'ArrowLeft', r: 'ArrowRight', u: 'ArrowUp', d: 'ArrowDown', o: 'KeyJ', x: 'KeyK', sq: 'KeyU', tri: 'KeyI', r2: 'KeyL', l2: 'KeyO', sup1: 'KeyP', sup2: 'KeyN', rush: 'Comma', s1: 'Period', s2: 'Slash' },
 ];
 // Touches modifiables (Options > guide des combos > CLAVIER) : enregistrées dans le navigateur
 export const KEYMAPS = DEFAULT_KEYMAPS.map((k) => ({ ...k }));
@@ -46,13 +46,14 @@ export function initInput() {
 export function readPlayer(i) {
   const km = KEYMAPS[i], o = {};
   for (const a of ACTIONS) o[a] = down.has(km[a]) ? 1 : 0;
-  if (i === 0) for (const a of ACTIONS) if (touch[a]) o[a] = 1;
+  if (i === 0) for (const a of [...ACTIONS, 'chg', 'cast']) if (touch[a]) o[a] = 1;
   const pads = (navigator.getGamepads && navigator.getGamepads()) || [], pad = [...pads].filter(Boolean)[i];
   if (pad) {
     const b = (n) => pad.buttons[n] && pad.buttons[n].pressed, ax = pad.axes;
     if (ax[0] < -0.5 || b(14)) o.l = 1; if (ax[0] > 0.5 || b(15)) o.r = 1; if (ax[1] < -0.6 || b(12)) o.u = 1; if (ax[1] > 0.6 || b(13)) o.d = 1;
     if (b(0)) o.x = 1; if (b(1)) o.o = 1; if (b(2)) o.sq = 1; if (b(3)) o.tri = 1;      // ✕ ○ □ △ (manette PlayStation)
     if (b(5)) o.sup1 = 1; if (b(4)) o.sup2 = 1; if (b(7)) o.r2 = 1; if (b(6)) o.l2 = 1;
+    if (b(10)) o.rush = 1; if (b(11)) o.s1 = 1;      // L3 : dash sur l'ennemi · R3 : Super 1 (Super 2 : △ △ □)
   }
   if (o.l && o.r) o.l = o.r = 0;
   return o;
