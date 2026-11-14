@@ -102,7 +102,7 @@ export class Hud {
       T.ghostV = T.ghostV > p ? Math.max(p, T.ghostV - 0.006) : p; T.ghost.style.width = (T.ghostV * 100) + '%';
       T.box.classList.toggle('low', p < 0.25 && p > 0);
       const lead = T.fs.find((f) => f.hp > 0) || T.fs[0], hum = T.fs.find((f) => ['h', 'net'].includes(match.ctrl[f.slot].k)) || lead;
-      const chi = hum.chi; T.chi.style.width = chi + '%'; T.chiBar.classList.toggle('ready', chi >= 50);
+      const chi = hum.chi; T.chi.style.width = (chi / hum.maxChi * 100) + '%'; T.chiBar.classList.toggle('ready', chi >= 50); T.chiBar.style.outline = hum.denyT > 0 && (hum.denyT >> 2) % 2 ? '2px solid #f33' : '';   // énergie insuffisante : contour rouge clignotant
       T.gdf.style.width = Math.min(100, hum.guard) + '%'; T.gdf.style.background = hum.guard > 70 ? '#ff4a3a' : '#ffb02e';
       T.pipEls.forEach((pp, i) => { pp.style.opacity = i < hum.subCharges ? 1 : 0.2; });
       T.wins.textContent = match.wins[t];

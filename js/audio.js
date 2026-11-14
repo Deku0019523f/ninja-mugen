@@ -55,6 +55,7 @@ export function playEvent(e) {
     case 'hit': sfx[e.snd === 'kick' || e.big ? 'kick' : 'punch'](); break;
     case 'swing': sfx.swing(); break;
     case 'block': sfx.block(); break;
+    case 'nochi': if (e.f.team === 0) sfx.back(); break;
     case 'cast': sfx.cast(); break;
     case 'ko': sfx.ko(); break;
     case 'boom': sfx.boom(); break;
