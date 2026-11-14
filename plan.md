@@ -70,6 +70,45 @@ Nouvel écran **BOUTIQUE**, accessible depuis l'accueil (onglets à gauche à la
 
 ---
 
+## 9. Idées issues de la vidéo de référence (carte Histoire d'un jeu Demon Slayer, analysée le 2026-11-14)
+Ce sont des propositions : rien n'est décidé ni commencé. À valider une par une avant de coder.
+
+### 9.1 Interface et design
+- [ ] 9.1.1 **Carte de campagne illustrée** pour le mode Histoire : un décor par chapitre (les 8 arènes image), des nœuds de niveaux numérotés, des badges BOSS, des coffres cadeaux.
+- [ ] 9.1.2 **Barre de chapitres** en bas : anneau doré sur le chapitre actif, chapitres suivants grisés avec cadenas.
+- [ ] 9.1.3 **Fiche de niveau en parchemin** : difficulté (Normal / Difficile), récompense, bouton COMBAT avec coût en énergie, objectifs d'étoiles.
+- [ ] 9.1.4 **Barre de ressources unifiée** (énergie, germes, pièces) sur tous les écrans, avec icône d'énergie à créer.
+- [ ] 9.1.5 **Popups harmonisées** (bandeau doré, boutons Annuler / OK) avec les cadres de la 2ᵉ planche UI, encore inutilisés ; message « Termine le chapitre précédent ».
+
+### 9.2 Modes de jeu
+- [ ] 9.2.1 **Objectifs 3 étoiles** par niveau : gagner · finir en moins de 3 minutes · ne perdre aucun équipier (à adapter au 2v2).
+- [ ] 9.2.2 **Bonus avant combat** au choix (+50 % dégâts, +50 % PV, jauge pleine), à équilibrer avec le coût en énergie.
+- [ ] 9.2.3 **Niveaux de boss** de fin de chapitre, avec un affrontement spécial.
+- [ ] 9.2.4 Chapitres verrouillés tant que le précédent n'est pas fini ; relier `story`, `bracket` et `daily` à cette progression.
+
+### 9.3 Fonctionnalités
+- [ ] 9.3.1 **Récompenses par paliers d'étoiles** (15 / 30 / 45 / 60 / 75 étoiles) : pièces, germes, fragments. Pas de piste premium payante (cf. 7.6).
+- [ ] 9.3.2 **Coffres sur la carte**, ramassés une fois par chapitre (lien avec 5.2).
+
+### 9.4 Animations
+- [ ] 9.4.1 Anneau doré pulsant sur le niveau ou chapitre actif.
+- [ ] 9.4.2 Mini-sprite du héros choisi qui se déplace de nœud en nœud sur la carte.
+- [ ] 9.4.3 Popups en zoom avec rebond ; étoiles qui s'allument une par une en fin de combat ; pluie de pièces et de germes à la collecte.
+- [ ] 9.4.4 Légère parallaxe, brume ou lucioles sur le fond de carte.
+
+### 9.5 Ordre conseillé
+9.1.1 + 9.1.2 (carte) → 9.1.3 + 9.2.1 (fiche et étoiles) → 9.1.4 + 9.1.5 (ressources, popups) → 9.3.1 → 9.4.
+
+## 10. Nouveautés déjà faites (assets et habillage)
+- [x] 13 personnages animés en sprites pixel-art (dont Reiji, Sora, Daichi, Mei) et 8 arènes image (city1–4, ocean1/5/6/7) ; `assets/LICENCES.md` mis à jour (plusieurs licences « à vérifier »).
+- [x] Icônes et badges de la planche UI 1 : pièce, gemme, cadenas, cadeau, icônes de stats ; badges START / HEROES / PVP sur l'accueil (PVP ouvre le mode en ligne).
+- [x] Fond d'accueil généré (`assets/ui/home_bg.png`) ; affichage Home / Héros corrigé pour les sprites ; portraits recadrés par mesure des pixels.
+- [x] Habillage image des boutons tactiles (planche UI 2 : `t_*.png`, `css/touch.css`).
+- [ ] À vérifier sur appareil : habillage tactile en plein combat, écrans Héros et sélection, animations de garde, mort et Éveil.
+- [ ] Non utilisé pour l'instant : cadres de portrait, barres de vie, pause et flèches de la planche 2 ; `Characters.zip` (526 images, portraits possibles pour les 43 personnages sans sprite) ; lanternes du fond d'accueil qui recouvrent les pastilles de monnaie.
+
+---
+
 ## Ordre de réalisation
 1 (menus, rapide) → 2 (énergie) → 3 (commandes) → 4 + 6 (rangs, niveau 10) → 5 (cartes, déblocage) → 7 (boutique) → 8.
 
