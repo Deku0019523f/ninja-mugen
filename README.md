@@ -1,7 +1,7 @@
 # NINJA MUGEN — jeu de combat 2D en three.js
 
 Jeu de combat façon M.U.G.E.N : 56 combattants **originaux** (18 styles de techniques), 1v1 et 2v2, 6 décors,
-modes Arcade / Combat individuel / Survie / Entraînement, IA à 5 niveaux, 2 joueurs, manette et tactile.
+modes Histoire / Tournoi / Entraînement, multijoueur (bouton PvP), IA à 2 niveaux (Normal, Difficile), manette et tactile.
 
 ## Lancer
 - Jouer tout de suite : ouvrir `dist/ninja-mugen.html` (fichier unique, three.js inclus, hors-ligne).
@@ -38,7 +38,7 @@ js/combos/<coup>.js            UN FICHIER PAR COMBO (poing 1-2-3, pied, balayage
 js/techniques/<nom>.js         un fichier par technique (touche Technique) + special.js (touche Spécial)
 js/supers/<nom>.js             un fichier par super attaque
 js/stages/<nom>.js             un fichier par décor (6) + _draw.js (outils de dessin)
-js/modes/<mode>.js             un fichier par mode (arcade, combat individuel, survie, entraînement)
+js/modes/<mode>.js             un fichier par mode (histoire, tournoi, entraînement, multijoueur)
 js/screens/<écran>.js          un fichier par écran (titre, réglages, sélection, décor, VS, options, commandes, résultat)
 js/game/                       moteur : fighter (états), world, match, ai, moves (agrégateur), helpers
 js/render/                     sprites.js (squelette 2D) · view.js (three.js, caméra large 640→1200 × 480)
