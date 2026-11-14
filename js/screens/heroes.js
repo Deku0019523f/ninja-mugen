@@ -1,4 +1,4 @@
-// Héros : le héros choisi en grand, bande de cartes en bas (rang D/A/S), parchemin à droite (niveau, stats, paliers, amélioration).
+// Héros : le héros choisi en grand, bande de cartes en bas (badges de rang E→SS), parchemin à droite (niveau, stats, paliers, amélioration).
 import { G, el, save } from './ctx.js';
 import { ROSTER } from '../data/roster.js';
 import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
@@ -6,6 +6,8 @@ import { backBtn, pills, LOCK } from '../ui/kit.js';
 import { prog, MAXLV, TIERS } from '../progress.js';
 import { sfx } from '../audio.js';
 
+const RK = 'clip-path:none;border:0;border-radius:0;background:none;box-shadow:none;width:40px;height:40px;object-fit:contain';
+const rankImg = (im, r) => { im.style.cssText = RK + ';left:-10px;top:-12px;width:36px;height:36px;z-index:2'; im.src = `assets/ui/rank_${r.toLowerCase()}.png`; im.alt = r; };
 const TIER_TXT = ['Ninjutsu', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
 
 export default function sHeroes() {
@@ -16,7 +18,7 @@ export default function sHeroes() {
   let sel = Math.min(ROSTER.length - 1, G.S.hero || 0);
   const cards = ROSTER.map((ch, i) => {
     const c = el('div', 'hc'), cv = el('canvas'); cv.width = cv.height = 64; drawPortrait(cv.getContext('2d'), ch, 64);
-    const bd = el('i', 'bd'), lv = el('em'), one = el('u', 'one', '1');
+    const bd = el('img', 'bd'), lv = el('em'), one = el('u', 'one', '1');
     c.append(cv, bd, lv, one); c.onclick = () => { sel = i; sfx.ui(); draw(); }; strip.appendChild(c); return { c, bd, lv, one };
   });
   const g = stage.querySelector('canvas').getContext('2d');
@@ -26,9 +28,9 @@ export default function sHeroes() {
   function draw() {
     cur.refresh(); cur_ch = ROSTER[sel];
     const chosen = (G.S.hero || 0) === sel;
-    cards.forEach((x, i) => { x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); x.bd.textContent = prog.rank(i); x.lv.textContent = `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
+    cards.forEach((x, i) => { x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); rankImg(x.bd, prog.rank(i)); x.lv.textContent = `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
     const ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), nx = prog.stats(sel, Math.min(MAXLV, l + 1)), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
-    stage.querySelector('.hr-plate').innerHTML = `<i class="rkb r${prog.rank(sel)}">${prog.rank(sel)}</i><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
+    stage.querySelector('.hr-plate').innerHTML = `<img class="rkb" style="${RK}" src="assets/ui/rank_${prog.rank(sel).toLowerCase()}.png" alt="${prog.rank(sel)}"><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
     const d = (a, b, f) => (max ? '' : `<u>+${f(b - a)}</u>`);
     panel.innerHTML = `<div class="pn-lv"><i class="drop"></i><b>Niveau ${l}/${MAXLV}</b></div>
       <div class="pn-st">
