@@ -13,7 +13,8 @@ Cocher `[x]` au fur et à mesure ; le suivi détaillé va dans `RAPPORT.md`.
 - [ ] 1.1 Retirer de la liste « Sélection du mode » (`js/screens/modes.js`) : **DUEL**, **ARCADE**, **SURVIE** (reste : HISTOIRE, TOURNOI, ENTRAÎNEMENT).
 - [ ] 1.2 Retirer **MULTIJOUEUR** de cette liste : on n'y accède plus que par le bouton **PvP** de l'accueil (`js/screens/title.js`, déjà en place).
 - [ ] 1.3 Nettoyer ce qui n'a plus de sens : entrées de `js/modes/index.js` (arcade, survival ; garder `single` tant que l'écran PvP / entraînement / tournoi s'en servent), récompenses, textes d'aide, tests (`test/*.mjs`), `README`.
-- [ ] 1.4 Vérifier que les onglets ROSTER / RÈGLES / DÉCORS et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
+- [ ] 1.4 **Retirer la difficulté Facile** : il ne reste que **Normal** et **Difficile** (mode Histoire, réglages de l'IA, écrans RÈGLES / VS, `js/story.js`, `js/game/ai.js`, tests `ai_all.mjs`, textes d'aide). Les sauvegardes qui avaient la difficulté Facile passent en Normal.
+- [ ] 1.5 Vérifier que les onglets ROSTER / RÈGLES / DÉCORS et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
 
 ## 2. Énergie de combat (remplace le chakra 0-100)
 Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max (le double).**
@@ -21,7 +22,7 @@ Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max
 - [ ] 2.2 Recharge : bouton **Charge** (maintenu, immobile, vulnérable) + gain léger en frappant / en se faisant toucher. L'IA se recharge au même rythme relatif (barre ×2, donc deux fois plus d'énergie à dépenser, pas une charge deux fois plus rapide en pourcentage).
 - [ ] 2.3 Coûts (à équilibrer par test) : **Dash sur l'ennemi** 30 · **Lancer d'arme / sort** 25 · **Super 1** 50 · **Super 2 = 2 × Super 1 = 100** · attaque et bouclier : gratuits.
 - [ ] 2.4 Refuser l'action si l'énergie est insuffisante (petit son + barre qui clignote), pour le joueur comme pour l'IA.
-- [ ] 2.5 L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficulté Facile / Normal / Difficile inchangée en réactivité.
+- [ ] 2.5 L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficultés Normal / Difficile inchangées en réactivité.
 - [ ] 2.6 Adapter les capacités existantes qui lisent le chakra (Éveil, Chakra Dash, Chakra Shuriken, défense parfaite +12) à la nouvelle échelle ; relancer `test/sim.mjs`, `ai_all.mjs`, `awaken.mjs`, `combos.mjs`.
 
 ## 3. Commandes tactiles (nouvelle disposition)
@@ -40,11 +41,11 @@ Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max
 
 ## 5. Cartes, fragments et déblocage
 - [ ] 5.1 **Carte = fragments d'un personnage** (ex. « Kaito ×3 »). Un personnage se débloque en réunissant ses fragments : 10 pour les rangs E à C, 20 pour A et AA, 30 pour S et SS (valeurs de départ). Au-delà du déblocage, les fragments en trop donnent des pièces.
-- [ ] 5.2 **Mode Histoire** : à **chaque victoire** (première fois, ou à chaque victoire — à confirmer), un **coffre de 3 cartes** s'ouvre ; le joueur **en choisit 1**, qui donne les fragments de ce personnage. C'est la voie principale pour débloquer les héros, un par un.
+- [ ] 5.2 **Mode Histoire** : à la **première victoire de chaque niveau, en Normal et en Difficile** (une fois par niveau et par difficulté, jamais en rejouant), un **coffre de 3 cartes** s'ouvre ; le joueur **en choisit 1**, qui donne les fragments de ce personnage. C'est la voie principale pour débloquer les héros, un par un.
 - [ ] 5.3 **Mode Tournoi** : à chaque victoire du tournoi, un coffre de cartes **S / SS** (3 cartes, on en choisit 1).
 - [ ] 5.4 Écran d'ouverture de coffre : 3 cartes face cachée, retournement, choix d'une carte, barre de fragments « 4/10 » qui se remplit, animation de déblocage « NOUVEAU ! ».
 - [ ] 5.5 Écran HÉROS : héros verrouillés grisés avec cadenas et « x/10 fragments » ; impossible de les choisir tant qu'ils sont verrouillés. Sélection de héros (accueil, ROSTER, tournoi, PvP) limitée aux héros débloqués.
-- [ ] 5.6 **Sauvegarde** (`js/progress.js`) : héros débloqués, fragments par héros, boîtes ouvertes ; **migration** des sauvegardes existantes (un héros déjà monté de niveau reste débloqué ; le héros de départ est le rang E).
+- [ ] 5.6 **Sauvegarde** (`js/progress.js`) : héros débloqués, fragments par héros, niveaux d'Histoire déjà gagnés par difficulté (pour ne donner le coffre qu'une fois), boîtes ouvertes ; **migration** des sauvegardes existantes (un héros déjà monté de niveau reste débloqué ; le héros de départ est le rang E).
 - [ ] 5.7 Adversaires de l'IA, mode Histoire et Tournoi : l'IA peut utiliser tous les personnages, même verrouillés pour le joueur.
 
 ## 6. Progression de héros
@@ -77,4 +78,5 @@ Nouvel écran **BOUTIQUE**, accessible depuis l'accueil (onglets à gauche à la
 2. Le **rang est fixe par personnage** (E à SS), ce qui remplace le rang calculé d'après le niveau mis en place récemment.
 3. « Boîte de 3 cartes / 10 cartes » = les coffres de ce plan ; ils s'achètent avec des germes, qui ne s'achètent pas avec de l'argent réel.
 4. Les **valeurs chiffrées** (coûts d'énergie, fragments par déblocage, probabilités, prix) sont des points de départ à équilibrer pendant les tests.
-5. L'IA a le double d'énergie **uniquement en solo** (Histoire, Tournoi, Entraînement) ; en PvP les deux joueurs ont 150.
+5. Coffre d'Histoire : **première victoire seulement**, en Normal et Difficile (précisé par l'auteur le 2026-11-14) ; la difficulté Facile est supprimée.
+6. L'IA a le double d'énergie **uniquement en solo** (Histoire, Tournoi, Entraînement) ; en PvP les deux joueurs ont 150.
