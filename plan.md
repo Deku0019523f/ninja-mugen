@@ -14,23 +14,23 @@ Cocher `[x]` au fur et à mesure ; le suivi détaillé va dans `RAPPORT.md`.
 - [x] 1.2 Retirer **MULTIJOUEUR** de cette liste : on n'y accède plus que par le bouton **PvP** de l'accueil (`js/screens/title.js`, déjà en place).
 - [x] 1.3 Nettoyer ce qui n'a plus de sens : entrées de `js/modes/index.js` (arcade, survival ; garder `single` tant que l'écran PvP / entraînement / tournoi s'en servent), récompenses, textes d'aide, tests (`test/*.mjs`), `README`.
 - [x] 1.4 **Retirer la difficulté Facile** : il ne reste que **Normal** et **Difficile** (mode Histoire, réglages de l'IA, écrans RÈGLES / VS, `js/story.js`, `js/game/ai.js`, tests `ai_all.mjs`, textes d'aide). Les sauvegardes qui avaient la difficulté Facile passent en Normal.
-- [x] 1.5 Vérifier que les onglets ROSTER / RÈGLES / DÉCORS et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
+- [x] 1.5 Vérifier que les onglets ROSTER / RÈGLES / DÉCOR et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
 
 ## 2. Énergie de combat (remplace le chakra 0-100)
 Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max (le double).**
 - [x] 2.1 Passer la jauge de 100 à 150 pour le joueur et à 300 pour l'IA (`js/game/fighter.js`, `match.js`, `hud.js`) ; en PvP en ligne et en entraînement : 150 des deux côtés (pas d'avantage à l'IA).
 - [x] 2.2 Recharge : bouton **Charge** (maintenu, immobile, vulnérable) + gain léger en frappant / en se faisant toucher. L'IA se recharge au même rythme relatif (barre ×2, donc deux fois plus d'énergie à dépenser, pas une charge deux fois plus rapide en pourcentage).
-- [ ] 2.3 (à finir avec la partie 3, car les nouveaux boutons n'existent pas encore ; en attendant, les coûts actuels 10 / 15 / 20 / 50 sont inchangés) Coûts (à équilibrer par test) : **Dash sur l'ennemi** 30 · **Lancer d'arme / sort** 25 · **Super 1** 50 · **Super 2 = 2 × Super 1 = 100** · attaque et bouclier : gratuits.
+- [x] 2.3 Coûts (à équilibrer par test) : **Dash sur l'ennemi** 30 · **Lancer d'arme / sort** 25 · **Super 1** 50 · **Super 2 = 2 × Super 1 = 100** · attaque et bouclier : gratuits.
 - [x] 2.4 Refuser l'action si l'énergie est insuffisante (petit son + barre qui clignote), pour le joueur comme pour l'IA.
-- [ ] 2.5 (déjà : l'IA ne lance une action que si elle a l'énergie ; reste : réglage fin de ses seuils de charge pour sa barre de 300) L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficultés Normal / Difficile inchangées en réactivité.
+- [x] 2.5 L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficultés Normal / Difficile inchangées en réactivité.
 - [x] 2.6 Adapter les capacités existantes qui lisent le chakra (Éveil, Chakra Dash, Chakra Shuriken, défense parfaite +12) à la nouvelle échelle ; relancer `test/sim.mjs`, `ai_all.mjs`, `awaken.mjs`, `combos.mjs`.
 
 ## 3. Commandes tactiles (nouvelle disposition)
-- [ ] 3.1 **Zone gauche** : bouton **Charge d'énergie** (au-dessus) + **stick analogique** (déplacement, saut vers le haut, accroupi vers le bas).
-- [ ] 3.2 **Zone droite** : **Attaque** (gros bouton), **Bouclier**, **Dash sur l'ennemi** (se précipite sur l'adversaire quelle que soit la distance, coûte de l'énergie), **Lancer** (arme ou sort), **Super 1**, **Super 2**.
-- [ ] 3.3 Super 2 grisé avec cadenas tant que le héros n'est pas au niveau 10 (voir 6.4) ; chaque bouton affiche son coût d'énergie et se grise s'il est trop cher.
-- [ ] 3.4 Mettre à jour `js/touch.js`, `index.html` / CSS tactile, l'écran COMMANDES (`js/screens/controls.js`, clavier et manette inclus) et la touche de chaque action.
-- [ ] 3.5 Test sur écran de téléphone en paysage (captures Playwright) : pas de bouton sous les pouces, zones bien séparées.
+- [x] 3.1 **Zone gauche** : bouton **Charge d'énergie** (au-dessus) + **stick analogique** (déplacement, saut vers le haut, accroupi vers le bas).
+- [x] 3.2 **Zone droite** : **Attaque** (gros bouton), **Bouclier**, **Dash sur l'ennemi** (se précipite sur l'adversaire quelle que soit la distance, coûte de l'énergie), **Lancer** (arme ou sort), **Super 1**, **Super 2**.
+- [x] 3.3 Super 2 grisé avec cadenas tant que le héros n'est pas au niveau 10 (voir 6.4) ; chaque bouton affiche son coût d'énergie et se grise s'il est trop cher.
+- [x] 3.4 Mettre à jour `js/touch.js`, `index.html` / CSS tactile, l'écran COMMANDES (`js/screens/controls.js`, clavier et manette inclus) et la touche de chaque action.
+- [x] 3.5 Test sur écran de téléphone en paysage (captures Playwright) : pas de bouton sous les pouces, zones bien séparées.
 
 ## 4. Rangs et rareté des personnages
 - [ ] 4.1 Chaque personnage reçoit un **rang fixe de E à SS** (`js/data/roster.js`) : E, D, C, B, A, AA, S, SS. Le rang ne dépend plus du niveau (le niveau 1-50 reste une progression à part). Remplace `prog.rank` actuel (qui se calculait d'après le niveau).
