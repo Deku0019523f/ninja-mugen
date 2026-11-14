@@ -3,8 +3,8 @@
 .stk,.hm-start em,.dia em,.tile em,.hr-plate b,.md-b b,.kit-top h2{color:#fff;-webkit-text-stroke:3px #1a0f05;paint-order:stroke fill;font-weight:800;letter-spacing:1px}
 .parch{background:linear-gradient(#fff4d6,#f4dfab);color:var(--brown);border:3px solid #fff8e4;box-shadow:0 0 0 2px var(--edge),0 8px 22px #000a}
 .ic{display:inline-block;width:20px;height:20px;flex:none;vertical-align:middle}
-.ic.gold{border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3a0,#f3b61f 55%,#b8760a);border:2px solid #7a4a08}
-.ic.gem{background:linear-gradient(135deg,#d9a8ff,#8a3fe0 60%,#4a1a90);clip-path:polygon(25% 5%,75% 5%,98% 40%,50% 98%,2% 40%)}
+.ic.gold{background:url(../assets/ui/coin.png) center/contain no-repeat}
+.ic.gem{background:url(../assets/ui/gem.png) center/contain no-repeat}
 .ic.none{display:none}
 .pills{display:flex;gap:12px}
 .pill{display:flex;align-items:center;gap:8px;min-width:112px;height:34px;padding:0 10px 0 8px;border-radius:17px;background:linear-gradient(#0009,#000c);border:1px solid #ffffff22;color:#fff;font:800 18px var(--f-ui)}
@@ -96,9 +96,9 @@
 .pn-st div{position:relative;height:46px;padding:3px 8px 3px 50px;background:linear-gradient(90deg,#8ad870aa,#8ad87000);border-radius:4px;display:flex;flex-direction:column;justify-content:center;font:700 12px var(--f-ui);color:#2a4a1a}
 .pn-st div:nth-child(4){background:linear-gradient(90deg,#b8b0a0aa,#b8b0a000)}
 .pn-st b{font:800 19px var(--f-ui);color:#0a6ab8}.pn-st u{text-decoration:none;font-size:12px;color:#0a8a3a;margin-left:6px}
-.ico{position:absolute;left:3px;top:3px;width:40px;height:40px;border-radius:50%;background:radial-gradient(#6a4a30,#2a1608);border:2px solid #fff8e4;box-shadow:0 0 0 1px #1a0f05}
-.ico::after{content:'';position:absolute;inset:8px;background:var(--c,#ffcf6a);clip-path:var(--cp,circle(50%))}
-.ico.atk{--c:#ffd0a0;--cp:polygon(20% 40%,45% 20%,80% 30%,85% 70%,50% 85%,20% 70%)}.ico.hp{--c:#ff3a4a;--cp:polygon(50% 90%,8% 40%,22% 12%,50% 28%,78% 12%,92% 40%)}.ico.cd{--c:#ffa020;--cp:polygon(50% 0,62% 35%,100% 38%,70% 60%,80% 100%,50% 76%,20% 100%,30% 60%,0 38%,38% 35%)}.ico.cr{--c:#fff;--cp:polygon(0 100%,80% 0,100% 20%,20% 100%)}
+.ico{position:absolute;left:3px;top:3px;width:40px;height:40px}
+.ico::after{content:'';position:absolute;inset:0;background:var(--im) center/contain no-repeat}
+.ico.atk{--im:url(../assets/ui/atk.png)}.ico.hp{--im:url(../assets/ui/hp.png)}.ico.cd{--im:url(../assets/ui/crit_dmg.png)}.ico.cr{--im:url(../assets/ui/crit_rate.png)}
 .pn-t{display:flex;align-items:baseline;gap:8px;height:24px;padding-left:6px;margin:2px -4px 0;background:linear-gradient(90deg,#1a1208,#1a120800);color:#fff}.pn-t b{font:800 17px var(--f-ui);letter-spacing:1px}.pn-t small{font:600 11px var(--f-ui);color:#ffd9a0}
 .pn-un{display:flex;justify-content:space-around;margin-top:2px}
 .pn-un div{width:62px;display:flex;flex-direction:column;align-items:center;gap:1px}
