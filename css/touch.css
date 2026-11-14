@@ -19,7 +19,7 @@
 #dpad i.on{background:#ff7a1add;border-color:#fff}
 
 /* Zone gauche : bouton CHARGE au-dessus du stick. Zone droite : ATTAQUE (gros), BOUCLIER, DASH, LANCER, SUPER 1, SUPER 2 */
-.is-touch #btns,.is-touch .tb{pointer-events:auto}
+.is-touch .tb{pointer-events:auto}
 #btns{position:absolute;inset:0;pointer-events:none}
 .tb{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;border-radius:50%;border:3px solid;background:#141a3acc;color:#fff;font-family:inherit;font-weight:900;line-height:1;user-select:none;-webkit-user-select:none;touch-action:none;width:var(--bs);height:var(--bs)}
 .tb i{font-style:normal;font-size:calc(var(--bs)*.36)}
