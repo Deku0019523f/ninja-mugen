@@ -6,13 +6,9 @@ import { sfx } from '../audio.js';
 
 const play = (mode) => () => { G.mode = mode; G.go('select'); };
 export const MODE_LIST = [
-  { id: 'story', label: 'HISTOIRE', icon: 'bolt', desc: '10 combats avec 2 boss, sur 3 difficultés. Remplissez les objectifs bonus pour gagner des étoiles.', rew: [['gold', '40', 'par étoile'], ['gem', '2', '3 étoiles'], ['gold', '60', 'par victoire']], go: () => { G.mode = 'story'; G.go('story'); } },
-  { id: 'single', label: 'DUEL', icon: 'swords', desc: 'Un match libre contre l\'ordinateur ou contre un ami sur le même écran. Réglez le format, la difficulté et le décor.', rew: [['gold', '60', 'par victoire'], ['gem', '1', 'par victoire']], go: play('single') },
-  { id: 'arcade', label: 'ARCADE', icon: 'star', desc: '8 combats d\'affilée contre l\'ordinateur, jusqu\'à l\'Ultime Maître. La difficulté monte à chaque combat.', rew: [['gold', '60', 'par victoire'], ['gold', '150', 'combat final'], ['gem', '3', 'combat final']], go: play('arcade') },
+  { id: 'story', label: 'HISTOIRE', icon: 'bolt', desc: '10 combats avec 2 boss, sur 2 difficultés. Remplissez les objectifs bonus pour gagner des étoiles.', rew: [['gold', '40', 'par étoile'], ['gem', '2', '3 étoiles'], ['gold', '60', 'par victoire']], go: () => { G.mode = 'story'; G.go('story'); } },
   { id: 'tournament', label: 'TOURNOI', icon: 'shield', desc: 'Seize combattants, un arbre à élimination directe : huitièmes, quarts, demi-finales, finale. Une défaite et c\'est fini.', rew: [['gold', '60', 'par victoire'], ['gold', '150', 'la coupe'], ['gem', '3', 'la coupe']], go: play('tournament') },
-  { id: 'survival', label: 'SURVIE', icon: 'shield', desc: 'Enchaînez les adversaires sans fin. Votre vie ne se régénère que peu entre deux combats : jusqu\'où irez-vous ?', rew: [['gold', '60', 'par victoire'], ['gem', '1', 'par victoire']], go: play('survival') },
   { id: 'training', label: 'ENTRAÎNEMENT', icon: 'fist', desc: 'Un mannequin et du chakra infini pour apprendre les combos, les ninjutsus et les ultimes.', rew: [], go: play('training') },
-  { id: 'online', label: 'MULTIJOUEUR', icon: 'net', desc: 'Affrontez un ami en Wi-Fi, en Bluetooth ou sur internet avec un code de salle à 5 caractères.', rew: [], go: () => { G.mode = 'online'; G.go('online'); } },
 ];
 
 export default function sModes() {
