@@ -40,3 +40,21 @@
 .tb-s2{right:calc(var(--bs)*1.65)}
 .tb-s2 em{border-radius:calc(var(--bs)*.28)}
 .tb-s1 i,.tb-s2 i{font-size:calc(var(--bs)*.28)}
+
+/* Habillage image (planche du jeu : assets/ui/t_*.png). Sans l'image, les règles ci-dessus restent le style de base. */
+.tb{background-color:transparent;background-repeat:no-repeat;background-position:center;background-size:contain;border:0;filter:drop-shadow(0 3px 4px #000a)}
+.tb i{display:none}
+.tb span{position:absolute;left:-10%;right:-10%;bottom:-2%;text-align:center;font-size:calc(var(--bs)*.14);-webkit-text-stroke:3px #1a0f05;paint-order:stroke fill;pointer-events:none}
+.tb.tb-atk{background-image:url(../assets/ui/t_atk.png)}
+.tb.tb-chg{background-image:url(../assets/ui/t_chg.png);width:var(--bs);height:var(--bs);border-radius:50%}
+.tb.tb-shd{background-image:url(../assets/ui/t_shd.png)}
+.tb.tb-rush{background-image:url(../assets/ui/t_rush.png)}
+.tb.tb-cast{background-image:url(../assets/ui/t_cast.png)}
+.tb-s1,.tb-s2{width:calc(var(--bs)*.98);height:calc(var(--bs)*.98);border-radius:50%}
+.tb.tb-s1{background-image:url(../assets/ui/t_s1.png)}
+.tb.tb-s2{background-image:url(../assets/ui/t_s2.png)}
+.tb-s2 em{border-radius:50%}
+.tb.on{background-color:transparent;background-size:contain;background-position:center;background-repeat:no-repeat;border:0;transform:scale(.92);filter:brightness(1.25) saturate(1.2)}
+#stick{background:url(../assets/ui/t_stick.png) center/contain no-repeat;border:0}
+#stick .knob{background:url(../assets/ui/t_knob.png) center/contain no-repeat;border:0;box-shadow:none}
+#stick .ring{display:none}
