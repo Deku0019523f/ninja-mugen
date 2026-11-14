@@ -9,7 +9,7 @@ const ROLL_T = 24, ROLL_V = 7.2, ROLL_INV = 14;      // roulade : durée, vitess
 const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui sur ↓ / R2
 const THROW_R = 52;     // projection : distance maximale (R2 + ○)
 const AWAKEN_HP = 0.35, AWAKEN_FRAMES = 600;   // Éveil : seuil de vie, durée (10 s)
-const CHARGE_RATE = 0.5;   // chakra gagné par frame en chargeant (△ maintenu) : 0 → 100 en ~3,5 s
+const CHARGE_RATE = 0.75;  // énergie gagnée par frame en chargeant (△ maintenu) : barre pleine en ~3,5 s (×2 pour l'IA, dont la barre est doublée)
 const SUB_MAX = 3, SUB_REGEN = 300;     // substitution : réserve de charges, +1 charge toutes les 5 s
 const GUARD_MAX = 100, GUARD_DECAY = 0.35, GUARD_PER_DMG = 0.55;   // jauge de garde : plafond, récupération par frame hors garde, usure par point de dégâts
 const BREAK_STUN = 55;  // étourdissement après une garde brisée (frames)
@@ -24,7 +24,7 @@ export class Fighter {
   constructor(char, team) {
     this.char = char; this.team = team; this.slot = 0; this.w = null;
     this.maxHp = Math.round(1000 * char.def);
-    this.hp = this.maxHp; this.chi = 0;
+    this.hp = this.maxHp; this.chi = 0; this.maxChi = 150; this.denyT = 0;   // énergie : 150 (300 pour l'IA solo, réglé par Match)
     this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.face = 1; this.scale = 1;
     this.state = 'idle'; this.t = 0; this.stun = 0; this.move = null;
     this.hitSet = new Set(); this.connected = false; this.lock = null;
@@ -71,8 +71,10 @@ export class Fighter {
   }
   endBuff() { this.buff = null; this.buffT = 0; this.scale = 1; this.dmgMul = 1; this.spdMul = this.char.spd; this.defMul = 1; }
 
+  get ck() { return this.maxChi / 150; }      // facteur de gain d'énergie (barre plus grande = recharge plus vite en valeur absolue)
   take(b, cost = 0) {
     if (this.buf[b] > 0 && this.chi >= cost) { this.buf[b] = 0; return true; }
+    if (this.buf[b] > 0 && cost > 0 && this.denyT <= 0) { this.denyT = 24; this.w.event({ t: 'nochi', f: this }); }   // pas assez d'énergie : la barre clignote
     return false;
   }
 
@@ -100,7 +102,8 @@ export class Fighter {
       if ((this.buff === 'power' || this.buff === 'awaken') && this.hp > 0) this.hp = Math.min(this.maxHp, this.hp + 0.12);
       if (--this.buffT <= 0) this.endBuff();
     }
-    this.chi = this.infiniteChi ? 100 : Math.min(100, this.chi + 0.035);
+    if (this.denyT > 0) this.denyT--;
+    this.chi = this.infiniteChi ? this.maxChi : Math.min(this.maxChi, this.chi + 0.035 * this.ck);
 
     const rollNow = inp.d && (inp.l ? 1 : 0) !== (inp.r ? 1 : 0) ? (inp.r ? 1 : -1) : 0;   // ↙ / ↘ (bas + direction)
     this.rollEdge = rollNow !== 0 && rollNow !== this.rollPrev;
@@ -149,7 +152,7 @@ export class Fighter {
     // Spécial / Ninjutsu : ↑ = tir en diagonale (anti-aérien), ↓ = tir bas, sinon tir normal
     if (this.take('special', 10)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
-    // Projection (R2 + ○) : au contact elle passe la garde (adversaire au sol ; la roulade ou la substitution l'esquivent), sinon simple Poing
+    // Projection (R2 + ○) : au contact elle passe la garde (adversaire au sol ; la roulade ou la substitution l'ésquivent), sinon simple Poing
     if (this.buf.throw > 0 && this.take('throw')) return this.startMove(e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R ? 'throw' : 'punch1');
     // Projection de l'ancienne IA : arrière + Poing au contact
     if (this.backT <= 8 && this.buf.punch > 0 && this.buf.punch <= TAP && e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R && this.take('punch')) return this.startMove('throw');
@@ -172,8 +175,8 @@ export class Fighter {
     }
     if (inp.u) { this.airJumps = 0; this.vy = JUMPV; this.vx = dir * spd * 1.15; this.setState('jump'); w.event({ t: 'jump', x: this.x }); return; }
     if (inp.charge) {                                  // △ maintenu : charge le chakra (immobile, vulnérable)
-      this.vx *= 0.6; this.go('charge'); this.chi = Math.min(100, this.chi + CHARGE_RATE);
-      if (this.chi >= 100 && this.awakenReady) {     // Éveil
+      this.vx *= 0.6; this.go('charge'); this.chi = Math.min(this.maxChi, this.chi + CHARGE_RATE * this.ck);
+      if (this.chi >= this.maxChi && this.awakenReady) {     // Éveil
         this.awakened = true; this.chi = 0; this.invuln = Math.max(this.invuln, 24); this.setBuff('awaken', AWAKEN_FRAMES);
         w.event({ t: 'nova', x: this.x, y: 40, f: this }); w.event({ t: 'awaken', f: this }); w.hitstop = Math.max(w.hitstop, 20); return;
       }
@@ -277,7 +280,7 @@ export class Fighter {
   // ---------------------------------------------------------- parade parfaite
   // Le défenseur a tapé ↓ / R2 juste avant l'impact : aucun dégât, +12 chakra, -25 de jauge de garde, l'attaquant (corps à corps) est déséquilibré.
   parry(att, d, w) {
-    this.parryT = 0; this.chi = Math.min(100, this.chi + 12); this.vx = 0; this.guard = Math.max(0, this.guard - 25);
+    this.parryT = 0; this.chi = Math.min(this.maxChi, this.chi + 12 * this.ck); this.vx = 0; this.guard = Math.max(0, this.guard - 25);
     if (!d.owner && att.state === 'atk') {
       const away = att.x <= this.x ? -1 : 1;
       att.move = null; att.fade = false; att.lock = null; att.connected = false;
@@ -303,7 +306,7 @@ export class Fighter {
       this.guard += d.dmg * GUARD_PER_DMG;
       if (this.guard < GUARD_MAX) {
         this.hp -= Math.min(d.dmg * 0.08, Math.max(0, this.hp - 1));
-        this.chi = Math.min(100, this.chi + 2.5); att.chi = Math.min(100, att.chi + 1);
+        this.chi = Math.min(this.maxChi, this.chi + 2.5 * this.ck); att.chi = Math.min(att.maxChi, att.chi + 1 * att.ck);
         this.setState('blockstun'); this.stun = Math.max(9, (d.stun || 14) * 0.6);
         this.vx = dir * ((d.kb || 3) * 1.1 + 1);
         w.event({ t: 'block', x: this.x + this.face * 16, y: this.y + 40 });
@@ -322,7 +325,7 @@ export class Fighter {
     const dmg = d.dmg * sc * att.dmgMul * att.char.pow * lvm / this.defMul;
     this.hp -= dmg; this.combo++;
     att.chain = att.chainT > 0 ? att.chain + 1 : 1; att.chainT = 90; att.lastTarget = this;
-    att.chi = Math.min(100, att.chi + (d.gain ?? 4)); this.chi = Math.min(100, this.chi + 3);
+    att.chi = Math.min(att.maxChi, att.chi + (d.gain ?? 4) * att.ck); this.chi = Math.min(this.maxChi, this.chi + 3 * this.ck);
     let launch = d.launch;
     if (this.state === 'launch') { this.juggle++; if (this.juggle > 3) launch = { vx: (launch && launch.vx) || 2, vy: -2 }; }
     const big = !!launch || dmg > 55;
