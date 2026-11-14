@@ -1,8 +1,2 @@
-// Badges de rang manquants (E, B, A, SS), dessin original intégré en PNG. Les autres rangs sont dans assets/ui/.
-const P = (b) => 'data:image/png;base64,' + b;
-export const RANK_ART = {
-  E: P('iVBORw0KGgoAAAANSUhEUgAAAGAAAABXCAMAAADMObAfAAABIFBMVEUAAAASFRtVRTZHOS0zKiNtVTlpV0WTd1djSzCkhmR5Y0s8MimFaksHCxTOtZKWhHFaTUGzmHQTFhmGeW0VFhsUFhsTFRoUFhsSFBodHSEUFRvGq4TbxKTp0rC9qpAgHyGWi4IzKB+cgF58c2q8oXp2a2FeUkbjy6oAACkgHh7Cpn3bwp4AKioAMzOggF6wnYTTvqEODhURESMfICMkACQkJCQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACWDmMfAAAAYHRSTlMA/P7+/v7+/v7//v7//v///v8T/67RUI4s/mv//////v/+////////Bvz//wYF////Ix3/BwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABV+v/lAAAHQUlEQVR42u1Z6XraOhCNFstreQ=='),
-  B: P(''),
-  A: P(''),
-  SS: P('')
-};
+// Badges de rang intégrés (vide pour l'instant : les images sont lues dans assets/ui/rank_<rang>.png).
+export const RANK_ART = {};
