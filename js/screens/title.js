@@ -18,7 +18,7 @@ export default function sTitle() {
     <div class="plat p2"><i>2</i></div><div class="plat p3"><i>3</i></div>
     <div class="hm-hero"><div class="plat"><i>1</i></div><canvas width="256" height="256"></canvas></div>
     <div class="hm-bar"></div>
-    <button class="hm-start"><span>${ICON.swords}</span><em>COMBAT</em></button>`;
+    <button class="hm-start" style="width:100px;height:auto;bottom:16px"><img src="assets/ui/btn_start.png" alt="START" style="width:100%;height:auto;display:block;filter:drop-shadow(0 4px 6px #000a)"></button>`;
   G.screenEl.appendChild(root);
   drawPortrait(root.querySelector('.pf-av').getContext('2d'), hc, 56);
   root.querySelector('.hm-cur').appendChild(pills());
@@ -32,8 +32,12 @@ export default function sTitle() {
   };
 
   // barre d'icônes en bas à gauche : un bouton = une option (les modes de jeu sont tous dans COMBAT)
-  const bar = root.querySelector('.hm-bar');
-  [['star', 'HÉROS', () => G.go('heroes')], ['pad', 'COMMANDES', () => G.go('controls')], ['sliders', 'RÉGLAGES', () => settings()]].forEach(([ic, lb, fn]) => { const b = el('button', 'dia', `<span class="dm"><i>${ICON[ic]}</i></span><em>${lb}</em>`); b.onclick = () => { sfx.ok(); fn(); }; bar.appendChild(b); });
+  const bar = root.querySelector('.hm-bar'); bar.style.bottom = '14px';
+  // HEROES et PVP (multijoueur) : badges image de la planche (le texte est dans l'image) ; les autres gardent l'icône dessinée
+  [['assets/ui/btn_heroes.png', 'HÉROS', () => G.go('heroes')], ['assets/ui/btn_pvp.png', 'MULTIJOUEUR', () => { G.mode = 'online'; G.go('online'); }], ['pad', 'COMMANDES', () => G.go('controls')], ['sliders', 'RÉGLAGES', () => settings()]].forEach(([ic, lb, fn]) => {
+    const img = ic.startsWith('assets/'), b = el('button', 'dia' + (img ? ' dia-img' : ''), img ? `<img src="${ic}" alt="${lb}" style="width:64px;height:auto;display:block;filter:drop-shadow(0 3px 3px #000a)">` : `<span class="dm"><i>${ICON[ic]}</i></span><em>${lb}</em>`);
+    b.onclick = () => { sfx.ok(); fn(); }; bar.appendChild(b);
+  });
   const start = () => { sfx.ok(); G.go('modes'); };
   root.querySelector('.hm-start').onclick = start;
 
