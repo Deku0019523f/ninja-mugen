@@ -8,6 +8,7 @@
 //   R2 + ○       projection (au contact ; sinon simple Poing)
 //   ✕            saut (comme ↑) ; un 2e appui en l'air = double saut
 //   □            Shuriken
+//   Boutons tactiles dédiés : chg (charge, maintenu) · rush (dash sur l'ennemi) · cast (lancer / sort) · s1 · s2 (Super 1 / 2) ; △ △ □ = Super 2
 //   △ maintenu   charge le chakra (après CHARGE_AFTER frames)
 //   △ + ○        Ninjutsu (spécial)         △ → △ → ○   Technique ultime (super)
 //   △ + ✕        Chakra Dash               △ + □        Chakra Shuriken
@@ -26,7 +27,7 @@ export class Chord {
     const f = ++this.f, p = this.prev, edge = (k) => !!raw[k] && !p[k];
     const out = {
       l: raw.l ? 1 : 0, r: raw.r ? 1 : 0, u: raw.u || raw.x ? 1 : 0, d: raw.d || raw.r2 ? 1 : 0,
-      punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, throw: 0,
+      punch: 0, kick: 0, high: 0, low: 0, side: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, charge: 0, throw: 0, rush: 0, super2: 0,
       sup1: raw.sup1 ? 1 : 0, sup2: raw.sup2 ? 1 : 0, guard: raw.r2 ? 1 : 0, sub: edge('l2') ? 1 : 0,
     };
 
@@ -41,7 +42,7 @@ export class Chord {
     if (armed) {
       if (edge('o')) { if (this.taps.length >= 2) out.super = 1; else out.special = 1; chord = true; }
       else if (edge('x')) { out.cdash = 1; this.xUsed = true; chord = true; }
-      else if (edge('sq')) { out.cshuriken = 1; chord = true; }
+      else if (edge('sq')) { if (this.taps.length >= 2) out.super2 = 1; else out.cshuriken = 1; chord = true; }   // △ △ □ : Super 2
       if (chord) this.taps = [];
     }
     if (!chord) {
@@ -54,6 +55,12 @@ export class Chord {
       } else if (edge('sq')) out.sq = 1;
       if (raw.tri && this.triT >= CHARGE_AFTER) out.charge = 1;
     }
+    // boutons dédiés (tactile, ou touches du clavier) : un appui = une action
+    if (raw.chg) out.charge = 1;                 // Charge d'énergie (maintenu)
+    if (edge('rush')) out.rush = 1;              // Dash sur l'ennemi
+    if (edge('cast')) out.special = 1;           // Lancer d'arme / sort (↑ ou ↓ orientent le tir)
+    if (edge('s1')) out.super = 1;               // Super 1
+    if (edge('s2')) out.super2 = 1;              // Super 2 (2 × l'énergie du Super 1)
     if (this.xUsed && raw.x) out.u = raw.u ? 1 : 0;                              // ✕ consommé par le Chakra Dash : pas de saut
     this.prev = { ...raw };
     return out;
