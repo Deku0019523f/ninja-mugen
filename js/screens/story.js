@@ -1,4 +1,4 @@
-// Carte du mode Histoire : 3 difficultés, 10 nœuds reliés, fiche du combat avec les objectifs bonus.
+// Carte du mode Histoire : 2 difficultés, 10 nœuds reliés, fiche du combat avec les objectifs bonus.
 import { G, el } from './ctx.js';
 import { ROSTER } from '../data/roster.js';
 import { drawPortrait } from '../render/sprites.js';
@@ -46,7 +46,7 @@ export default function sStory(d0) {
   }
   G.handler = (k) => {
     if (k === 'left') sel = Math.max(0, sel - 1); else if (k === 'right') sel = Math.min(NODES.length - 1, sel + 1);
-    else if (k === 'up' || k === 'down') { const d = Math.max(0, Math.min(2, diff + (k === 'down' ? 1 : -1))); if (d === diff || !story.diffOpen(d)) return; diff = d; sel = 0; }
+    else if (k === 'up' || k === 'down') { const d = Math.max(0, Math.min(DIFFS.length - 1, diff + (k === 'down' ? 1 : -1))); if (d === diff || !story.diffOpen(d)) return; diff = d; sel = 0; }
     else if (k === 'ok') return fight(); else if (k === 'back') { sfx.back(); return G.go('modes'); } else return;
     sfx.ui(); draw();
   };

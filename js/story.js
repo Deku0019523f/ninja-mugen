@@ -1,6 +1,6 @@
-// Mode Histoire : 10 combats (2 boss) × 3 difficultés. Chaque combat : 1 étoile pour la victoire + 2 objectifs bonus.
+// Mode Histoire : 10 combats (2 boss) × 2 difficultés. Chaque combat : 1 étoile pour la victoire + 2 objectifs bonus.
 const KEY = 'ninja-mugen-story';
-export const DIFFS = [{ n: 'FACILE', base: 1 }, { n: 'NORMAL', base: 3 }, { n: 'DIFFICILE', base: 4 }];
+export const DIFFS = [{ n: 'NORMAL', base: 3 }, { n: 'DIFFICILE', base: 4 }];
 const O = {
   time: (v) => ({ k: 'time', v, t: `Gagner en moins de ${v >= 120 ? v / 60 + ' min' : v + ' s'}`, ok: (s) => s.sec <= v }),
   flaw: () => ({ k: 'flaw', t: 'Ne perdre aucune manche', ok: (s) => s.lost === 0 }),
@@ -18,6 +18,8 @@ export const NODES = RAW.map(([opp, stage, a, b, boss], i) => ({ i, opp, stage, 
 
 let D = { s: {} };       // s['d0'] = [étoiles par nœud]
 try { D = Object.assign(D, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* ignore */ }
+// ancienne sauvegarde à 3 difficultés (Facile, Normal, Difficile) : Facile disparaît, Normal et Difficile se décalent
+if (!D.v) { const o = D.s || {}; D.s = {}; if (o.d1) D.s.d0 = o.d1; if (o.d2) D.s.d1 = o.d2; D.v = 2; try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { /* ignore */ } }
 const store = () => { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { /* ignore */ } };
 
 export const story = {
