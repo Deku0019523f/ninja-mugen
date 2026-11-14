@@ -10,20 +10,20 @@ Cocher `[x]` au fur et à mesure ; le suivi détaillé va dans `RAPPORT.md`.
 ---
 
 ## 1. Menus : modes retirés, multijoueur dans PvP
-- [ ] 1.1 Retirer de la liste « Sélection du mode » (`js/screens/modes.js`) : **DUEL**, **ARCADE**, **SURVIE** (reste : HISTOIRE, TOURNOI, ENTRAÎNEMENT).
-- [ ] 1.2 Retirer **MULTIJOUEUR** de cette liste : on n'y accède plus que par le bouton **PvP** de l'accueil (`js/screens/title.js`, déjà en place).
-- [ ] 1.3 Nettoyer ce qui n'a plus de sens : entrées de `js/modes/index.js` (arcade, survival ; garder `single` tant que l'écran PvP / entraînement / tournoi s'en servent), récompenses, textes d'aide, tests (`test/*.mjs`), `README`.
-- [ ] 1.4 **Retirer la difficulté Facile** : il ne reste que **Normal** et **Difficile** (mode Histoire, réglages de l'IA, écrans RÈGLES / VS, `js/story.js`, `js/game/ai.js`, tests `ai_all.mjs`, textes d'aide). Les sauvegardes qui avaient la difficulté Facile passent en Normal.
-- [ ] 1.5 Vérifier que les onglets ROSTER / RÈGLES / DÉCORS et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
+- [x] 1.1 Retirer de la liste « Sélection du mode » (`js/screens/modes.js`) : **DUEL**, **ARCADE**, **SURVIE** (reste : HISTOIRE, TOURNOI, ENTRAÎNEMENT).
+- [x] 1.2 Retirer **MULTIJOUEUR** de cette liste : on n'y accède plus que par le bouton **PvP** de l'accueil (`js/screens/title.js`, déjà en place).
+- [x] 1.3 Nettoyer ce qui n'a plus de sens : entrées de `js/modes/index.js` (arcade, survival ; garder `single` tant que l'écran PvP / entraînement / tournoi s'en servent), récompenses, textes d'aide, tests (`test/*.mjs`), `README`.
+- [x] 1.4 **Retirer la difficulté Facile** : il ne reste que **Normal** et **Difficile** (mode Histoire, réglages de l'IA, écrans RÈGLES / VS, `js/story.js`, `js/game/ai.js`, tests `ai_all.mjs`, textes d'aide). Les sauvegardes qui avaient la difficulté Facile passent en Normal.
+- [x] 1.5 Vérifier que les onglets ROSTER / RÈGLES / DÉCORS et le retour au menu fonctionnent encore pour Histoire, Tournoi, Entraînement et PvP.
 
 ## 2. Énergie de combat (remplace le chakra 0-100)
 Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max (le double).**
-- [ ] 2.1 Passer la jauge de 100 à 150 pour le joueur et à 300 pour l'IA (`js/game/fighter.js`, `match.js`, `hud.js`) ; en PvP en ligne et en entraînement : 150 des deux côtés (pas d'avantage à l'IA).
-- [ ] 2.2 Recharge : bouton **Charge** (maintenu, immobile, vulnérable) + gain léger en frappant / en se faisant toucher. L'IA se recharge au même rythme relatif (barre ×2, donc deux fois plus d'énergie à dépenser, pas une charge deux fois plus rapide en pourcentage).
-- [ ] 2.3 Coûts (à équilibrer par test) : **Dash sur l'ennemi** 30 · **Lancer d'arme / sort** 25 · **Super 1** 50 · **Super 2 = 2 × Super 1 = 100** · attaque et bouclier : gratuits.
-- [ ] 2.4 Refuser l'action si l'énergie est insuffisante (petit son + barre qui clignote), pour le joueur comme pour l'IA.
-- [ ] 2.5 L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficultés Normal / Difficile inchangées en réactivité.
-- [ ] 2.6 Adapter les capacités existantes qui lisent le chakra (Éveil, Chakra Dash, Chakra Shuriken, défense parfaite +12) à la nouvelle échelle ; relancer `test/sim.mjs`, `ai_all.mjs`, `awaken.mjs`, `combos.mjs`.
+- [x] 2.1 Passer la jauge de 100 à 150 pour le joueur et à 300 pour l'IA (`js/game/fighter.js`, `match.js`, `hud.js`) ; en PvP en ligne et en entraînement : 150 des deux côtés (pas d'avantage à l'IA).
+- [x] 2.2 Recharge : bouton **Charge** (maintenu, immobile, vulnérable) + gain léger en frappant / en se faisant toucher. L'IA se recharge au même rythme relatif (barre ×2, donc deux fois plus d'énergie à dépenser, pas une charge deux fois plus rapide en pourcentage).
+- [ ] 2.3 (à finir avec la partie 3, car les nouveaux boutons n'existent pas encore ; en attendant, les coûts actuels 10 / 15 / 20 / 50 sont inchangés) Coûts (à équilibrer par test) : **Dash sur l'ennemi** 30 · **Lancer d'arme / sort** 25 · **Super 1** 50 · **Super 2 = 2 × Super 1 = 100** · attaque et bouclier : gratuits.
+- [x] 2.4 Refuser l'action si l'énergie est insuffisante (petit son + barre qui clignote), pour le joueur comme pour l'IA.
+- [ ] 2.5 (déjà : l'IA ne lance une action que si elle a l'énergie ; reste : réglage fin de ses seuils de charge pour sa barre de 300) L'IA (`js/game/ai.js`) tient compte de son énergie : charge quand elle est loin, garde du Super 2 pour les ouvertures, difficultés Normal / Difficile inchangées en réactivité.
+- [x] 2.6 Adapter les capacités existantes qui lisent le chakra (Éveil, Chakra Dash, Chakra Shuriken, défense parfaite +12) à la nouvelle échelle ; relancer `test/sim.mjs`, `ai_all.mjs`, `awaken.mjs`, `combos.mjs`.
 
 ## 3. Commandes tactiles (nouvelle disposition)
 - [ ] 3.1 **Zone gauche** : bouton **Charge d'énergie** (au-dessus) + **stick analogique** (déplacement, saut vers le haut, accroupi vers le bas).
