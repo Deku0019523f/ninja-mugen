@@ -28,7 +28,7 @@ export class Fighter {
     this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.face = 1; this.scale = 1;
     this.state = 'idle'; this.t = 0; this.stun = 0; this.move = null;
     this.hitSet = new Set(); this.connected = false; this.lock = null;
-    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0, sq: 0, cdash: 0, cshuriken: 0, sub: 0, throw: 0, high: 0, low: 0, side: 0 };
+    this.buf = { punch: 0, kick: 0, special: 0, move2: 0, super: 0, super2: 0, rush: 0, sq: 0, cdash: 0, cshuriken: 0, sub: 0, throw: 0, high: 0, low: 0, side: 0 };
     this.invuln = 0; this.combo = 0; this.juggle = 0; this.chain = 0; this.chainT = 0;
     this.buff = null; this.buffT = 0; this.dmgMul = 1; this.spdMul = char.spd; this.defMul = 1;
     this.fade = false; this.fx = null; this.dying = false; this.dead = false;
@@ -137,20 +137,23 @@ export class Fighter {
         w.event({ t: 'jump', x: this.x }); w.event({ t: 'puff', x: this.x, y: this.y + 10, color: '#cfe8ff' });
         return;
       }
+      if (this.take('rush', 30)) return this.startMove('rush');
       if (this.take('cdash', 20)) return this.startMove('cdash');                 // Chakra Dash en l'air : poursuite
       if (this.take('punch') || this.take('high') || this.take('side')) return this.startMove('apunch');
       if (this.take('kick') || this.take('low')) return this.startMove('akick');
       if (this.take('cshuriken', 20)) return this.startMove('cshuriken');
-      if (this.take('special', 10)) return this.startMove('special');
+      if (this.take('special', 25)) return this.startMove('special');
       if (this.take('sq')) return this.startMove('shuriken');
       return;
     }
+    if (this.canSuper2() && this.take('super2', 100)) return this.startMove('super2');
     if (this.take('super', 50)) return this.startMove('super');
+    if (this.take('rush', 30)) return this.startMove('rush');
     if (this.take('move2', 15)) return this.startMove('move2');
     if (this.take('cdash', 20)) return this.startMove('cdash');           // Chakra Dash (△ + ✕)
     if (this.take('cshuriken', 20)) return this.startMove('cshuriken');   // Chakra Shuriken (△ + □)
     // Spécial / Ninjutsu : ↑ = tir en diagonale (anti-aérien), ↓ = tir bas, sinon tir normal
-    if (this.take('special', 10)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
+    if (this.take('special', 25)) return this.startMove(inp.u ? 'special_up' : inp.d ? 'special_down' : 'special');
     if (this.buf.punch > 0 && this.buf.kick > 0) { this.buf.punch = this.buf.kick = 0; return this.startMove('smash'); }
     // Projection (R2 + ○) : au contact elle passe la garde (adversaire au sol ; la roulade ou la substitution l'ésquivent), sinon simple Poing
     if (this.buf.throw > 0 && this.take('throw')) return this.startMove(e && e.y <= 0 && Math.abs(e.x - this.x) < THROW_R ? 'throw' : 'punch1');
@@ -186,6 +189,9 @@ export class Fighter {
     if (dir) { this.vx = dir * spd * (dir === this.face ? 1 : BACK); this.go('walk'); }
     else { this.vx *= 0.6; this.go('idle'); }
   }
+
+  // Super 2 : héros de niveau 10 minimum (sans niveau suivi — PvP, entraînement, IA — toujours disponible)
+  canSuper2() { return !this.lv || (this.lv.lvl || 1) >= 10; }
 
   startMove(key) {
     const m = getMove(this, key);
@@ -230,7 +236,7 @@ export class Fighter {
       const B = this.buf, ground = this.y <= 0;
       if (ground && B.super > 0 && this.chi >= 50) { B.super = 0; return void this.startMove('super'); }
       if (ground && B.move2 > 0 && this.chi >= 15) { B.move2 = 0; return void this.startMove('move2'); }
-      if (B.special > 0 && this.chi >= 10) { B.special = 0; return void this.startMove('special'); }
+      if (B.special > 0 && this.chi >= 25) { B.special = 0; return void this.startMove('special'); }
       if (B.cdash > 0 && this.chi >= 20 && m.id !== 'cdash') { B.cdash = 0; return void this.startMove('cdash'); }   // Chakra Dash : prolonge le combo / poursuit
       if (ground && m.id !== 'smash' && B.punch > 0 && B.kick > 0) { B.punch = B.kick = 0; return void this.startMove('smash'); }
       const c = m.cancels;
@@ -322,7 +328,7 @@ export class Fighter {
     const armored = this.state === 'atk' && this.move && this.move.super && this.t >= this.move.su;
     const sc = Math.max(0.3, 1 - 0.07 * this.combo);
     const lvm = att.lv ? att.lv.atk * (att.lv.crit > 0 && w.rnd() < att.lv.crit ? 1.6 : 1) : 1;   // niveau du héros : ATK et coup critique
-    const dmg = d.dmg * sc * att.dmgMul * att.char.pow * lvm / this.defMul;
+    const dmg = d.dmg * sc * att.dmgMul * (att.move && att.move.s2 ? 1.6 : 1) * att.char.pow * lvm / this.defMul;
     this.hp -= dmg; this.combo++;
     att.chain = att.chainT > 0 ? att.chain + 1 : 1; att.chainT = 90; att.lastTarget = this;
     att.chi = Math.min(att.maxChi, att.chi + (d.gain ?? 4) * att.ck); this.chi = Math.min(this.maxChi, this.chi + 3 * this.ck);
