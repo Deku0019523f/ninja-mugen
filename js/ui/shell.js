@@ -53,6 +53,7 @@ export const shell = {
     bar.style.display = def && !online ? 'flex' : 'none';
     const v = def ? def[1] : VEIL_ONLY[name];
     veil.className = v || '';
+    veil.style.background = name === 'title' ? 'url(assets/ui/home_bg.png) center bottom / cover no-repeat #0a0820' : '';   // fond illustré de l'accueil (sans l'image : voile habituel)
     for (const [id] of TABS) { const t = tabEls[id]; t.classList.toggle('on', !!def && def[0] === id); t.classList.toggle('dis', !tabState(id).ok); }
   },
 
