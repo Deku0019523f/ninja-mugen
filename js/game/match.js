@@ -27,6 +27,8 @@ export class Match {
     if (cfg.sup && cfg.fmt === 1) { this.addSupports(0, cfg.sup1); this.addSupports(1, cfg.sup2); }   // soutiens R1 / L1 : 1 contre 1 uniquement
     if (cfg.boost) cfg.p1.forEach((id, i) => { const f = this.world.team(0)[i], bo = cfg.boost[i]; if (f && bo) { f.maxHp = Math.round(f.maxHp * bo.hp); f.hp = f.maxHp; f.lv = bo; } });   // niveaux des héros (jamais en 2 joueurs ni en ligne)
     if (cfg.mode === 'training') { this.world.fighters[0].infiniteChi = true; }
+    // énergie : 150 pour le joueur, le double (300) pour les adversaires de l'IA en solo (pas en ligne, ni contre un ami, ni à l'entraînement)
+    if (cfg.vs === 'cpu' && !cfg.net && cfg.mode !== 'training') for (const f of this.world.team(1)) f.maxChi = 300;
     if (cfg.carry) cfg.carry.forEach((hp, i) => { if (this.world.fighters[i] && hp != null) this.world.fighters[i].hp = Math.max(1, hp); });
     view.setStage(cfg.stage); view.setFighters(this.world); view.camX = 0;
     this.keepHp = !!cfg.carry; this.drawCount = 0; this.ff = 0; this.maxChain = 0;   // statistiques pour les objectifs bonus
