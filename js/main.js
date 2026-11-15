@@ -15,6 +15,7 @@ import { MODES } from './modes/index.js';
 import { shell } from './ui/shell.js';
 import { prog } from './progress.js';
 import { story } from './story.js';
+import { quests } from './quests.js';
 import { drawChest } from './cards.js';
 import { STARTER } from './data/ranks.js';
 import { showLoading } from './ui/loading.js';
@@ -71,6 +72,7 @@ function onMatchEnd(res) {
   const m = match, run = G.run, mode = MODES[run.mode]; match = null; bgWorld = null; hud.built = false; setMusicMode('menu');
   if (run.mode === 'online') { G.net.endMatch(); return go('onlineResult', { win: res.winner === G.net.me, wins: res.wins }); }
   let gain = null;
+  if (run.vs !== 'p2' && run.mode !== 'training') { quests.track('fight'); if (res.winner === 0) quests.track('win'); }
   if (run.vs !== 'p2' && run.mode !== 'training') { gain = prog.reward(res.winner === 0, !!run.big || (mode.series && run.fight >= (run.mode === 'tournament' ? 3 : 7))); run.gain = run.gain || { c: 0, g: 0 }; run.gain.c += gain.c; run.gain.g += gain.g; }
   if (mode.series) {
     if (res.winner !== 0) return go('result', { done: true, win: false });
@@ -78,7 +80,7 @@ function onMatchEnd(res) {
     if (mode.finished(run)) { const rd = { done: true, win: true }; if (run.mode === 'tournament') return go('chest', { cards: drawChest(3, 'tournoi'), mode: 'pick', title: 'COFFRE DU TOURNOI (S / SS)', back: 'result', backData: rd }); return go('result', rd); }
     return G.nextOpponent();
   }
-  if (run.mode === 'story') { const sr = story.finish(run.sd, run.si, res); if (sr.c || sr.g) { prog.add(sr.c, sr.g); gain = { c: (gain ? gain.c : 0) + sr.c, g: (gain ? gain.g : 0) + sr.g }; } const rd = { done: false, win: sr.win, wins: res.wins, gain, story: sr };
+  if (run.mode === 'story') { const sr = story.finish(run.sd, run.si, res); if (sr.win) quests.track('story'); if (sr.c || sr.g) { prog.add(sr.c, sr.g); gain = { c: (gain ? gain.c : 0) + sr.c, g: (gain ? gain.g : 0) + sr.g }; } const rd = { done: false, win: sr.win, wins: res.wins, gain, story: sr };
     // coffre de 3 cartes à la PREMIÈRE victoire de chaque niveau (Normal et Difficile), jamais en rejouant : on en choisit 1
     if (sr.win && prog.firstWin(`${run.sd}:${run.si}`)) return go('chest', { cards: drawChest(3, 'normal'), mode: 'pick', title: 'COFFRE DE VICTOIRE', back: 'result', backData: rd });
     return go('result', rd); }

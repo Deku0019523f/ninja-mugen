@@ -8,6 +8,7 @@ import { SUPERS } from '../game/moves.js';
 import { SUP_CD, supReady } from '../game/support.js';
 import { drawPortrait } from '../render/sprites.js';
 import { GROUND } from '../render/view.js';
+import { quests } from '../quests.js';
 
 const el = (tag, cls, html = '') => { const e = document.createElement(tag); if (cls) e.className = cls; if (html) e.innerHTML = html; return e; };
 
@@ -69,6 +70,7 @@ export class Hud {
 
   event(e) {
     if (e.t === 'super') {
+      if (e.f.team === 0 && !e.f.support) quests.track('super');
       const a = ARCH[e.f.char.arch], s = SUPERS[a.sup];
       this.cutEl.innerHTML = `<div class="cut-name">${e.f.char.name.toUpperCase()}</div><div class="cut-tech" style="color:${a.c1}">${e.f.char.supName || a.supName}</div>`;
       this.cutEl.style.setProperty('--c', a.c1); this.cutEl.classList.remove('go'); void this.cutEl.offsetWidth; this.cutEl.classList.add('go'); void s;
