@@ -10,6 +10,7 @@ const PARRY = 6;        // parade parfaite : fenêtre (frames) après un appui s
 const THROW_R = 52;     // projection : distance maximale (R2 + ○)
 const AWAKEN_HP = 0.35, AWAKEN_FRAMES = 600;   // Éveil : seuil de vie, durée (10 s)
 const CHARGE_RATE = 0.75;  // énergie gagnée par frame en chargeant (△ maintenu) : barre pleine en ~3,5 s (×2 pour l'IA, dont la barre est doublée)
+const SUB_TAP = 20;                  // fenêtre du double appui sur le bouclier pour permuter
 const SUB_MAX = 3, SUB_REGEN = 300;     // substitution : réserve de charges, +1 charge toutes les 5 s
 const GUARD_MAX = 100, GUARD_DECAY = 0.35, GUARD_PER_DMG = 0.55;   // jauge de garde : plafond, récupération par frame hors garde, usure par point de dégâts
 const BREAK_STUN = 55;  // étourdissement après une garde brisée (frames)
@@ -90,6 +91,9 @@ export class Fighter {
     // front montant de ↓ / R2 (parade parfaite), de ↑ / ✕ (double saut) et mémoire du « arrière » (projection de l'IA)
     this.dEdge = !!inp.d && !this.dPrev; this.dPrev = !!inp.d;
     this.uEdge = !!inp.u && !this.uPrev; this.uPrev = !!inp.u;
+    // Permutation : deux appuis successifs sur le bouclier (≤ 20 images d'écart) = substitution, comme L2 (inutile d'avoir un bouton de plus)
+    this.shGap = Math.min(99, (this.shGap ?? 99) + 1);
+    if (this.dEdge) { if (this.shGap <= SUB_TAP) { this.buf.sub = 8; this.shGap = 99; } else this.shGap = 0; }
     const dirIn = (inp.r ? 1 : 0) - (inp.l ? 1 : 0);
     if (dirIn !== 0 && dirIn !== this.face) this.backT = 0; else this.backT = Math.min(99, this.backT + 1);
     if (this.parryT > 0) this.parryT--;
@@ -200,7 +204,7 @@ export class Fighter {
     this.move = m; this.setState('atk'); this.hitSet.clear(); this.connected = false; this.lock = null;
     if (m.inv) this.invuln = Math.max(this.invuln, m.inv);
     if (m.super) {
-      this.invuln = Math.max(this.invuln, m.su + 4);
+      // plus d'invulnérabilité ni d'armure : un coup reçu pendant le Super l'interrompt (m.inv reste possible pour les ultimes qui le demandent)
       this.w.hitstop = 34;
       this.w.event({ t: 'super', f: this });
     }
@@ -325,7 +329,7 @@ export class Fighter {
       w.event({ t: 'break', x: this.x + this.face * 16, y: this.y + 44 });
       w.event({ t: 'clash', x: this.x + this.face * 16, y: this.y + 44 });
     }
-    const armored = this.state === 'atk' && this.move && this.move.super && this.t >= this.move.su;
+    // un Super n'a plus d'armure : un coup reçu l'interrompt (l'énergie dépensée est perdue)
     const sc = Math.max(0.3, 1 - 0.07 * this.combo);
     const lvm = att.lv ? att.lv.atk * (att.lv.crit > 0 && w.rnd() < att.lv.crit ? 1.6 : 1) : 1;   // niveau du héros : ATK et coup critique
     const dmg = d.dmg * sc * att.dmgMul * (att.move && att.move.s2 ? 1.6 : 1) * att.char.pow * lvm / this.defMul;
@@ -344,7 +348,6 @@ export class Fighter {
       w.hitstop = 16; w.event({ t: 'ko', f: this });
       return 'ko';
     }
-    if (armored) return 'hit';
     this.move = null; this.fade = false; this.lock = null;
     if (launch || this.y > 0) {
       const L = launch || { vx: d.kb || 2, vy: 3 };
