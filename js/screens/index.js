@@ -15,5 +15,6 @@ import bracket from './bracket.js';
 import onlineResult from './onlineResult.js';
 import shop from './shop.js';
 import chest from './chest.js';
+import quests from './quests.js';
 
-export const SCREENS = { title, setup, select, stage, vs, controls, result, online, onlineResult, heroes, daily, modes, story, bracket, shop, chest };
+export const SCREENS = { title, setup, select, stage, vs, controls, result, online, onlineResult, heroes, daily, modes, story, bracket, shop, chest, quests };
