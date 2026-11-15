@@ -13,5 +13,7 @@ import modes from './modes.js';
 import story from './story.js';
 import bracket from './bracket.js';
 import onlineResult from './onlineResult.js';
+import shop from './shop.js';
+import chest from './chest.js';
 
-export const SCREENS = { title, setup, select, stage, vs, controls, result, online, onlineResult, heroes, daily, modes, story, bracket };
+export const SCREENS = { title, setup, select, stage, vs, controls, result, online, onlineResult, heroes, daily, modes, story, bracket, shop, chest };
