@@ -5,6 +5,7 @@ import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
 import { backBtn, pills, LOCK } from '../ui/kit.js';
 import { prog, MAXLV, TIERS } from '../progress.js';
 import { sfx } from '../audio.js';
+import { STARTER } from '../data/ranks.js';
 
 const RK = 'clip-path:none;border:0;border-radius:0;background:none;box-shadow:none;width:40px;height:40px;object-fit:contain';
 const rankImg = (im, r) => { im.style.cssText = RK + ';left:-10px;top:-12px;width:36px;height:36px;z-index:2'; im.src = `assets/ui/rank_${r.toLowerCase()}.png`; im.alt = r; };
@@ -15,6 +16,7 @@ export default function sHeroes() {
   top.append(backBtn(() => { sfx.back(); G.go('title'); }), el('h2', '', 'HÉROS'), cur); root.appendChild(top);
   const stage = el('div', 'hr-stage', '<canvas width="256" height="256"></canvas><div class="hr-plate"></div>'), panel = el('aside', 'parch hr-panel'), strip = el('div', 'hr-strip'); strip.style.cssText = 'height:124px;padding-top:22px';   // place pour les badges de rang (sinon coupés)
   root.append(stage, panel, strip); G.screenEl.appendChild(root);
+  if (!prog.unlocked(G.S.hero || 0)) { G.S.hero = STARTER; save(); }
   let sel = Math.min(ROSTER.length - 1, G.S.hero || 0);
   const cards = ROSTER.map((ch, i) => {
     const c = el('div', 'hc'), cv = el('canvas'); cv.width = cv.height = 64; drawPortrait(cv.getContext('2d'), ch, 64);
@@ -28,9 +30,9 @@ export default function sHeroes() {
   function draw() {
     cur.refresh(); cur_ch = ROSTER[sel];
     const chosen = (G.S.hero || 0) === sel;
-    cards.forEach((x, i) => { x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); rankImg(x.bd, prog.rank(i)); x.lv.textContent = `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
-    const ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), nx = prog.stats(sel, Math.min(MAXLV, l + 1)), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
-    stage.querySelector('.hr-plate').innerHTML = `<img class="rkb" style="${RK}" src="assets/ui/rank_${prog.rank(sel).toLowerCase()}.png" alt="${prog.rank(sel)}"><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>`;
+    cards.forEach((x, i) => { const lk = !prog.unlocked(i); x.c.style.opacity = lk ? 0.45 : ''; x.c.style.filter = lk ? 'grayscale(.9)' : ''; x.c.classList.toggle('sel', i === sel); x.c.dataset.rank = prog.rank(i); rankImg(x.bd, prog.rank(i)); x.lv.textContent = lk ? `🔒 ${prog.frags(i)}/${prog.need(i)}` : `Nv ${prog.level(i)}`; x.one.style.display = (G.S.hero || 0) === i ? 'flex' : 'none'; });
+    const locked = !prog.unlocked(sel), ch = ROSTER[sel], l = prog.level(sel), st = prog.stats(sel), nx = prog.stats(sel, Math.min(MAXLV, l + 1)), max = l >= MAXLV, cost = prog.cost(sel), can = !max && prog.coins >= cost;
+    stage.querySelector('.hr-plate').innerHTML = `<img class="rkb" style="${RK}" src="assets/ui/rank_${prog.rank(sel).toLowerCase()}.png" alt="${prog.rank(sel)}"><b>${ch.name.toUpperCase()}</b><small>${ch.title || ''}</small>${locked ? `<small style="color:#ffd34d">🔒 ${prog.frags(sel)}/${prog.need(sel)} fragments</small>` : ''}`;
     const d = (a, b, f) => (max ? '' : `<u>+${f(b - a)}</u>`);
     panel.innerHTML = `<div class="pn-lv"><i class="drop"></i><b>Niveau ${l}/${MAXLV}</b></div>
       <div class="pn-st">
@@ -41,11 +43,11 @@ export default function sHeroes() {
       </div>
       <div class="pn-t"><b>PALIERS</b><small>chacun : +4 % d'ATK</small></div>
       <div class="pn-un">${TIERS.map((t, i) => `<div class="${l >= t ? 'on' : ''}" title="${TIER_TXT[i]}"><span>Lv${t}</span><em>${l >= t ? '✔' : LOCK}</em></div>`).join('')}</div>
-      <div class="pn-bt"><button class="b-sel${chosen ? ' on' : ''}">${chosen ? 'Sélectionné' : 'CHOISIR'}</button><button class="b-up${can ? '' : ' dis'}">${max ? 'NIVEAU MAX' : `<b>${cost}</b><i class="ic gold"></i>`}</button></div>`;
+      <div class="pn-bt"><button class="b-sel${chosen ? ' on' : ''}${locked ? ' dis' : ''}">${locked ? 'VERROUILLÉ' : chosen ? 'Sélectionné' : 'CHOISIR'}</button><button class="b-up${can && !locked ? '' : ' dis'}">${max ? 'NIVEAU MAX' : `<b>${cost}</b><i class="ic gold"></i>`}</button></div>`;
     panel.querySelector('.b-sel').onclick = choose; panel.querySelector('.b-up').onclick = up;
   }
-  function choose() { if ((G.S.hero || 0) !== sel) { G.S.hero = sel; save(); sfx.ok(); draw(); } }
-  function up() { if (prog.upgrade(sel)) { sfx.win(); draw(); } else sfx.back(); }
+  function choose() { if (!prog.unlocked(sel)) { sfx.back(); return; } if ((G.S.hero || 0) !== sel) { G.S.hero = sel; save(); sfx.ok(); draw(); } }
+  function up() { if (prog.unlocked(sel) && prog.upgrade(sel)) { sfx.win(); draw(); } else sfx.back(); }
   G.handler = (k) => {
     const n = ROSTER.length;
     if (k === 'back') { sfx.back(); return G.go('title'); }
