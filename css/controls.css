@@ -29,3 +29,13 @@ kbd{display:inline-block;min-width:24px;padding:1px 6px;border:1px solid #4a58b0
 .ctl-foot b{color:var(--org)}.ctl-foot span:last-child{color:var(--org)}
 #ui.compact .ctl-body{grid-template-columns:1fr 1fr;padding:8px 10px 4px;gap:8px}#ui.compact .ctl-mid{display:none}
 #ui.compact .cl{font-size:14px}#ui.compact .chip{padding:2px 6px;font-size:13px}
+
+/* onglet TACTILE : une seule carte (schéma + liste des boutons) */
+.ctl-tact{display:none;grid-column:1/-1}
+.ctl-body.tact{grid-template-columns:1fr}.ctl-body.tact>.card:not(.ctl-tact),.ctl-body.tact>.ctl-mid{display:none}.ctl-body.tact>.ctl-tact{display:flex}
+.tbody{flex:1;min-height:0;display:grid;grid-template-columns:230px 1fr;gap:16px;padding:8px 12px;align-items:center}
+.tsch .sch{max-width:230px}
+.tlist{display:flex;flex-direction:column;gap:5px;overflow:auto;max-height:100%;touch-action:pan-y}
+.trow{display:grid;grid-template-columns:92px 1fr 56px;align-items:center;gap:10px;padding:4px 10px;border:1px solid #1c2350;background:#070a22cc}
+.trow b{font:700 14px var(--f-ui);letter-spacing:.6px;color:var(--gold)}.trow span{font:400 12.5px/15px var(--f-body);color:#dfe5ff}.trow i{font:700 13px var(--f-ui);color:var(--cy);text-align:right;font-style:normal}
+#ui.compact .ctl-body.tact>.ctl-tact{display:flex}#ui.compact .tbody{grid-template-columns:1fr}#ui.compact .tsch{display:none}

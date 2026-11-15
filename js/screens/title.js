@@ -6,7 +6,6 @@ import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
 import { prog } from '../progress.js';
 import { pills, GIFT } from '../ui/kit.js';
 import { setMuted, setMusic, initAudio, sfx } from '../audio.js';
-import { getPadMode, setPadMode } from '../touch.js';
 
 export default function sTitle() {
   const hid = Math.min(ROSTER.length - 1, G.S.hero || 0), hc = ROSTER[hid], dl = prog.daily();
@@ -41,14 +40,13 @@ export default function sTitle() {
   const start = () => { sfx.ok(); G.go('modes'); };
   root.querySelector('.hm-start').onclick = start;
 
-  // fenêtre de réglages : profil, sons, musique, commande tactile, plein écran (seul endroit où ils se règlent)
+  // fenêtre de réglages : profil, sons, musique (seul endroit où ils se règlent)
   function settings() {
     const S = G.S, m = el('div', 'modal');
     m.innerHTML = `<div class="mbox"><div class="mhead"><b>RÉGLAGES</b><button class="mx">✕</button></div>
       <div class="mbody parch"><div class="mprof"><canvas width="64" height="64"></canvas><label><input maxlength="14" value="${(S.name || 'Ninja').replace(/"/g, '')}"></label></div>
         <div class="mrow"><span class="mi">${ICON.sound}</span><b>EFFETS SONORES</b><button class="sw${S.sound ? ' on' : ''}" data-k="sound"><i></i></button></div>
-        <div class="mrow"><span class="mi">${ICON.swirl}</span><b>MUSIQUE</b><button class="sw${S.music ? ' on' : ''}" data-k="music"><i></i></button></div>
-        <div class="mrow"><span class="mi">${ICON.touch}</span><b>COMMANDE TACTILE</b><button class="padsel">${getPadMode() === 'stick' ? 'ANALOGIQUE' : 'CROIX'}</button></div>${document.fullscreenEnabled ? `<div class="mrow"><span class="mi">${ICON.help}</span><b>PLEIN ÉCRAN</b><button class="sw${document.fullscreenElement ? ' on' : ''}" data-k="full"><i></i></button></div>` : ''}</div></div>`;
+        <div class="mrow"><span class="mi">${ICON.swirl}</span><b>MUSIQUE</b><button class="sw${S.music ? ' on' : ''}" data-k="music"><i></i></button></div></div></div>`;
     root.appendChild(m);
     drawPortrait(m.querySelector('canvas').getContext('2d'), hc, 64);
     const close = () => { const v = m.querySelector('input').value.trim(); if (v) S.name = v.slice(0, 14); save(); m.remove(); G.handler = main; if (v) { root.querySelector('.hm-prof b').textContent = S.name; } };
@@ -56,10 +54,8 @@ export default function sTitle() {
     m.onclick = (e) => { if (e.target === m) close(); };
     m.querySelectorAll('.sw').forEach((b) => { b.onclick = () => {
       const k = b.dataset.k;
-      if (k === 'full') { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().then(() => window.screen.orientation?.lock?.('landscape').catch(() => {})).catch(() => {}); b.classList.toggle('on'); sfx.ok(); return; }
       S[k] = !S[k]; b.classList.toggle('on', S[k]); save(); setMuted(!S.sound); setMusic(S.music); initAudio(); sfx.ok();
     }; });
-    const pad = m.querySelector('.padsel'); if (pad) pad.onclick = () => { setPadMode(getPadMode() === 'stick' ? 'dpad' : 'stick'); pad.textContent = getPadMode() === 'stick' ? 'ANALOGIQUE' : 'CROIX'; sfx.ok(); };
     G.handler = (k) => { if (k === 'back' || k === 'ok') close(); };
   }
   const main = (k) => { if (k === 'ok') start(); else if (k === 'left' || k === 'right') { sfx.ui(); G.go('heroes'); } };

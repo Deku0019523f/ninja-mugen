@@ -1,7 +1,6 @@
-// Guide des combos : onglets TACTILE / MANETTE / CLAVIER, deux cartes (attaques · défense), schéma illustré, pictogrammes.
+// Guide des commandes : onglets TACTILE / MANETTE / CLAVIER. TACTILE = les boutons réels et leurs coûts ; MANETTE et CLAVIER = deux cartes (attaques · défense), schéma, pictogrammes.
 import { G, el } from './ctx.js';
 import { KEYMAPS, setKey, resetKeys } from '../input.js';
-import { getPadMode } from '../touch.js';
 import { isTouch } from '../input.js';
 import { ICON, pic, pics } from '../ui/icons.js';
 import { pageHead } from '../ui/shell.js';
@@ -30,6 +29,16 @@ const DEFENSE = row('Garde', 'Reculer face à un coup : garde auto', chip('grey'
   + row('Double saut', 'En l\'air', chip('grey', 'x', 'x'))
   + row('Appel soutien ninja', '3 s d\'invulnérabilité, rappel 12 s', chip('cy', 'l1') + `<span class="or">ou</span>` + chip('cy', 'r1'))
   + row('Ultime d\'équipe', '60 énergie · les deux soutiens encadrent l\'adversaire', chip('cy', 'l1', '+', 'r1'), 'hot');
+const TACT = [
+  ['STICK', 'Gauche : avancer / reculer · ↑ saut (double saut en l\'air) · ↓ garde · ↓ + côté = roulade', ''],
+  ['CHARGE', 'Maintenir, immobile et vulnérable : recharge l\'énergie', '0'],
+  ['ATTAQUE', 'Appuyer en rafale = chaîne · avec le stick ↑ haute, ↓ basse, ← → latérale', ''],
+  ['BOUCLIER', 'Garde · juste avant l\'impact = parade parfaite · + ATTAQUE = projection', ''],
+  ['DASH', 'Fonce sur l\'adversaire, où qu\'il soit', '30'],
+  ['LANCER', 'Shuriken ou sort · avec le stick ↑ / ↓ : tir diagonal / bas', '25'],
+  ['SUPER 1', 'Technique ultime', '50'],
+  ['SUPER 2', 'Débloqué au niveau 10 du héros', '100'],
+].map(([n, d, c]) => `<div class="trow"><b>${n}</b><span>${d}</span>${c ? `<i>${c} ⚡</i>` : '<i></i>'}</div>`).join('');
 const WARN = `<div class="warn">${ICON.warn}<span><b>Brise-garde :</b> chaque coup encaissé en garde remplit la jauge orange ; pleine, la garde casse et vous êtes étourdi.</span></div>`;
 
 // schémas SVG (touches dessinées en trait, étiquettes de zone)
@@ -39,7 +48,7 @@ const pill = (t, x, y, w = 28) => `<g transform="translate(${x} ${y})"><rect wid
 const dot = (x, y, r, t, c, cost) => `<g transform="translate(${x} ${y})"><circle r="${r}" class="sb"/><text y="3" text-anchor="middle" style="font-size:${r > 12 ? 6 : 5}px">${t}</text>${cost ? `<text x="${r - 1}" y="${-r + 3}" text-anchor="middle" class="cap">${cost}</text>` : ''}</g>`;
 const phoneSvg = () => `<svg viewBox="0 0 230 150" class="sch"><rect x="4" y="14" width="222" height="122" rx="16" class="sd"/><rect x="11" y="21" width="208" height="108" rx="9" class="ss"/>
   <circle cx="52" cy="98" r="22" class="sr"/><circle cx="52" cy="98" r="9" class="sk"/>${pill('CHARGE', 34, 52, 36)}
-  ${dot(190, 98, 15, 'ATTAQUE')}${dot(156, 108, 11, 'BOUCL.')}${dot(150, 80, 10, 'DASH', '', 30)}${dot(194, 66, 10, 'LANCER', '', 25)}${pill('SUPER 2 · 100', 118, 28, 46)}${pill('SUPER 1 · 50', 170, 28, 42)}
+  ${dot(190, 98, 15, 'ATTAQUE')}${dot(156, 108, 11, 'BOUCL.')}${dot(150, 80, 10, 'DASH', '', 30)}${dot(194, 66, 10, 'LANCER', '', 25)}${pill('SUPER 2 · 100', 100, 28, 58)}${pill('SUPER 1 · 50', 164, 28, 50)}
   <text x="52" y="128" text-anchor="middle" class="cap">DÉPLACEMENT</text></svg>`;
 const padSvg = () => `<svg viewBox="0 0 230 150" class="sch"><path class="sd" d="M62 44C36 44 20 64 15 98c-3 24 6 38 22 33 12-4 18-17 30-25h96c12 8 18 21 30 25 16 5 25-9 22-33-5-34-21-54-47-54z"/>
   <path class="sp2" d="M52 34h26v7H52zM152 34h26v7h-26z"/>${pill('L2', 50, 12)}${pill('L1', 50, 25, 28)}${pill('R2', 152, 12)}${pill('R1', 152, 25, 28)}
@@ -58,23 +67,26 @@ export default function sControls() {
   let tab = isTouch() ? 'tactile' : 'clavier';
   const wrap = el('div', 'ctl'), seg = el('div', 'seg');
   const segEls = TABS.map(([id, l]) => { const b = el('b', '', l); b.onclick = () => { tab = id; sfx.ui(); draw(); }; seg.appendChild(b); return b; });
-  const head = pageHead({ title: 'GUIDE DES COMBOS', onBack: () => act('back'), right: seg });
+  const head = pageHead({ title: 'GUIDE DES COMMANDES', onBack: () => act('back'), right: seg });
   const body = el('div', 'ctl-body'), foot = el('div', 'ctl-foot');
   const cA = el('section', 'plate gold card'), cC = el('section', 'ctl-mid'), cD = el('section', 'plate cy card');
   cA.innerHTML = `<div class="plate-h gold">${ICON.sword}<span>ATTAQUES &amp; COMBOS</span></div><div class="cbody">${ATTAQUES}</div>`;
   cD.innerHTML = `<div class="plate-h cy">${ICON.shield}<span>DÉFENSE &amp; TÉLÉPORTATION</span></div><div class="cbody">${DEFENSE}${WARN}</div>`;
-  body.append(cA, cC, cD); wrap.append(head, body, foot); G.screenEl.appendChild(wrap);
+  const cT = el('section', 'plate gold card ctl-tact');
+  cT.innerHTML = `<div class="plate-h gold">${ICON.touch}<span>COMMANDES TACTILES</span></div><div class="tbody"><div class="tsch">${phoneSvg()}</div><div class="tlist">${TACT}</div></div>`;
+  body.append(cA, cC, cD, cT); wrap.append(head, body, foot); G.screenEl.appendChild(wrap);
 
   const draw = () => {
     segEls.forEach((b, i) => b.classList.toggle('on', TABS[i][0] === tab));
-    cC.innerHTML = tab === 'tactile' ? phoneSvg() + '<p>Énergie : Dash 30 · Lancer 25 · Super 1 50 · Super 2 100 (niveau 10 requis). BOUCLIER + ATTAQUE = projection.</p>' : tab === 'manette' ? padSvg() + '<p>✕ ○ □ △ comme sur PlayStation.</p>'.replace('✕ ○ □ △', 'Boutons ✕ ○ □ △') : keyTable();
+    const tact = tab === 'tactile'; body.classList.toggle('tact', tact);
+    cC.innerHTML = tab === 'manette' ? padSvg() + '<p>✕ ○ □ △ comme sur PlayStation.</p>'.replace('✕ ○ □ △', 'Boutons ✕ ○ □ △') : keyTable();
     cC.classList.toggle('keys', tab === 'clavier');
     cC.querySelectorAll('kbd[data-a]').forEach((k) => { k.onclick = () => {
       k.textContent = '…'; k.classList.add('wait'); sfx.ui();
       const cap = (e) => { e.preventDefault(); e.stopImmediatePropagation(); removeEventListener('keydown', cap, true); if (e.code !== 'Escape') setKey(+k.dataset.p, k.dataset.a, e.code); draw(); };
       addEventListener('keydown', cap, true);
     }; });
-    foot.innerHTML = tab === 'tactile' ? `<span>Sticks virtuels : <b>${getPadMode() === 'stick' ? 'analogique' : 'croix'}</b> (à changer dans RÉGLAGES, sur l'accueil)</span>`
+    foot.innerHTML = tab === 'tactile' ? '<span>Le stick apparaît sous ton pouce gauche · plusieurs doigts = plusieurs boutons</span><span>Boutons grisés : pas assez d\'énergie</span>'
       : tab === 'manette' ? '<span>R1 / L1 soutiens · R2 garde · L2 substitution · L3 dash sur l\'ennemi · R3 Super 1 · △ △ □ Super 2</span><span>Croix ou stick gauche pour bouger</span>' : '<span>P ou Échap : pause en combat</span><span><b class="rk" style="cursor:pointer;text-decoration:underline">Réinitialiser les touches</b></span>';
     const rk = foot.querySelector('.rk'); if (rk) rk.onclick = () => { resetKeys(); sfx.ui(); draw(); };
   };
