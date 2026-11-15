@@ -5,6 +5,7 @@ import { ROSTER } from '../data/roster.js';
 import { drawPortrait } from '../render/sprites.js';
 import { prog } from '../progress.js';
 import { sfx } from '../audio.js';
+import { quests } from '../quests.js';
 
 const CSS = `.chs{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(#2c1a3a,#0b0714);color:#fff;font-family:var(--f-ui,sans-serif)}
 .chs h2{margin:0;font-size:22px;letter-spacing:2px;-webkit-text-stroke:3px #1a0f05;paint-order:stroke fill}
@@ -29,6 +30,7 @@ const CSS = `.chs{position:absolute;inset:0;display:flex;flex-direction:column;a
 .chs-ok{padding:8px 26px;border-radius:10px;border:2px solid #f3b61f;background:linear-gradient(#e8a21a,#a35d0c);color:#fff;font:800 16px var(--f-ui,sans-serif);cursor:pointer;-webkit-text-stroke:2px #1a0f05;paint-order:stroke fill}`;
 
 export default function sChest(d) {
+  quests.track('chest');
   const cards = d.cards, all = d.mode === 'all', root = el('div', 'chs' + (all ? ' x10' : ''));
   const st = document.createElement('style'); st.textContent = CSS; root.appendChild(st);
   const h = el('h2', '', d.title || 'COFFRE'), sub = el('p', '', all ? 'Touche une carte pour la retourner (ou OUVRIR TOUT).' : 'Choisis UNE carte : elle te donne ses fragments.');

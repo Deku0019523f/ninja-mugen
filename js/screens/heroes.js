@@ -5,6 +5,7 @@ import { drawFighter, drawPortrait, poseFor } from '../render/sprites.js';
 import { backBtn, pills, LOCK } from '../ui/kit.js';
 import { prog, MAXLV, TIERS } from '../progress.js';
 import { sfx } from '../audio.js';
+import { quests } from '../quests.js';
 import { STARTER } from '../data/ranks.js';
 
 const RK = 'clip-path:none;border:0;border-radius:0;background:none;box-shadow:none;width:40px;height:40px;object-fit:contain';
@@ -47,7 +48,7 @@ export default function sHeroes() {
     panel.querySelector('.b-sel').onclick = choose; panel.querySelector('.b-up').onclick = up;
   }
   function choose() { if (!prog.unlocked(sel)) { sfx.back(); return; } if ((G.S.hero || 0) !== sel) { G.S.hero = sel; save(); sfx.ok(); draw(); } }
-  function up() { if (prog.unlocked(sel) && prog.upgrade(sel)) { sfx.win(); draw(); } else sfx.back(); }
+  function up() { if (prog.unlocked(sel) && prog.upgrade(sel)) { quests.track('up'); sfx.win(); draw(); } else sfx.back(); }
   G.handler = (k) => {
     const n = ROSTER.length;
     if (k === 'back') { sfx.back(); return G.go('title'); }
