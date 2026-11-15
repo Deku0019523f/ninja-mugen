@@ -33,35 +33,35 @@ Barre d'énergie unique, affichée sous la vie. **Joueur : 150 max. IA : 300 max
 - [x] 3.5 Test sur écran de téléphone en paysage (captures Playwright) : pas de bouton sous les pouces, zones bien séparées.
 
 ## 4. Rangs et rareté des personnages
-- [ ] 4.1 Chaque personnage reçoit un **rang fixe de E à SS** (`js/data/roster.js`) : E, D, C, B, A, AA, S, SS. Le rang ne dépend plus du niveau (le niveau 1-50 reste une progression à part). Remplace `prog.rank` actuel (qui se calculait d'après le niveau).
-- [ ] 4.2 **Un seul personnage de départ**, de rang E, débloqué dès le premier lancement. Tous les autres sont verrouillés.
-- [ ] 4.3 Plus le rang est haut, plus ses cartes sont **rares** : tirage pondéré (valeurs de départ, à ajuster) E 40 % · D 25 % · C 15 % · B 10 % · A 6 % · AA 3 % · S 0,9 % · SS 0,1 % dans les coffres ordinaires.
-- [ ] 4.4 Les cartes **S et SS** ne viennent **que des victoires en Tournoi** (voir 5.3) ; elles sont exclues du tirage des coffres d'Histoire et de la boutique.
-- [ ] 4.5 Badges de rang (images `assets/ui/rank_e.png` … `rank_ss.png`) sur les cartes, la fiche héros et les coffres.
+- [x] 4.1 Chaque personnage reçoit un **rang fixe de E à SS** (`js/data/roster.js`) : E, D, C, B, A, AA, S, SS. Le rang ne dépend plus du niveau (le niveau 1-50 reste une progression à part). Remplace `prog.rank` actuel (qui se calculait d'après le niveau).
+- [x] 4.2 **Un seul personnage de départ**, de rang E, débloqué dès le premier lancement. Tous les autres sont verrouillés.
+- [x] 4.3 Plus le rang est haut, plus ses cartes sont **rares** : tirage pondéré (valeurs de départ, à ajuster) E 40 % · D 25 % · C 15 % · B 10 % · A 6 % · AA 3 % · S 0,9 % · SS 0,1 % dans les coffres ordinaires.
+- [x] 4.4 Les cartes **S et SS** ne viennent **que des victoires en Tournoi** (voir 5.3) ; elles sont exclues du tirage des coffres d'Histoire et de la boutique.
+- [x] 4.5 Badges de rang (images `assets/ui/rank_e.png` … `rank_ss.png`) sur les cartes, la fiche héros et les coffres.
 
 ## 5. Cartes, fragments et déblocage
-- [ ] 5.1 **Carte = fragments d'un personnage** (ex. « Kaito ×3 »). Un personnage se débloque en réunissant ses fragments : 10 pour les rangs E à C, 20 pour A et AA, 30 pour S et SS (valeurs de départ). Au-delà du déblocage, les fragments en trop donnent des pièces.
-- [ ] 5.2 **Mode Histoire** : à la **première victoire de chaque niveau, en Normal et en Difficile** (une fois par niveau et par difficulté, jamais en rejouant), un **coffre de 3 cartes** s'ouvre ; le joueur **en choisit 1**, qui donne les fragments de ce personnage. C'est la voie principale pour débloquer les héros, un par un.
-- [ ] 5.3 **Mode Tournoi** : à chaque victoire du tournoi, un coffre de cartes **S / SS** (3 cartes, on en choisit 1).
-- [ ] 5.4 Écran d'ouverture de coffre : 3 cartes face cachée, retournement, choix d'une carte, barre de fragments « 4/10 » qui se remplit, animation de déblocage « NOUVEAU ! ».
-- [ ] 5.5 Écran HÉROS : héros verrouillés grisés avec cadenas et « x/10 fragments » ; impossible de les choisir tant qu'ils sont verrouillés. Sélection de héros (accueil, ROSTER, tournoi, PvP) limitée aux héros débloqués.
-- [ ] 5.6 **Sauvegarde** (`js/progress.js`) : héros débloqués, fragments par héros, niveaux d'Histoire déjà gagnés par difficulté (pour ne donner le coffre qu'une fois), boîtes ouvertes ; **migration** des sauvegardes existantes (un héros déjà monté de niveau reste débloqué ; le héros de départ est le rang E).
-- [ ] 5.7 Adversaires de l'IA, mode Histoire et Tournoi : l'IA peut utiliser tous les personnages, même verrouillés pour le joueur.
+- [x] 5.1 **Carte = fragments d'un personnage** (ex. « Kaito ×3 »). Un personnage se débloque en réunissant ses fragments : 10 pour les rangs E à C, 20 pour A et AA, 30 pour S et SS (valeurs de départ). Au-delà du déblocage, les fragments en trop donnent des pièces.
+- [x] 5.2 **Mode Histoire** : à la **première victoire de chaque niveau, en Normal et en Difficile** (une fois par niveau et par difficulté, jamais en rejouant), un **coffre de 3 cartes** s'ouvre ; le joueur **en choisit 1**, qui donne les fragments de ce personnage. C'est la voie principale pour débloquer les héros, un par un.
+- [x] 5.3 **Mode Tournoi** : à chaque victoire du tournoi, un coffre de cartes **S / SS** (3 cartes, on en choisit 1).
+- [x] 5.4 Écran d'ouverture de coffre : 3 cartes face cachée, retournement, choix d'une carte, barre de fragments « 4/10 » qui se remplit, animation de déblocage « NOUVEAU ! ».
+- [x] 5.5 Écran HÉROS : héros verrouillés grisés avec cadenas et « x/10 fragments » ; impossible de les choisir tant qu'ils sont verrouillés. Sélection de héros (accueil, ROSTER, tournoi, PvP) limitée aux héros débloqués.
+- [x] 5.6 **Sauvegarde** (`js/progress.js`) : héros débloqués, fragments par héros, niveaux d'Histoire déjà gagnés par difficulté (pour ne donner le coffre qu'une fois), boîtes ouvertes ; **migration** des sauvegardes existantes (un héros déjà monté de niveau reste débloqué ; le héros de départ est le rang E).
+- [x] 5.7 Adversaires de l'IA, mode Histoire et Tournoi : l'IA peut utiliser tous les personnages, même verrouillés pour le joueur.
 
 ## 6. Progression de héros
-- [ ] 6.1 Niveaux 1 à 50 et paliers 10 / 20 / 30 / 40 / 50 conservés.
-- [ ] 6.2 Les pièces servent toujours à monter de niveau.
-- [ ] 6.3 Affichage du rang fixe (E → SS) sur la fiche, à la place du rang qui dépendait du niveau.
+- [x] 6.1 Niveaux 1 à 50 et paliers 10 / 20 / 30 / 40 / 50 conservés.
+- [x] 6.2 Les pièces servent toujours à monter de niveau.
+- [x] 6.3 Affichage du rang fixe (E → SS) sur la fiche, à la place du rang qui dépendait du niveau.
 - [ ] 6.4 **Super 2 débloqué au niveau 10** du héros : cadenas et message « Niveau 10 requis » avant ; le palier de niveau 10 l'indique explicitement dans le parchemin.
 
 ## 7. Boutique (germes)
 Nouvel écran **BOUTIQUE**, accessible depuis l'accueil (onglets à gauche à la manière du jeu de référence : COFFRES · PIÈCES · FRAGMENTS).
-- [ ] 7.1 **Coffre ×3** : **250 germes** → 3 cartes, on en choisit 1.
-- [ ] 7.2 **Coffre ×10** : **700 germes** → 10 cartes, **on les garde toutes**.
-- [ ] 7.3 **Germes → pièces** : conversion à taux fixe (valeur de départ : 1 germe = 40 pièces), par paliers 10 / 50 / 100 germes.
-- [ ] 7.4 **Fragments contre germes** : acheter un fragment précis d'un personnage de son choix (prix selon le rang, valeurs de départ : E 20 · D 30 · C 45 · B 70 · A 100 · AA 150 germes ; S et SS non vendus, uniquement par le Tournoi).
+- [x] 7.1 **Coffre ×3** : **250 germes** → 3 cartes, on en choisit 1.
+- [x] 7.2 **Coffre ×10** : **700 germes** → 10 cartes, **on les garde toutes**.
+- [x] 7.3 **Germes → pièces** : conversion à taux fixe (valeur de départ : 1 germe = 40 pièces), par paliers 10 / 50 / 100 germes.
+- [x] 7.4 **Fragments contre germes** : acheter un fragment précis d'un personnage de son choix (prix selon le rang, valeurs de départ : E 20 · D 30 · C 45 · B 70 · A 100 · AA 150 germes ; S et SS non vendus, uniquement par le Tournoi).
 - [ ] 7.5 Les germes se gagnent en jouant (victoires, Histoire, étoiles, cadeau quotidien) : revoir les gains (`prog.reward`, `DAILY`, `story.js`) pour que 250 germes restent atteignables sans tricher ni faire la même chose cent fois (ordre de grandeur visé : un coffre ×3 après 2 à 3 séances).
-- [ ] 7.6 Confirmation avant tout achat, solde insuffisant géré, aucune offre limitée, aucune pub, aucun achat en argent réel.
+- [x] 7.6 Confirmation avant tout achat, solde insuffisant géré, aucune offre limitée, aucune pub, aucun achat en argent réel.
 
 ## 8. Vérification finale
 - [ ] 8.1 Tests automatiques : énergie (coûts, 150 / 300, refus), déblocage (fragments, migration de sauvegarde), tirages (rareté, pas de S/SS en coffre ordinaire), boutique (soldes), modes retirés.
