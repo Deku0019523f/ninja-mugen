@@ -9,7 +9,7 @@ import { STARTER } from '../data/ranks.js';
 
 const RK = 'clip-path:none;border:0;border-radius:0;background:none;box-shadow:none;width:40px;height:40px;object-fit:contain';
 const rankImg = (im, r) => { im.style.cssText = RK + ';left:-10px;top:-12px;width:36px;height:36px;z-index:2'; im.src = `assets/ui/rank_${r.toLowerCase()}.png`; im.alt = r; };
-const TIER_TXT = ['Ninjutsu', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
+const TIER_TXT = ['Super 2', 'Technique', 'Ultime', 'Éveil', 'Maîtrise'];
 
 export default function sHeroes() {
   const root = el('div', 'hr'), top = el('div', 'kit-top'), cur = pills();
@@ -42,7 +42,7 @@ export default function sHeroes() {
         <div><i class="ico cr"></i><span>TAUX CRIT</span><b>${(st.crit * 100).toFixed(1)}%${d(st.crit, nx.crit, (v) => (v * 100).toFixed(1) + '%')}</b></div>
       </div>
       <div class="pn-t"><b>PALIERS</b><small>chacun : +4 % d'ATK</small></div>
-      <div class="pn-un">${TIERS.map((t, i) => `<div class="${l >= t ? 'on' : ''}" title="${TIER_TXT[i]}"><span>Lv${t}</span><em>${l >= t ? '✔' : LOCK}</em></div>`).join('')}</div>
+      <div class="pn-s2" style="font-size:11px;font-weight:800;margin:2px 0;color:${l >= 10 ? '#2a7a3a' : '#a33'}">${l >= 10 ? '✔ Super 2 débloqué (niveau 10)' : '🔒 Super 2 : niveau 10 requis'}</div><div class="pn-un">${TIERS.map((t, i) => `<div class="${l >= t ? 'on' : ''}" title="${TIER_TXT[i]}"><span>Lv${t}${t === 10 ? ' · S2' : ''}</span><em>${l >= t ? '✔' : LOCK}</em></div>`).join('')}</div>
       <div class="pn-bt"><button class="b-sel${chosen ? ' on' : ''}${locked ? ' dis' : ''}">${locked ? 'VERROUILLÉ' : chosen ? 'Sélectionné' : 'CHOISIR'}</button><button class="b-up${can && !locked ? '' : ' dis'}">${max ? 'NIVEAU MAX' : `<b>${cost}</b><i class="ic gold"></i>`}</button></div>`;
     panel.querySelector('.b-sel').onclick = choose; panel.querySelector('.b-up').onclick = up;
   }

@@ -60,10 +60,18 @@ export function initTouch() {
   // boutons dédiés : chacun est indépendant (plusieurs doigts = plusieurs boutons, ex. BOUCLIER + ATTAQUE = projection)
   for (const b of document.querySelectorAll('#touch .tb')) {
     const a = b.dataset.k, set = (v) => { touch[a] = v; b.classList.toggle('on', !!v); };
-    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); set(1); });
+    b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); if (b.classList.contains('lock')) lockMsg(); set(1); });
     ['pointerup', 'pointercancel'].forEach((n) => b.addEventListener(n, () => set(0)));
   }
   apply();
+}
+
+// message « Niveau 10 requis » quand on touche le Super 2 verrouillé
+let lockT = 0;
+function lockMsg() {
+  let m = document.getElementById('lockmsg');
+  if (!m) { m = document.createElement('div'); m.id = 'lockmsg'; m.style.cssText = 'position:fixed;left:50%;top:22%;transform:translateX(-50%);padding:8px 16px;border-radius:10px;background:#000c;border:2px solid #f3b61f;color:#fff;font:800 15px sans-serif;z-index:99;pointer-events:none'; document.body.appendChild(m); }
+  m.textContent = '🔒 Super 2 : niveau 10 requis'; m.style.display = 'block'; clearTimeout(lockT); lockT = setTimeout(() => { m.style.display = 'none'; }, 1600);
 }
 
 // Grise les boutons trop chers pour l'énergie du joueur ; cadenas sur le Super 2 tant que le héros n'est pas niveau 10
