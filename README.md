@@ -26,6 +26,13 @@ Combos : ○○○ poings · △+○ Ninjutsu (10 chakra) · △▶△▶○ Tec
 
 Barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCHES + son), voile sombre / flou derrière les menus, transition « coup de sabre », polices Rajdhani et Inter intégrées (hors-ligne). Tab = adversaire manuel / aléatoire dans ROSTER.
 
+## Énergie, cartes et boutique
+
+- **Énergie** : une barre unique (150 pour le joueur, 300 pour l'IA en solo). Dash 30 · Lancer 25 · Super 1 50 · Super 2 100 (débloqué au niveau 10 du héros). Bouton Charge pour se recharger.
+- **Rangs** : chaque personnage a un rang fixe de E à SS. Au départ, seul Kaito Apprenti (E) est débloqué.
+- **Cartes et fragments** : la 1re victoire de chaque niveau d'Histoire (Normal et Difficile) ouvre un coffre de 3 cartes, on en choisit 1. Une victoire de Tournoi donne un coffre S / SS. Un héros se débloque avec 10 à 30 fragments selon son rang ; les fragments en trop donnent des pièces.
+- **Boutique** (germes gagnés en jouant, jamais d'argent réel) : coffre ×3 = 250 germes, coffre ×10 = 700 germes (on garde les 10 cartes), germes → pièces, achat de fragments (rangs E à AA).
+
 ## Multijoueur local (Android)
 
 Combat 1v1 entre deux téléphones via Google Nearby Connections (Wi-Fi / Bluetooth automatiques), application Android par Capacitor : voir [docs/MULTIJOUEUR.md](docs/MULTIJOUEUR.md).
@@ -49,5 +56,4 @@ js/input.js · js/audio.js      clavier / manette / tactile · sons et musique s
 css/fonts|base|ui|shell|hud|menus|home|select|stage|controls|touch.css   styles par domaine
 npm @fontsource (Rajdhani, Inter ; OFL) : intégrées en base64 par build.mjs
 ```
-Tactile (paysage uniquement) : stick analogique flottant ou croix 8 directions (bouton ✚/🕹 ou Options),
-↗ ↖ saut avant/arrière, ↘ ↙ roulade, □ poing, △ pied, ○ spécial, ✕ technique, □+△ frappe lourde, ○+✕ super.
+Tactile (paysage) : stick analogique + Charge à gauche ; Attaque, Bouclier, Dash, Lancer, Super 1 et Super 2 à droite (coûts en énergie affichés).

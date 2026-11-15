@@ -3,13 +3,13 @@
 Mémoire du projet : à mettre à jour après chaque étape importante.
 
 ## Objectif
-Jeu de combat 2D façon M.U.G.E.N en three.js : 56 combattants originaux (18 styles), 1v1 et 2v2, 6 décors, modes Arcade / Combat individuel / Survie / Entraînement, IA à 5 niveaux, 2 joueurs, manette et tactile (paysage), **multijoueur local Android (Nearby Connections, 1v1)**. Direction en cours : schéma de commandes « Storm » (voir plan.md, phase 6).
+Jeu de combat 2D façon M.U.G.E.N en three.js : 56 combattants originaux (18 styles), 1v1 et 2v2, 6 décors, modes Histoire / Tournoi / Entraînement, IA à 2 niveaux (Normal, Difficile), 2 joueurs, manette et tactile (paysage), **multijoueur local Android (Nearby Connections, 1v1)** par le bouton PvP. Les héros se débloquent par cartes et fragments (voir la section « Feuille de route n°2 » en bas).
 
 ## Stack et technologies
 - JavaScript ES Modules (sans framework), rendu three.js 0.170 (caméra orthographique, sprites dessinés sur canvas, particules shader)
 - Navigateur : `index.html` + importmap vers three via jsDelivr (CDN)
 - Build : esbuild (`build.mjs`) → un seul fichier `dist/ninja-mugen.html` (three inclus, hors-ligne)
-- Tests : simulation du moteur sans navigateur (9 fichiers dans `test/`, lancés par `npm test`)
+- Tests : simulation du moteur sans navigateur (fichiers dans `test/`, lancés par `npm test`)
 - Hébergement : GitHub Pages (déploiement depuis la branche `main`, racine)
 - Application Android : Capacitor (manuel, voir `docs/MULTIJOUEUR.md`) + plugin Java Nearby Connections (`capacitor/android/`)
 
@@ -25,7 +25,7 @@ Voir `plan.md` (structure, flux des entrées, chaînes de combos, règles des co
 - **Multijoueur local (2026-11-09)** : création de salon, recherche automatique des salons proches, liaison Wi-Fi / Bluetooth choisie par Nearby (liaison obtenue affichée), choix des combattants et de l'arène, combat 1v1 en **lockstep par entrées** (graine commune, 12 bits de touches par frame, délai d'entrée 3 à 12 frames selon le ping, hash de synchro toutes les 60 frames), déconnexion (combat mis en attente) et reconnexion automatique 30 s avec reprise exacte, revanche.
 
 ## Fonctionnalités restantes
-Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5. Multijoueur : test sur de vrais téléphones, 2v2 / soutiens en ligne, pause en ligne.
+Voir `plan.md`. Multijoueur : test sur de vrais téléphones, 2v2 / soutiens en ligne, pause en ligne.
 
 ## Modifications importantes
 - 2026-11-07 : refonte multifichier, rendu large, `.nojekyll`, `plan.md`, phase 1, phase 3, latence, personnalités de l'IA, cahier des charges Storm.
@@ -47,7 +47,7 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5. Multij
 - **Choix de conception** : les combinaisons sont résolues dans `chords.js` (boutons physiques → actions internes) ; `sim.mjs` et `phase3.mjs` restent valides car le vocabulaire interne est inchangé. Le joueur n'a plus la Technique d'archétype ni la Frappe lourde.
 - **Substitution** : utilise le buffer d'entrées (8 frames) pour pouvoir être pressée un peu avant l'impact, y compris pendant le hitstop.
 - **Chaînes 6.4** : les annulations lisent le buffer (8 frames, conservé pendant le hitstop) ; en l'air, un coup de chaîne annulé est remplacé par son équivalent aérien (`AIRMAP`).
-- **Multijoueur** : le moteur est déterministe (seul `world.rnd` à graine est utilisé), d'où le lockstep par entrées ; Wi-Fi / Bluetooth ne peuvent pas être forcés avec Nearby (la liaison obtenue est affichée). 4 échecs de `test/combos.mjs` (6.4 chaîne haute / poursuite / combo aérien) existaient déjà sur `main` avant le multijoueur ; non traités ici.
+- **Multijoueur** : le moteur est déterministe (seul `world.rnd` à graine est utilisé), d'où le lockstep par entrées ; Wi-Fi / Bluetooth ne peuvent pas être forcés avec Nearby (la liaison obtenue est affichée).
 
 ## Dépendances installées
 - `three@^0.170.0` (dependencies)
@@ -59,17 +59,29 @@ Voir `plan.md` : 6.1b-d, 6.2b-c, 6.3b-c, 6.4b-e, 6.5, 6.6, phases 1 à 5. Multij
 - `npm install` : installer les dépendances
 - `npm run build` : régénérer `dist/ninja-mugen.html`
 - `npm run build:app` : build + `www/index.html` pour Capacitor
-- `npm test` : les 9 fichiers de test (Node), dont `test/net.mjs` (multijoueur)
+- `npm test` : tous les fichiers de test (Node), dont `test/net.mjs` (multijoueur) et `test/cards.mjs` (cartes, boutique)
 - `npm start` : serveur local (`npx serve .`)
 
 ## Variables d'environnement
 Aucune.
 
 ## État actuel
-Jouable. Phases 1, 3, 6.1 à 6.4 faites ; multijoueur : noyau réseau testé sur transport simulé, plugin Android **non compilé ni testé sur téléphone**. `dist/ninja-mugen.html` **pas régénéré sur main** (lancer `npm install && npm run build`). Pour GitHub Pages, vider le cache (CSS / JS en `?v=7`, `online.css?v=8`).
+Jouable. Feuille de route n°1 faite ; feuille de route n°2 (plan.md) faite sauf le parcours de captures 8.2 et la partie 9 (idées non validées). Multijoueur : noyau réseau testé sur transport simulé, plugin Android **non compilé ni testé sur téléphone**. Pour GitHub Pages, vider le cache (CSS / JS versionnés par `?v=`).
 
 ## Prochaines étapes
+- Vérifier sur appareil l'habillage tactile en plein combat, les écrans Héros / sélection / Boutique / coffres
+- Ajuster les valeurs chiffrées (germes, prix, fragments, probabilités) après quelques parties réelles
 - Suivre `docs/MULTIJOUEUR.md` pour créer l'APK Capacitor et tester sur deux téléphones
-- Lancer `npm test` ; en cas d'échec, envoyer la sortie. Les tests les plus fragiles (timings) : `test/combos.mjs` et `test/ai_all.mjs`.
-- Tester en jeu : les 3 chaînes directionnelles, le bond de poursuite, le Chakra Dash qui suit, le comportement de l'IA
-- Puis 6.5 (éveil, techniques d'équipe), 6.6 (remappage, README, tests réécrits), poses d'animation des nouveaux coups (phase 4)
+- Partie 9 de `plan.md` (carte de campagne, étoiles, animations) : à valider avant de coder
+
+## Feuille de route n°2 (2026-11-14 / 15) : énergie, commandes, cartes, boutique
+- **Modes** : Duel, Arcade, Survie et difficulté Facile retirés ; multijoueur uniquement par le bouton PvP.
+- **Énergie** : jauge 150 (joueur) / 300 (IA solo) ; Dash 30, Lancer 25, Super 1 50, Super 2 100 ; refus si énergie insuffisante (`test/energy.mjs`).
+- **Commandes tactiles** : stick + Charge à gauche ; Attaque, Bouclier, Dash, Lancer, Super 1, Super 2 à droite ; boutons grisés si trop chers ; Super 2 verrouillé avec message « niveau 10 requis ».
+- **Rangs** (`js/data/ranks.js`) : rang fixe E→SS par personnage, un seul héros de départ (rang E, `STARTER`).
+- **Cartes** (`js/cards.js`) : tirage pondéré E 40 · D 25 · C 15 · B 10 · A 6 · AA 3 ; S / SS seulement en coffre de Tournoi (85 / 15).
+- **Progression** (`js/progress.js`) : sauvegarde v2 (héros débloqués, fragments, niveaux d'Histoire gagnés, coffres ouverts) avec migration ; fragments en trop = 15 pièces.
+- **Écrans** : `shop.js` (COFFRES · PIÈCES · FRAGMENTS, confirmation avant achat), `chest.js` (coffre ×3 à choix, ×10 tout garder), héros et sélection : héros verrouillés grisés.
+- **Germes** : 12 par victoire (30 en finale), 6 pour 3 étoiles en Histoire, cadeau quotidien 10 / 15 / 40 aux jours 4 / 6 / 7. Valeurs de départ à ajuster au jeu réel.
+- **Tests** : `test/cards.mjs` (rangs, migration, raretés, fragments, 1re victoire, soldes de boutique), intégré à `npm test`.
+- **Reste** : vérification sur appareil de l'habillage tactile en plein combat ; parcours complet par captures ; partie 9 de `plan.md` (idées, non validées).
