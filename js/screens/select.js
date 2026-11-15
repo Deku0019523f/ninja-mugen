@@ -9,6 +9,7 @@ import { ICON } from '../ui/icons.js';
 import { pageHead } from '../ui/shell.js';
 import { flow } from '../net/flow.js';
 import { sfx } from '../audio.js';
+import { prog } from '../progress.js';
 
 export default function sSelect() {
   const S = G.S, mode = G.mode, m = MODES[mode];
@@ -27,6 +28,8 @@ export default function sSelect() {
   };
   let slots = mkSlots();
   const p1Count = slots.length;
+  // un joueur humain ne peut choisir que ses héros débloqués (l'adversaire de l'IA, lui, peut être n'importe qui)
+  const mine = (t) => t === 0 || humanP2;
   const picks = [], N = ROSTER.length, TOTAL = N + 1, PAGES = Math.ceil(TOTAL / PER);   // + case « aléatoire »
   const curs = [0, Math.min(N - 1, 9)];
   // prénoms en double (plusieurs « Kaito ») : numérotés dans la grille, le détail est dans la fiche
@@ -106,7 +109,7 @@ export default function sSelect() {
     cells.forEach((d, j) => {
       const idx = pg * PER + j; d.idx = idx; const g = d.cv.getContext('2d'); g.clearRect(0, 0, 48, 48);
       d.classList.toggle('void', idx >= TOTAL); d.classList.toggle('rnd', idx === N);
-      if (idx < N) { g.drawImage(portrait(idx), 0, 0); d.nm.textContent = tag[idx]; d.style.setProperty('--ac', ARCH[ROSTER[idx].arch].c1); }
+      if (idx < N) { const lk = mine(t0) && !prog.unlocked(idx); g.drawImage(portrait(idx), 0, 0); d.nm.textContent = tag[idx] + (lk ? ' 🔒' : ''); d.style.opacity = lk ? 0.4 : ''; d.style.setProperty('--ac', ARCH[ROSTER[idx].arch].c1); }   // héros verrouillé : grisé
       else if (idx === N) { g.fillStyle = '#a9b4e8'; g.font = 'bold 30px sans-serif'; g.textAlign = 'center'; g.fillText('?', 24, 35); d.nm.textContent = 'ALÉA.'; d.style.setProperty('--ac', '#a9b4e8'); }
       d.classList.toggle('sel', idx === curs[t0]); d.classList.toggle('picked', idx < N && picks.indexOf(idx) >= 0);
     });
@@ -177,7 +180,8 @@ export default function sSelect() {
     else if (k === 'pgl' || k === 'pgr') { const pg = (Math.floor(c / PER) + (k === 'pgl' ? PAGES - 1 : 1)) % PAGES; c = Math.min(TOTAL - 1, pg * PER + (c % PER)); }
     else if (k === 'alt') { if (canPickOpp) toggleOpp(); return; }
     else if (k === 'ok') {
-      sfx.ok(); if (c >= N) c = Math.floor(Math.random() * N);
+      if (c < N && mine(at) && !prog.unlocked(c)) { sfx.back(); return; }   // héros verrouillé
+      sfx.ok(); if (c >= N) { const pool = ROSTER.map((x, q) => q).filter((q) => !mine(at) || prog.unlocked(q)); c = pool[Math.floor(Math.random() * pool.length)]; }
       curs[at] = c; picks.push(c);
       if (picks.length === slots.length) return finish(); return draw();
     }
