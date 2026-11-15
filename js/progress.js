@@ -3,7 +3,7 @@ import { ROSTER } from './data/roster.js';
 import { rankOf, NEED, STARTER } from './data/ranks.js';
 const KEY = 'ninja-mugen-prog';
 export const MAXLV = 50, TIERS = [10, 20, 30, 40, 50];
-export const DAILY = [{ c: 100 }, { c: 150 }, { c: 200 }, { c: 250, g: 2 }, { c: 300 }, { c: 400, g: 3 }, { c: 600, g: 10 }];
+export const DAILY = [{ c: 100 }, { c: 150 }, { c: 200 }, { c: 250, g: 10 }, { c: 300 }, { c: 400, g: 15 }, { c: 600, g: 40 }];
 export const FRAG_COINS = 15, GEM_COINS = 40;   // un fragment en trop vaut 15 pièces ; 1 germe = 40 pièces
 export const FRAG_PRICE = { E: 20, D: 30, C: 45, B: 70, A: 100, AA: 150 };   // prix d'un fragment en germes (S et SS : jamais vendus)
 const DEF = () => ({ coins: 300, gems: 5, lvl: {}, open: {}, frag: {}, won: {}, boxes: 0, day: 0, last: '' });
@@ -47,8 +47,8 @@ export const prog = {
   cost: (id) => 80 + prog.level(id) * 40,
   upgrade(id) { const c = prog.cost(id); if (prog.level(id) >= MAXLV || P.coins < c) return false; P.coins -= c; P.lvl[id] = prog.level(id) + 1; store(); return true; },
   add(c = 0, g = 0) { P.coins += c; P.gems += g; store(); },
-  // gains de fin de combat (germes : un coffre ×3 à 250 s'obtient en 2 à 3 séances de jeu)
-  reward(win, big) { const c = win ? (big ? 150 : 60) : 20, g = win ? (big ? 12 : 5) : 0;  prog.add(c, g); return { c, g }; },
+  // gains de fin de combat (germes : 12 par victoire, 30 en finale ; ~5 victoires = 60 germes, un coffre ×3 à 250 en 3 à 4 séances, moins avec les étoiles et le cadeau quotidien : 65 par semaine)
+  reward(win, big) { const c = win ? (big ? 150 : 60) : 20, g = win ? (big ? 30 : 12) : 0;  prog.add(c, g); return { c, g }; },
   // cadeau quotidien : série sur 7 jours (la série repart de zéro si un jour est manqué)
   daily() {
     if (P.last !== today() && P.last !== yesterday() && P.last !== '') P.day = 0;

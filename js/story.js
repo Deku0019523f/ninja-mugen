@@ -35,7 +35,7 @@ export const story = {
     const stars = win ? 1 + objs.filter(Boolean).length : 0, prev = story.stars(d, i);
     let c = 0, g = 0;
     if (stars > prev) {
-      c = (stars - prev) * 40 * (n.boss ? 2 : 1); if (stars === 3) g = 2;
+      c = (stars - prev) * 40 * (n.boss ? 2 : 1); if (stars === 3) g = 6;
       (D.s['d' + d] = D.s['d' + d] || [])[i] = stars; store();
     }
     return { win, stars, objs, newStars: Math.max(0, stars - prev), c, g, next: win && i + 1 < NODES.length };
