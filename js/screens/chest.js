@@ -25,10 +25,11 @@ const CSS = `.chs{position:absolute;inset:0;display:flex;flex-direction:column;a
 .cd .tx{font-size:9px;font-weight:800;margin-bottom:2px}
 .cd .nw{position:absolute;right:-2px;top:-2px;background:#e8342a;color:#fff;font-size:10px;font-weight:900;padding:2px 5px;border-radius:6px;transform:rotate(8deg)}
 .cd.lost{opacity:.35;filter:grayscale(.7)}.cd.pk{outline:3px solid #6df;border-radius:12px}
+.chs.x10{gap:4px}.x10 .chs-row{max-height:none;gap:6px;padding:2px}.x10 .cd{width:96px;height:118px}.x10 .cd .f canvas{width:46px;height:46px}.x10 .cd .f b{font-size:11px}.x10 .cd .f .n{font-size:15px}.x10 .cd .f small{display:none}
 .chs-ok{padding:8px 26px;border-radius:10px;border:2px solid #f3b61f;background:linear-gradient(#e8a21a,#a35d0c);color:#fff;font:800 16px var(--f-ui,sans-serif);cursor:pointer;-webkit-text-stroke:2px #1a0f05;paint-order:stroke fill}`;
 
 export default function sChest(d) {
-  const cards = d.cards, all = d.mode === 'all', root = el('div', 'chs');
+  const cards = d.cards, all = d.mode === 'all', root = el('div', 'chs' + (all ? ' x10' : ''));
   const st = document.createElement('style'); st.textContent = CSS; root.appendChild(st);
   const h = el('h2', '', d.title || 'COFFRE'), sub = el('p', '', all ? 'Touche une carte pour la retourner (ou OUVRIR TOUT).' : 'Choisis UNE carte : elle te donne ses fragments.');
   const row = el('div', 'chs-row'), ok = el('button', 'chs-ok', all ? 'OUVRIR TOUT' : '…'); ok.style.display = all ? '' : 'none';
