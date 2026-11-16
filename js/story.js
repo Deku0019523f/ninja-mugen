@@ -33,6 +33,9 @@ export const story = {
   diffLevel: (d, i) => Math.min(5, DIFFS[d].base + Math.floor(i / 4)),
   sum: () => story.total(0) + story.total(1),
   miles() { const t = story.sum(), got = D.m || []; return MILES.map((m, i) => ({ ...m, i, ok: t >= m.at, got: !!got[i] })); },
+  // coffre de chapitre : 5 niveaux terminés (au moins 1 étoile), à récupérer une seule fois
+  chest(ch) { const d = ch >> 1, k = (ch & 1) * 5, ok = [0, 1, 2, 3, 4].every((j) => story.cleared(d, k + j)); return { ok, got: !!(D.k || [])[ch], c: 150 + 100 * ch, g: 4 + 2 * ch }; },
+  claimChest(ch) { const r = story.chest(ch); if (!r.ok || r.got) return null; (D.k = D.k || [])[ch] = 1; store(); return r; },
   claimMile(i) { const m = story.miles()[i]; if (!m || !m.ok || m.got) return null; (D.m = D.m || [])[i] = 1; store(); return m; },
   // fin d'un combat : calcule les étoiles, enregistre le meilleur résultat, renvoie les gains bonus
   finish(d, i, res) {
