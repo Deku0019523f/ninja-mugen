@@ -20,6 +20,8 @@ let D = { s: {} };       // s['d0'] = [étoiles par nœud]
 try { D = Object.assign(D, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* ignore */ }
 // ancienne sauvegarde à 3 difficultés (Facile, Normal, Difficile) : Facile disparaît, Normal et Difficile se décalent
 if (!D.v) { const o = D.s || {}; D.s = {}; if (o.d1) D.s.d0 = o.d1; if (o.d2) D.s.d1 = o.d2; D.v = 2; try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { /* ignore */ } }
+// paliers d'étoiles (total Normal + Difficile, 60 max) : récompenses gratuites, à récupérer une seule fois
+export const MILES = [{ at: 10, c: 300 }, { at: 20, g: 8 }, { at: 30, c: 600 }, { at: 40, g: 12 }, { at: 50, c: 800, g: 10 }, { at: 60, c: 1000, g: 25 }];
 const store = () => { try { localStorage.setItem(KEY, JSON.stringify(D)); } catch (e) { /* ignore */ } };
 
 export const story = {
@@ -29,6 +31,9 @@ export const story = {
   nodeOpen: (d, i) => story.diffOpen(d) && (i === 0 || story.cleared(d, i - 1)),
   diffOpen: (d) => d === 0 || story.cleared(d - 1, NODES.length - 1),
   diffLevel: (d, i) => Math.min(5, DIFFS[d].base + Math.floor(i / 4)),
+  sum: () => story.total(0) + story.total(1),
+  miles() { const t = story.sum(), got = D.m || []; return MILES.map((m, i) => ({ ...m, i, ok: t >= m.at, got: !!got[i] })); },
+  claimMile(i) { const m = story.miles()[i]; if (!m || !m.ok || m.got) return null; (D.m = D.m || [])[i] = 1; store(); return m; },
   // fin d'un combat : calcule les étoiles, enregistre le meilleur résultat, renvoie les gains bonus
   finish(d, i, res) {
     const n = NODES[i], win = res.winner === 0, objs = n.obj.map((o) => win && o.ok(res.stats));

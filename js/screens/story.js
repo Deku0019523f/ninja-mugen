@@ -4,9 +4,16 @@ import { ROSTER } from '../data/roster.js';
 import { drawPortrait } from '../render/sprites.js';
 import { backBtn, pills, LOCK } from '../ui/kit.js';
 import { story, NODES, DIFFS } from '../story.js';
+import { prog } from '../progress.js';
 import { sfx } from '../audio.js';
 
 const STAR = (on) => `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2l3 7 7 .6-5.4 4.8 1.7 7.4L12 17.8 5.7 21.8l1.7-7.4L2 9.6 9 9z" fill="${on ? '#ffd24a' : '#2a1a08'}" stroke="#2a1a08" stroke-width="1.6"/></svg>`;
+// paliers d'étoiles (récompenses gratuites)
+const CSS = `.st-ms{position:absolute;right:14px;top:58px;display:flex;align-items:center;gap:5px}.st-ms small{font:800 14px var(--f-ui);color:#ffd24a;-webkit-text-stroke:2px #1a0f05;paint-order:stroke fill;margin-right:4px}
+.st-m{position:relative;width:56px;padding:2px 0 3px;border-radius:5px;border:3px solid #1a0f05;background:linear-gradient(#6a4a2a,#3a2210);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:800 11px var(--f-ui)}
+.st-m b{font-size:12px;color:#ffd24a}.st-m span{display:flex;flex-direction:column;align-items:center;font-size:11px;line-height:13px}.st-m span i{display:inline-block;vertical-align:middle;margin-left:2px}.st-m .ic{width:12px;height:12px}
+.st-m.now{background:linear-gradient(#ffd24a,#d88a0a);color:#3a2410;animation:stp 1s ease-in-out infinite}.st-m.now b{color:#3a2410}
+.st-m.got{filter:grayscale(.8);opacity:.6}.st-m u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 24px var(--f-ui);color:#6cf040;-webkit-text-stroke:2px #1a4a0a;text-decoration:none}`;
 // positions des nœuds sur la carte (en % de la largeur / hauteur de la zone)
 const POS = [[6, 70], [15, 38], [25, 72], [35, 40], [45, 70], [55, 38], [65, 72], [75, 40], [85, 70], [94, 36]];
 
@@ -15,14 +22,20 @@ export default function sStory(d0) {
   if (d0 && d0.go) { diff = d0.diff; sel = d0.i; }
   const root = el('div', 'st'), top = el('div', 'kit-top'), cur = pills(() => G.go('daily'));
   top.append(backBtn(() => { sfx.back(); G.go('modes'); }), el('h2', '', 'HISTOIRE'), cur);
-  const tabs = el('div', 'st-tabs'), map = el('div', 'st-map'), card = el('div', 'st-card parch');
-  root.append(top, tabs, map, card); G.screenEl.appendChild(root);
+  const tabs = el('div', 'st-tabs'), ms = el('div', 'st-ms'), map = el('div', 'st-map'), card = el('div', 'st-card parch');
+  root.append(top, tabs, ms, map, card); const stl = document.createElement('style'); stl.textContent = CSS; root.appendChild(stl); G.screenEl.appendChild(root);
   const hero = Math.min(ROSTER.length - 1, G.S.hero || 0);
 
   function draw() {
     cur.refresh();
     tabs.innerHTML = '';
     DIFFS.forEach((df, d) => { const open = story.diffOpen(d), b = el('button', 'st-tab' + (d === diff ? ' on' : '') + (open ? '' : ' lock'), open ? `${df.n} <small>★ ${story.total(d)}/30</small>` : `<i>${LOCK}</i>${df.n}`); b.onclick = () => { if (!open) { sfx.back(); return; } diff = d; sel = 0; sfx.ui(); draw(); }; tabs.appendChild(b); });
+    ms.innerHTML = `<small>★ ${story.sum()}/60</small>`;
+    story.miles().forEach((m) => {
+      const b = el('button', 'st-m' + (m.got ? ' got' : m.ok ? ' now' : ''), `<b>${m.at}★</b><span>${m.c ? `${m.c}<i class="ic gold"></i>` : ''}${m.g ? `${m.g}<i class="ic gem"></i>` : ''}</span>${m.got ? '<u>✔</u>' : ''}`);
+      b.onclick = () => { if (m.ok && !m.got) { const r = story.claimMile(m.i); if (r) { prog.add(r.c || 0, r.g || 0); sfx.win(); draw(); } } else sfx.back(); };
+      ms.appendChild(b);
+    });
     map.innerHTML = '<svg class="st-path" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="' + POS.map(([x, y]) => `${x},${y}`).join(' ') + '"/></svg>';
     NODES.forEach((n) => {
       const open = story.nodeOpen(diff, n.i), s = story.stars(diff, n.i), b = el('button', 'st-n' + (n.boss ? ' boss' : '') + (n.i === sel ? ' sel' : '') + (open ? '' : ' lock') + (s ? ' done' : ''));
