@@ -61,7 +61,7 @@ G.launch = () => {
   const run = G.run;
   screenEl.innerHTML = ''; G.ticker = null; G.handler = null; screen = 'fight';
   shell.setScreen('fight'); hudEl.style.display = 'block'; backBtn.style.display = 'none'; pauseBtn.style.display = 'block'; if (isTouch()) touchEl.style.display = 'block';
-  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: !run.net && G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2, seed: run.seed, net: run.net ? G.net : null, boost: !run.net && run.vs !== 'p2' && run.mode !== 'training' ? run.p1.map((id) => prog.stats(id)) : null };
+  const cfg = { mode: run.mode, fmt: run.fmt, vs: run.vs, diff: run.curDiff || run.diff, timer: run.timer, need: run.need, p1: run.p1, p2: run.p2, stage: run.stage, carry: run.carry, sup: !run.net && G.S.sup !== false && run.fmt === 1, sup1: run.sup1, sup2: run.sup2, pre: run.pre, seed: run.seed, net: run.net ? G.net : null, boost: !run.net && run.vs !== 'p2' && run.mode !== 'training' ? run.p1.map((id) => prog.stats(id)) : null };
   if (!run.net && run.p1 && run.p1.length) { G.S.hero = run.p1[0]; save(); }
   if (match) match.destroy();
   match = new Match(cfg, view, hud, onMatchEnd); hud.built = false;

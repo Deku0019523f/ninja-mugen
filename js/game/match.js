@@ -29,6 +29,11 @@ export class Match {
     if (cfg.mode === 'training') { this.world.fighters[0].infiniteChi = true; }
     // énergie : 150 pour le joueur, le double (300) pour les adversaires de l'IA en solo (pas en ligne, ni contre un ami, ni à l'entraînement)
     if (cfg.vs === 'cpu' && !cfg.net && cfg.mode !== 'training') for (const f of this.world.team(1)) f.maxChi = 300;
+    if (cfg.pre && cfg.mode === 'story') this.world.team(0).forEach((f) => {   // bonus avant combat (Histoire) : +50 % dégâts / +50 % PV / jauge pleine
+      if (cfg.pre === 'hp') { f.maxHp = Math.round(f.maxHp * 1.5); f.hp = f.maxHp; }
+      else if (cfg.pre === 'dmg') f.lv = Object.assign({ hp: 1, atk: 1, crit: 0, lvl: 99 }, f.lv, { atk: ((f.lv && f.lv.atk) || 1) * 1.5 });
+      else if (cfg.pre === 'chi') f.chi = f.maxChi;
+    });
     if (cfg.carry) cfg.carry.forEach((hp, i) => { if (this.world.fighters[i] && hp != null) this.world.fighters[i].hp = Math.max(1, hp); });
     view.setStage(cfg.stage); view.setFighters(this.world); view.camX = 0;
     this.keepHp = !!cfg.carry; this.drawCount = 0; this.ff = 0; this.maxChain = 0;   // statistiques pour les objectifs bonus
