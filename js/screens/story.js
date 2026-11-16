@@ -13,7 +13,14 @@ const CSS = `.st-ms{position:absolute;right:14px;top:58px;display:flex;align-ite
 .st-m{position:relative;width:56px;padding:2px 0 3px;border-radius:5px;border:3px solid #1a0f05;background:linear-gradient(#6a4a2a,#3a2210);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:800 11px var(--f-ui)}
 .st-m b{font-size:12px;color:#ffd24a}.st-m span{display:flex;flex-direction:column;align-items:center;font-size:11px;line-height:13px}.st-m span i{display:inline-block;vertical-align:middle;margin-left:2px}.st-m .ic{width:12px;height:12px}
 .st-m.now{background:linear-gradient(#ffd24a,#d88a0a);color:#3a2410;animation:stp 1s ease-in-out infinite}.st-m.now b{color:#3a2410}
-.st-m.got{filter:grayscale(.8);opacity:.6}.st-m u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 24px var(--f-ui);color:#6cf040;-webkit-text-stroke:2px #1a4a0a;text-decoration:none}`;
+.st-m.got{filter:grayscale(.8);opacity:.6}.st-m u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 24px var(--f-ui);color:#6cf040;-webkit-text-stroke:2px #1a4a0a;text-decoration:none}
+.st-hw{position:absolute;left:3%;right:3%;top:112px;height:196px;pointer-events:none;overflow:visible}
+.st-hero{position:absolute;width:46px;height:46px;margin:-78px 0 0 -23px;transition:left .45s cubic-bezier(.3,1.4,.5,1),top .45s cubic-bezier(.3,1.4,.5,1);z-index:3;filter:drop-shadow(0 3px 2px #000a);animation:sthop 1s ease-in-out infinite}
+@keyframes sthop{50%{transform:translateY(-5px)}}
+.st-n.sel::before{content:'';position:absolute;inset:-9px;border-radius:50%;border:3px solid #ffd24a;animation:string 1.2s ease-out infinite;pointer-events:none}
+@keyframes string{0%{transform:scale(.85);opacity:1}100%{transform:scale(1.35);opacity:0}}
+.st-ff{position:absolute;width:5px;height:5px;border-radius:50%;background:#ffe9a0;box-shadow:0 0 8px 3px #ffd24a99;opacity:0;animation:stff 6s ease-in-out infinite}
+@keyframes stff{0%,100%{opacity:0;transform:translate(0,0)}30%,70%{opacity:.9}50%{transform:translate(14px,-22px)}}`;
 // positions des nœuds sur la carte (en % de la largeur / hauteur de la zone)
 const POS = [[6, 70], [15, 38], [25, 72], [35, 40], [45, 70], [55, 38], [65, 72], [75, 40], [85, 70], [94, 36]];
 
@@ -23,7 +30,9 @@ export default function sStory(d0) {
   const root = el('div', 'st'), top = el('div', 'kit-top'), cur = pills(() => G.go('daily'));
   top.append(backBtn(() => { sfx.back(); G.go('modes'); }), el('h2', '', 'HISTOIRE'), cur);
   const tabs = el('div', 'st-tabs'), ms = el('div', 'st-ms'), map = el('div', 'st-map'), card = el('div', 'st-card parch');
-  root.append(top, tabs, ms, map, card); const stl = document.createElement('style'); stl.textContent = CSS; root.appendChild(stl); G.screenEl.appendChild(root);
+  root.append(top, tabs, ms, map, card); const stl = document.createElement('style'); stl.textContent = CSS; root.appendChild(stl); const hw = el('div', 'st-hw'), hcv = el('canvas', 'st-hero'); hcv.width = hcv.height = 46; hw.appendChild(hcv); root.appendChild(hw);
+  for (let k = 0; k < 14; k++) { const f = el('i', 'st-ff'); f.style.cssText = `left:${(k * 37 + 5) % 100}%;top:${(k * 53 + 10) % 90}%;animation-delay:${(k * 0.7) % 6}s`; hw.appendChild(f); }
+  G.screenEl.appendChild(root);
   const hero = Math.min(ROSTER.length - 1, G.S.hero || 0);
 
   function draw() {
@@ -48,6 +57,8 @@ export default function sStory(d0) {
       <ul><li class="${s ? 'ok' : ''}"><i>${STAR(s >= 1)}</i>Remporter le combat</li>${n.obj.map((o, k) => `<li class="${s > k + 1 ? 'ok' : ''}"><i>${STAR(s > k + 1)}</i>${o.t}</li>`).join('')}</ul></div>
       <div class="sc-r"><small>Récompense par étoile</small><b>${n.boss ? 80 : 40}<i class="ic gold"></i></b></div><button class="next">${open ? 'COMBATTRE' : 'VERROUILLÉ'}</button>`;
     drawPortrait(card.querySelector('canvas').getContext('2d'), ROSTER[n.opp], 72);
+    if (!hcv.dataset.d) { hcv.dataset.d = 1; drawPortrait(hcv.getContext('2d'), ROSTER[hero], 46); }
+    hcv.style.left = POS[sel][0] + '%'; hcv.style.top = POS[sel][1] + '%';
     const bt = card.querySelector('.next'); bt.classList.toggle('dis', !open); bt.onclick = fight;
   }
   function fight() {
