@@ -31,7 +31,14 @@ Barre de navigation permanente (ACCUEIL · ROSTER · RÈGLES · DÉCORS · TOUCH
 - **Énergie** : une barre unique (150 pour le joueur, 300 pour l'IA en solo). Dash 30 · Lancer 25 · Super 1 50 · Super 2 100 (débloqué au niveau 10 du héros). Bouton Charge pour se recharger.
 - **Rangs** : chaque personnage a un rang fixe de E à SS. Au départ, seul Kaito Apprenti (E) est débloqué.
 - **Cartes et fragments** : la 1re victoire de chaque niveau d'Histoire (Normal et Difficile) ouvre un coffre de 3 cartes, on en choisit 1. Une victoire de Tournoi donne un coffre S / SS. Un héros se débloque avec 10 à 30 fragments selon son rang ; les fragments en trop donnent des pièces.
-- **Boutique** (germes gagnés en jouant, jamais d'argent réel) : coffre ×3 = 250 germes, coffre ×10 = 700 germes (on garde les 10 cartes), germes → pièces, achat de fragments (rangs E à AA).
+- **Boutique** (germes gagnés en jouant, jamais d'argent réel, ni pub, ni roue chanceuse) : onglets OFFRES (6 fragments tirés chaque jour, 1re carte gratuite) · COFFRES (×3 = 250 germes, ×10 = 700, on garde les 10 cartes) · PIÈCES · FRAGMENTS (rangs E à AA), confirmation avant achat.
+
+## Fenêtres, quêtes et Histoire
+
+- **Fenêtres à onglets** (`js/ui/win.js`, `tabWindow`) : CADEAU (connexion quotidienne + récompense en ligne), QUÊTES / SUCCÈS (quêtes du jour, points, paliers, succès), RÉGLAGES (nom, son, musique, langue), BOUTIQUE.
+- **Histoire en 4 chapitres** (carte avec décor, héros qui saute de niveau en niveau, lucioles) ; 10 niveaux Normal puis Difficile, boss aux niveaux 5 et 10. Étoiles cumulées : paliers à 10 / 20 / 30 / 40 / 50 / 60 ★ avec récompense.
+- Écran de résultat : étoiles qui s'allument une à une, pluie de pièces et de germes.
+- Sauvegardes locales : `ninja-mugen-prog`, `-quests`, `-story`, `-offers`.
 
 ## Multijoueur local (Android)
 
