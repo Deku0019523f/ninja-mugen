@@ -66,13 +66,13 @@ Voir `plan.md`. Multijoueur : test sur de vrais téléphones, 2v2 / soutiens en 
 Aucune.
 
 ## État actuel
-Jouable. Feuille de route n°1 faite ; feuille de route n°2 (plan.md) faite sauf le parcours de captures 8.2 et la partie 9 (idées non validées). Multijoueur : noyau réseau testé sur transport simulé, plugin Android **non compilé ni testé sur téléphone**. Pour GitHub Pages, vider le cache (CSS / JS versionnés par `?v=`).
+Jouable. Feuille de route n°1 faite ; feuille de route n°2 (plan.md) faite ; partie 9 en grande partie faite (fenêtres, quêtes, boutique, chapitres, paliers d'étoiles, animations). Multijoueur : noyau réseau testé sur transport simulé, plugin Android **non compilé ni testé sur téléphone**. Pour GitHub Pages, vider le cache (CSS / JS versionnés par `?v=`).
 
 ## Prochaines étapes
 - Vérifier sur appareil l'habillage tactile en plein combat, les écrans Héros / sélection / Boutique / coffres
 - Ajuster les valeurs chiffrées (germes, prix, fragments, probabilités) après quelques parties réelles
 - Suivre `docs/MULTIJOUEUR.md` pour créer l'APK Capacitor et tester sur deux téléphones
-- Partie 9 de `plan.md` (carte de campagne, étoiles, animations) : à valider avant de coder
+- Partie 9 restante : barre de ressources unifiée (9.1.4), popups harmonisés (9.1.5), bonus avant combat (9.2.2), niveaux de boss (9.2.3), coffres sur la carte (9.3.2)
 
 ## Feuille de route n°2 (2026-11-14 / 15) : énergie, commandes, cartes, boutique
 - **Modes** : Duel, Arcade, Survie et difficulté Facile retirés ; multijoueur uniquement par le bouton PvP.
@@ -85,3 +85,11 @@ Jouable. Feuille de route n°1 faite ; feuille de route n°2 (plan.md) faite sau
 - **Germes** : 12 par victoire (30 en finale), 6 pour 3 étoiles en Histoire, cadeau quotidien 10 / 15 / 40 aux jours 4 / 6 / 7. Valeurs de départ à ajuster au jeu réel.
 - **Tests** : `test/cards.mjs` (rangs, migration, raretés, fragments, 1re victoire, soldes de boutique), intégré à `npm test`.
 - **Reste** : vérification sur appareil de l'habillage tactile en plein combat ; parcours complet par captures ; partie 9 de `plan.md` (idées, non validées).
+
+## Feuille de route n°2, partie 9 (2026-11-15 / 16) : fenêtres, quêtes, Histoire
+- **Fenêtres** refaites à onglets (`tabWindow`, `rw` = récompenses `.wr`) : Cadeau, Quêtes/Succès, Réglages, Boutique. Dessins originaux, aucun élément copié.
+- **Quêtes** (`js/quests.js`, clé `ninja-mugen-quests`) : suivi combat / victoire / histoire / coffre / amélioration / super, points, paliers, succès, récompense en ligne.
+- **Boutique** (`js/screens/shop.js`) : offres quotidiennes tirées par graine (6 fragments), 1re carte gratuite, coffres 250 / 700 germes, réinitialisation 250. Pas de pub, roue chanceuse, offre limitée ni argent réel.
+- **Histoire** (`js/story.js`, `js/screens/story.js`) : 4 chapitres (ruelle, boulevard néon, taverne, crépuscule étoilé), `story.sum()` / `story.miles()` / `story.claimMile(i)` (paliers 10-60 ★, test `test/story-miles.mjs`), héros animé sur la carte, résultat animé (`celebrate` dans `result.js`).
+- **Vérification finale** : 16 tests node OK ; parcours navigateur automatisé (titre, histoire, boutique, héros, quêtes, cadeau) sans erreur JS.
+- **À confirmer** : boutons tactiles signalés comme « ne répondant pas » (non reproduit : vider le cache, préciser appareil / navigateur).
