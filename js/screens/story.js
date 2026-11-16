@@ -10,8 +10,8 @@ import { sfx } from '../audio.js';
 const STAR = (on) => `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2l3 7 7 .6-5.4 4.8 1.7 7.4L12 17.8 5.7 21.8l1.7-7.4L2 9.6 9 9z" fill="${on ? '#ffd24a' : '#2a1a08'}" stroke="#2a1a08" stroke-width="1.6"/></svg>`;
 // paliers d'étoiles (récompenses gratuites)
 const CSS = `.st-ms{position:absolute;right:14px;top:58px;display:flex;align-items:center;gap:5px}.st-ms small{font:800 14px var(--f-ui);color:#ffd24a;-webkit-text-stroke:2px #1a0f05;paint-order:stroke fill;margin-right:4px}
-.st-m{position:relative;width:56px;padding:2px 0 3px;border-radius:5px;border:3px solid #1a0f05;background:linear-gradient(#6a4a2a,#3a2210);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:800 11px var(--f-ui)}
-.st-m b{font-size:12px;color:#ffd24a}.st-m span{display:flex;flex-direction:column;align-items:center;font-size:11px;line-height:13px}.st-m span i{display:inline-block;vertical-align:middle;margin-left:2px}.st-m .ic{width:12px;height:12px}
+.st-m{position:relative;width:62px;padding:2px 0 3px;border-radius:5px;border:3px solid #1a0f05;background:linear-gradient(#6a4a2a,#3a2210);color:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:800 11px var(--f-ui)}
+.st-m b{font-size:12px;color:#ffd24a}.st-m span{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:3px;font-size:10px;line-height:13px;white-space:nowrap}.st-m span i{display:inline-block;vertical-align:middle;margin-left:2px}.st-m .ic{width:11px;height:11px;margin-left:-1px}
 .st-m.now{background:linear-gradient(#ffd24a,#d88a0a);color:#3a2410;animation:stp 1s ease-in-out infinite}.st-m.now b{color:#3a2410}
 .st-m.got{filter:grayscale(.8);opacity:.6}.st-m u{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 24px var(--f-ui);color:#6cf040;-webkit-text-stroke:2px #1a4a0a;text-decoration:none}
 .st-hw{position:absolute;left:3%;right:3%;top:112px;height:196px;pointer-events:none;overflow:visible}
@@ -22,7 +22,16 @@ const CSS = `.st-ms{position:absolute;right:14px;top:58px;display:flex;align-ite
 .st-ff{position:absolute;width:5px;height:5px;border-radius:50%;background:#ffe9a0;box-shadow:0 0 8px 3px #ffd24a99;opacity:0;animation:stff 6s ease-in-out infinite}
 @keyframes stff{0%,100%{opacity:0;transform:translate(0,0)}30%,70%{opacity:.9}50%{transform:translate(14px,-22px)}}`;
 // positions des nœuds sur la carte (en % de la largeur / hauteur de la zone)
-const POS = [[6, 70], [15, 38], [25, 72], [35, 40], [45, 70], [55, 38], [65, 72], [75, 40], [85, 70], [94, 36]];
+const POS = [[10, 68], [30, 34], [50, 70], [70, 36], [90, 62]];     // 5 nœuds par chapitre (le dernier chapitre de chaque difficulté finit par un boss)
+// 4 chapitres : 2 par difficulté, un décor (ciel) chacun
+const CH = [{ d: 0, k: 0, name: 'RUELLE DES CONTENEURS', img: 'city1' }, { d: 0, k: 1, name: 'BOULEVARD NÉON', img: 'city3' }, { d: 1, k: 0, name: 'RUE DE LA TAVERNE', img: 'city2' }, { d: 1, k: 1, name: 'CRÉPUSCULE ÉTOILÉ', img: 'ocean5' }];
+const chOpen = (c) => story.nodeOpen(CH[c].d, CH[c].k * 5);
+const chStars = (c) => { let t = 0; for (let i = 0; i < 5; i++) t += story.stars(CH[c].d, CH[c].k * 5 + i); return t; };
+const CSS2 = `.st-tab.ch{height:40px;padding:0 8px;font-size:13px;line-height:14px;text-align:left;position:relative}.st-tab.ch small{display:block;margin:0;font-size:11px}
+.st-tab.ch.on::after{content:'';position:absolute;inset:-6px;border-radius:8px;border:3px solid #ffd24a;animation:string 1.4s ease-out infinite;pointer-events:none}
+.st-tabs{gap:6px}.st-map{border-radius:10px;border:3px solid #1a0f05;box-shadow:0 0 0 2px #8a5a22 inset;background-size:cover!important}.st-map.lockc{filter:grayscale(.9) brightness(.7)}
+.st-cap{position:absolute;left:12px;top:8px;font:900 16px var(--f-ui);color:#fff;-webkit-text-stroke:3px #1a0f05;paint-order:stroke fill;letter-spacing:1px;pointer-events:none}
+.st-warn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:8px 18px;border-radius:8px;background:#000d;color:#fff;font:800 15px var(--f-ui);z-index:6;pointer-events:none}`;
 
 export default function sStory(d0) {
   let diff = G.run && G.run.mode === 'story' ? G.run.sd : 0, sel = G.run && G.run.mode === 'story' ? G.run.si : 0;
@@ -30,7 +39,7 @@ export default function sStory(d0) {
   const root = el('div', 'st'), top = el('div', 'kit-top'), cur = pills(() => G.go('daily'));
   top.append(backBtn(() => { sfx.back(); G.go('modes'); }), el('h2', '', 'HISTOIRE'), cur);
   const tabs = el('div', 'st-tabs'), ms = el('div', 'st-ms'), map = el('div', 'st-map'), card = el('div', 'st-card parch');
-  root.append(top, tabs, ms, map, card); const stl = document.createElement('style'); stl.textContent = CSS; root.appendChild(stl); const hw = el('div', 'st-hw'), hcv = el('canvas', 'st-hero'); hcv.width = hcv.height = 46; hw.appendChild(hcv); root.appendChild(hw);
+  root.append(top, tabs, ms, map, card); const stl = document.createElement('style'); stl.textContent = CSS + CSS2; root.appendChild(stl); const hw = el('div', 'st-hw'), hcv = el('canvas', 'st-hero'); hcv.width = hcv.height = 46; hw.appendChild(hcv); root.appendChild(hw);
   for (let k = 0; k < 14; k++) { const f = el('i', 'st-ff'); f.style.cssText = `left:${(k * 37 + 5) % 100}%;top:${(k * 53 + 10) % 90}%;animation-delay:${(k * 0.7) % 6}s`; hw.appendChild(f); }
   G.screenEl.appendChild(root);
   const hero = Math.min(ROSTER.length - 1, G.S.hero || 0);
@@ -38,17 +47,20 @@ export default function sStory(d0) {
   function draw() {
     cur.refresh();
     tabs.innerHTML = '';
-    DIFFS.forEach((df, d) => { const open = story.diffOpen(d), b = el('button', 'st-tab' + (d === diff ? ' on' : '') + (open ? '' : ' lock'), open ? `${df.n} <small>★ ${story.total(d)}/30</small>` : `<i>${LOCK}</i>${df.n}`); b.onclick = () => { if (!open) { sfx.back(); return; } diff = d; sel = 0; sfx.ui(); draw(); }; tabs.appendChild(b); });
+    const cc = diff * 2 + (sel >= 5 ? 1 : 0), base = (cc % 2) * 5;
+    CH.forEach((c, i) => { const open = chOpen(i), b = el('button', 'st-tab ch' + (i === cc ? ' on' : '') + (open ? '' : ' lock'), open ? `CH.${i + 1} ${DIFFS[c.d].n.slice(0, 4)}.<small>★ ${chStars(i)}/15</small>` : `<i>${LOCK}</i>CH.${i + 1}<small>${DIFFS[c.d].n.slice(0, 4)}.</small>`);
+      b.onclick = () => { if (!open) { sfx.back(); const w = el('div', 'st-warn', 'Termine le chapitre précédent'); root.appendChild(w); setTimeout(() => w.remove(), 1600); return; } diff = c.d; sel = c.k * 5; for (let k = 0; k < 5; k++) if (story.nodeOpen(diff, c.k * 5 + k) && !story.cleared(diff, c.k * 5 + k)) { sel = c.k * 5 + k; break; } sfx.ui(); draw(); }; tabs.appendChild(b); });
     ms.innerHTML = `<small>★ ${story.sum()}/60</small>`;
     story.miles().forEach((m) => {
       const b = el('button', 'st-m' + (m.got ? ' got' : m.ok ? ' now' : ''), `<b>${m.at}★</b><span>${m.c ? `${m.c}<i class="ic gold"></i>` : ''}${m.g ? `${m.g}<i class="ic gem"></i>` : ''}</span>${m.got ? '<u>✔</u>' : ''}`);
       b.onclick = () => { if (m.ok && !m.got) { const r = story.claimMile(m.i); if (r) { prog.add(r.c || 0, r.g || 0); sfx.win(); draw(); } } else sfx.back(); };
       ms.appendChild(b);
     });
-    map.innerHTML = '<svg class="st-path" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="' + POS.map(([x, y]) => `${x},${y}`).join(' ') + '"/></svg>';
-    NODES.forEach((n) => {
+    map.style.background = `linear-gradient(#0006,#000a),url(assets/stages/${CH[cc].img}_sky.png) center/cover`; map.classList.toggle('lockc', !chOpen(cc));
+    map.innerHTML = `<div class="st-cap">${CH[cc].name}</div>` + '<svg class="st-path" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="' + POS.map(([x, y]) => `${x},${y}`).join(' ') + '"/></svg>';
+    NODES.slice(base, base + 5).forEach((n) => {
       const open = story.nodeOpen(diff, n.i), s = story.stars(diff, n.i), b = el('button', 'st-n' + (n.boss ? ' boss' : '') + (n.i === sel ? ' sel' : '') + (open ? '' : ' lock') + (s ? ' done' : ''));
-      b.style.left = POS[n.i][0] + '%'; b.style.top = POS[n.i][1] + '%';
+      b.style.left = POS[n.i - base][0] + '%'; b.style.top = POS[n.i - base][1] + '%';
       b.innerHTML = open ? `<em>${n.boss ? '☠' : n.i + 1}</em><span>${[0, 1, 2].map((k) => STAR(k < s)).join('')}</span>` : `<em class="lk">${LOCK}</em>`;
       b.onclick = () => { sel = n.i; sfx.ui(); draw(); }; map.appendChild(b);
     });
@@ -58,7 +70,7 @@ export default function sStory(d0) {
       <div class="sc-r"><small>Récompense par étoile</small><b>${n.boss ? 80 : 40}<i class="ic gold"></i></b></div><button class="next">${open ? 'COMBATTRE' : 'VERROUILLÉ'}</button>`;
     drawPortrait(card.querySelector('canvas').getContext('2d'), ROSTER[n.opp], 72);
     if (!hcv.dataset.d) { hcv.dataset.d = 1; drawPortrait(hcv.getContext('2d'), ROSTER[hero], 46); }
-    hcv.style.left = POS[sel][0] + '%'; hcv.style.top = POS[sel][1] + '%';
+    hcv.style.left = POS[sel - base][0] + '%'; hcv.style.top = POS[sel - base][1] + '%';
     const bt = card.querySelector('.next'); bt.classList.toggle('dis', !open); bt.onclick = fight;
   }
   function fight() {
